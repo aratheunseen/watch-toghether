@@ -4,11 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SyncParty - Serverless Watch Together</title>
-    <!-- Tailwind CSS for modern mobile-friendly UI -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- PeerJS for Serverless WebRTC P2P Connections -->
     <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
-    <!-- YouTube IFrame API -->
     <script src="https://www.youtube.com/iframe_api"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
@@ -23,8 +20,11 @@
             <span class="text-2xl">🍿</span>
             <h1 class="font-bold text-lg text-indigo-400">SyncParty</h1>
         </div>
-        <div id="room-badge" class="hidden text-xs bg-indigo-950 text-indigo-300 border border-indigo-800 px-2.5 py-1 rounded-full">
-            Room: <span id="current-room-id" class="font-mono font-semibold"></span>
+        <div class="flex items-center gap-2">
+            <span id="connection-status" class="text-[10px] bg-amber-950 text-amber-300 border border-amber-800 px-2.5 py-1 rounded-full">Connecting...</span>
+            <div id="room-badge" class="hidden text-xs bg-indigo-950 text-indigo-300 border border-indigo-800 px-2.5 py-1 rounded-full">
+                Room: <span id="current-room-id" class="font-mono font-semibold"></span>
+            </div>
         </div>
     </header>
 
@@ -34,11 +34,11 @@
         <!-- Left: Video & Controls Section -->
         <section class="flex-1 flex flex-col space-y-4">
             
-            <!-- Setup / Lobby Screen -->
+            <!-- Lobby Screen -->
             <div id="lobby-card" class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col justify-center space-y-6">
                 <div class="text-center space-y-2">
                     <h2 class="text-2xl font-bold tracking-tight">Host or Join a Watch Party</h2>
-                    <p class="text-sm text-slate-400">No servers or databases required. Connect directly with friends instantly.</p>
+                    <p class="text-sm text-slate-400">No servers or databases required. Peer-to-peer synced playback.</p>
                 </div>
                 
                 <div class="space-y-4 max-w-md mx-auto w-full">
@@ -72,9 +72,7 @@
 
                 <!-- Video Player Container -->
                 <div class="relative bg-black rounded-2xl overflow-hidden aspect-video shadow-2xl border border-slate-800 flex items-center justify-center">
-                    <!-- HTML5 Direct Video Player -->
                     <video id="shared-video" controls class="w-full h-full object-contain hidden"></video>
-                    <!-- YouTube IFrame Player Target -->
                     <div id="youtube-player" class="w-full h-full hidden"></div>
                     
                     <div id="video-placeholder" class="absolute inset-0 flex flex-col items-center justify-center text-slate-500 space-y-2 bg-slate-900/80 z-10">
@@ -85,7 +83,7 @@
 
                 <!-- Room Invite Sharing -->
                 <div class="bg-slate-900 border border-slate-800 rounded-xl p-3 flex items-center justify-between text-xs">
-                    <div class="text-slate-400 truncate mr-2">Share link with friends to sync up: <span id="share-link" class="text-indigo-400 font-mono"></span></div>
+                    <div class="text-slate-400 truncate mr-2">Share link: <span id="share-link" class="text-indigo-400 font-mono"></span></div>
                     <button onclick="copyShareLink()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-1.5 rounded-lg font-medium transition shrink-0">Copy Link</button>
                 </div>
             </div>
@@ -122,9 +120,8 @@
         
         const videoElement = document.getElementById('shared-video');
         let ytPlayer = null;
-        let currentMode = null; // 'html5' or 'youtube'
+        let currentMode = null;
         let syncLock = false;
-        let pendingYouTubeId = null;
 
         window.addEventListener('load', () => {
             const savedName = localStorage.getItem('syncparty_username');
@@ -133,10 +130,7 @@
             if (hash) document.getElementById('join-room-id').value = hash;
         });
 
-        // Initialize YouTube Player API callback
-        function onYouTubeIframeAPIReady() {
-            // API ready container placeholder
-        }
+        function onYouTubeIframeAPIReady() {}
 
         function extractYouTubeId(url) {
             const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
@@ -152,11 +146,39 @@
                     localStorage.setItem('syncparty_username', myUsername);
                 }
 
-                peer = new Peer(customId, { debug: 1 });
-                peer.on('open', (id) => { myId = id; resolve(id); });
-                peer.on('error', (err) => { alert('Connection Error: ' + err.type); reject(err); });
-                peer.on('connection', (conn) => { setupConnection(conn); });
+                // PeerJS configuration with public Google STUN servers for network traversal
+                peer = new Peer(customId, {
+                    config: {
+                        'iceServers': [
+                            { urls: 'stun:stun.l.google.com:19302' },
+                            { urls: 'stun:stun1.l.google.com:19302' }
+                        ]
+                    },
+                    debug: 2
+                });
+
+                peer.on('open', (id) => {
+                    myId = id;
+                    updateConnectionBadge('Online', 'bg-emerald-950 text-emerald-300 border-emerald-800');
+                    resolve(id);
+                });
+
+                peer.on('error', (err) => {
+                    alert('Connection Error: ' + err.type);
+                    updateConnectionBadge('Error', 'bg-rose-950 text-rose-300 border-rose-800');
+                    reject(err);
+                });
+
+                peer.on('connection', (conn) => {
+                    setupConnection(conn);
+                });
             });
+        }
+
+        function updateConnectionBadge(text, cssClass) {
+            const badge = document.getElementById('connection-status');
+            badge.className = `text-[10px] border px-2.5 py-1 rounded-full ${cssClass}`;
+            badge.innerText = text;
         }
 
         async function createRoom() {
@@ -193,10 +215,19 @@
 
         function setupConnection(conn) {
             connections.push(conn);
+
             conn.on('open', () => {
-                if (!isHost) conn.send({ type: 'JOIN', username: myUsername });
+                console.log("DataConnection opened with peer:", conn.peer);
+                if (!isHost) {
+                    conn.send({ type: 'JOIN', username: myUsername });
+                }
             });
-            conn.on('data', (data) => { handleIncomingData(data, conn); });
+
+            conn.on('data', (data) => {
+                console.log("Received data:", data);
+                handleIncomingData(data, conn);
+            });
+
             conn.on('close', () => {
                 connections = connections.filter(c => c !== conn);
                 appendSystemMessage(`A user disconnected.`);
@@ -213,7 +244,9 @@
             switch (data.type) {
                 case 'JOIN':
                     if (isHost) {
-                        participants.push({ id: conn.peer, name: data.username, host: false });
+                        if (!participants.some(p => p.id === conn.peer)) {
+                            participants.push({ id: conn.peer, name: data.username, host: false });
+                        }
                         broadcast({ type: 'PARTICIPANTS', list: participants });
                         updateParticipantsUI();
                         appendSystemMessage(`${data.username} joined the room.`);
@@ -240,7 +273,6 @@
             }
         }
 
-        // --- Media Handling & Switching ---
         function changeMediaSource() {
             const url = document.getElementById('media-url-input').value.trim();
             if (!url) return;
@@ -252,28 +284,23 @@
             const ytId = extractYouTubeId(url);
 
             if (ytId) {
-                // Switch to YouTube Mode
                 currentMode = 'youtube';
                 videoElement.classList.add('hidden');
                 videoElement.pause();
                 document.getElementById('youtube-player').classList.remove('hidden');
 
                 if (!ytPlayer) {
-                    pendingYouTubeId = ytId;
                     ytPlayer = new YT.Player('youtube-player', {
                         height: '100%',
                         width: '100%',
                         videoId: ytId,
                         playerVars: { 'autoplay': 1, 'controls': 1 },
-                        events: {
-                            'onStateChange': onYTStateChange
-                        }
+                        events: { 'onStateChange': onYTStateChange }
                     });
                 } else {
                     ytPlayer.loadVideoById(ytId);
                 }
             } else {
-                // Switch to HTML5 Direct Video Mode
                 currentMode = 'html5';
                 document.getElementById('youtube-player').classList.add('hidden');
                 if (ytPlayer && ytPlayer.stopVideo) ytPlayer.stopVideo();
@@ -289,7 +316,6 @@
             }
         }
 
-        // --- Video Sync Listeners & Actions ---
         videoElement.addEventListener('play', () => {
             if (syncLock || currentMode !== 'html5') return;
             sendVideoAction('play', videoElement.currentTime);
@@ -306,11 +332,8 @@
         function onYTStateChange(event) {
             if (syncLock || currentMode !== 'youtube') return;
             const time = ytPlayer.getCurrentTime();
-            if (event.data === YT.PlayerState.PLAYING) {
-                sendVideoAction('play', time);
-            } else if (event.data === YT.PlayerState.PAUSED) {
-                sendVideoAction('pause', time);
-            }
+            if (event.data === YT.PlayerState.PLAYING) sendVideoAction('play', time);
+            else if (event.data === YT.PlayerState.PAUSED) sendVideoAction('pause', time);
         }
 
         function executeVideoAction(action, time) {
@@ -338,18 +361,21 @@
             else if (connections.length > 0) connections[0].send(payload);
         }
 
-        // --- Chat System ---
         function handleChatKey(e) { if (e.key === 'Enter') sendChatMessage(); }
+        
         function sendChatMessage() {
             const input = document.getElementById('chat-input');
             const msg = input.value.trim();
             if (!msg) return;
+            
             appendChatMessage(myUsername, msg, true);
             const payload = { type: 'CHAT', username: myUsername, message: msg };
+            
             if (isHost) broadcast(payload);
             else if (connections.length > 0) connections[0].send(payload);
             input.value = '';
         }
+
         function appendChatMessage(username, message, isSelf = false) {
             const chatBox = document.getElementById('chat-messages');
             const div = document.createElement('div');
@@ -358,6 +384,7 @@
             chatBox.appendChild(div);
             chatBox.scrollTop = chatBox.scrollHeight;
         }
+
         function appendSystemMessage(message) {
             const chatBox = document.getElementById('chat-messages');
             const div = document.createElement('div');
@@ -366,6 +393,7 @@
             chatBox.appendChild(div);
             chatBox.scrollTop = chatBox.scrollHeight;
         }
+
         function updateParticipantsUI() {
             document.getElementById('peer-count').innerText = participants.length;
             document.getElementById('participants-list').innerHTML = participants.map(p => `
@@ -374,10 +402,12 @@
                 </span>
             `).join('');
         }
+
         function copyShareLink() {
             navigator.clipboard.writeText(window.location.href);
             alert('Room link copied to clipboard!');
         }
+
         function escapeHtml(text) {
             const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
             return text.replace(/[&<>"']/g, m => map[m]);
