@@ -54,8 +54,8 @@
   <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
 
   <style>
-    .pb-safe { padding-bottom: max(0.75rem, env(safe-area-inset-bottom)); }
-    .pt-safe { padding-top: max(0.75rem, env(safe-area-inset-bottom)); }
+    .pb-safe { padding-bottom: max(1.25rem, env(safe-area-inset-bottom)); }
+    .pt-safe { padding-top: max(0.75rem, env(safe-area-inset-top)); }
     
     ::-webkit-scrollbar { width: 4px; height: 4px; }
     ::-webkit-scrollbar-track { background: transparent; }
@@ -117,13 +117,11 @@
       </div>
 
       <div class="space-y-4">
-        <!-- User Display Name -->
         <div>
           <label class="block text-xs font-medium text-slate-300 mb-1">Your Name</label>
           <input type="text" id="display-name-input" placeholder="e.g. Alex" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500" />
         </div>
 
-        <!-- Host Section with Advanced Options Dropdown -->
         <div class="space-y-2">
           <details class="group text-xs bg-slate-950/60 border border-slate-800/80 rounded-xl p-3">
             <summary class="cursor-pointer text-slate-300 font-medium list-none flex items-center justify-between select-none">
@@ -152,7 +150,6 @@
 
         <hr class="border-slate-800/80 my-2" />
 
-        <!-- Join Section with Dedicated Code & Password Input -->
         <div class="space-y-3">
           <div>
             <label class="block text-xs font-medium text-slate-300 mb-1">Room Code to Join</label>
@@ -229,8 +226,9 @@
     </div>
   </div>
 
+  <!-- RESIZABLE & SCREEN-BOUND CHAT SHEET -->
   <div id="chat-modal" onclick="handleOutsideClick(event, 'chat-modal')" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex justify-end">
-    <div class="w-full sm:max-w-md bg-slate-900 border-l border-slate-800 h-full flex flex-col justify-between shadow-2xl animate-slide-up relative overflow-hidden">
+    <div class="w-full sm:max-w-md bg-slate-900 border-l border-slate-800 h-full max-h-screen flex flex-col justify-between shadow-2xl animate-slide-up relative overflow-hidden">
       <div class="p-3 border-b border-slate-800/80 flex justify-between items-center bg-slate-900/90 shrink-0">
         <div class="flex items-center gap-2">
           <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
@@ -239,9 +237,10 @@
         <button onclick="toggleModal('chat-modal')" class="text-slate-400 hover:text-white text-base p-1">✕</button>
       </div>
 
-      <div id="chat-messages-container" class="flex-1 overflow-y-auto p-4 flex flex-col-reverse gap-2"></div>
+      <div id="chat-messages-container" class="flex-1 overflow-y-auto p-4 flex flex-col-reverse gap-2 min-h-0"></div>
 
-      <div class="p-3 border-t border-slate-800 bg-slate-900/95 pb-safe shrink-0">
+      <!-- Enhanced Comfortable Touch Send Input Bar with Extra Bottom Padding -->
+      <div class="p-4 pb-safe border-t border-slate-800 bg-slate-900/95 shrink-0">
         <form onsubmit="handleSendChatMessage(event)" class="flex gap-2.5 items-center">
           <input type="text" id="chat-input-field" placeholder="Aa" class="flex-1 bg-slate-950 border border-slate-800 rounded-full px-4 py-3 text-sm text-white focus:outline-none focus:border-indigo-500 shadow-inner" />
           <button type="submit" class="bg-indigo-600 hover:bg-indigo-500 text-white w-10 h-10 rounded-full text-sm font-bold transition active:scale-90 flex items-center justify-center shrink-0 shadow-md shadow-indigo-600/30">
@@ -385,10 +384,8 @@
       });
 
       peer.on('connection', (conn) => {
-        if (isHost) {
-          connections.push(conn);
-          setupHostConnectionHandlers(conn);
-        }
+        connections.push(conn);
+        setupPeerConnectionHandlers(conn);
       });
 
       peer.on('error', (err) => {
@@ -398,9 +395,9 @@
       });
     }
 
-    function setupHostConnectionHandlers(conn) {
+    function setupPeerConnectionHandlers(conn) {
       conn.on('data', (data) => {
-        if (data.type === 'AUTH_REQUEST') {
+        if (isHost && data.type === 'AUTH_REQUEST') {
           if (roomPassword && data.payload.password !== roomPassword) {
             conn.send({ type: 'AUTH_RESPONSE', payload: { success: false, message: 'Incorrect room password!' } });
             setTimeout(() => conn.close(), 500);
@@ -441,7 +438,7 @@
       });
 
       conn.on('close', () => {
-        showToast('Disconnected from host.', '⚠️');
+        showToast('Disconnected from party.', '⚠️');
       });
     }
 
@@ -463,21 +460,21 @@
 
         case 'REACTION':
           triggerFloatingEmoji(data.payload.emoji);
-          if (isHost) broadcast(data, conn);
+          broadcast(data, conn);
           break;
 
         case 'CHAT':
           appendChatMessage(data.payload);
-          if (isHost) broadcast(data, conn);
+          broadcast(data, conn);
           break;
 
         case 'LOAD_MEDIA':
           renderMedia(data.payload.url, data.payload.playedBy);
-          if (isHost) broadcast(data, conn);
+          broadcast(data, conn);
           break;
 
         case 'SYNC_STATE':
-          applyVideoSync(data.payload);
+          applyVideoSync(data.payload, conn);
           break;
       }
     }
@@ -486,6 +483,9 @@
       connections.forEach(conn => {
         if (conn !== excludeConn && conn.open) conn.send(data);
       });
+      if (!isHost && hostConn && hostConn !== excludeConn && hostConn.open) {
+        hostConn.send(data);
+      }
     }
 
     function setupUIForRoom() {
@@ -517,8 +517,7 @@
       renderMedia(urlInput, currentUser.name);
 
       const packet = { type: 'LOAD_MEDIA', payload };
-      if (isHost) broadcast(packet);
-      else if (hostConn) hostConn.send(packet);
+      broadcast(packet);
 
       if (!urlOverride) toggleModal('video-modal');
       document.getElementById('media-url-input').value = '';
@@ -565,7 +564,7 @@
     }
 
     function onYtPlayerStateChange(event) {
-      if (!isHost || isSyncingFromPeer) return;
+      if (isSyncingFromPeer) return;
       if (!ytPlayer || typeof ytPlayer.getCurrentTime !== 'function') return;
 
       const currentTime = ytPlayer.getCurrentTime();
@@ -593,23 +592,20 @@
 
       ['play', 'pause', 'seeked'].forEach(eventType => {
         video.addEventListener(eventType, () => {
-          if (!isHost || isSyncingFromPeer) return;
+          if (isSyncingFromPeer) return;
           const payload = { event: eventType, currentTime: video.currentTime };
           broadcast({ type: 'SYNC_STATE', payload });
         });
       });
 
-      if (isHost) {
-        syncInterval = setInterval(() => {
-          if (!video.paused) {
-            broadcast({ type: 'SYNC_STATE', payload: { event: 'progress', currentTime: video.currentTime } });
-          }
-        }, 3000);
-      }
+      syncInterval = setInterval(() => {
+        if (!video.paused) {
+          broadcast({ type: 'SYNC_STATE', payload: { event: 'progress', currentTime: video.currentTime } });
+        }
+      }, 3000);
     }
 
-    function applyVideoSync(data) {
-      if (isHost) return;
+    function applyVideoSync(data, senderConn = null) {
       isSyncingFromPeer = true;
 
       const video = document.getElementById('active-video-element');
@@ -628,6 +624,10 @@
         }
         if (data.event === 'play') ytPlayer.playVideo();
         if (data.event === 'pause') ytPlayer.pauseVideo();
+      }
+
+      if (isHost) {
+        broadcast({ type: 'SYNC_STATE', payload: data }, senderConn);
       }
 
       setTimeout(() => { isSyncingFromPeer = false; }, 300);
@@ -657,8 +657,7 @@
     function sendReaction(emoji) {
       triggerFloatingEmoji(emoji);
       const packet = { type: 'REACTION', payload: { emoji } };
-      if (isHost) broadcast(packet);
-      else if (hostConn) hostConn.send(packet);
+      broadcast(packet);
     }
 
     function triggerFloatingEmoji(emoji) {
@@ -687,8 +686,7 @@
 
       appendChatMessage(messageObj);
       const packet = { type: 'CHAT', payload: messageObj };
-      if (isHost) broadcast(packet);
-      else if (hostConn) hostConn.send(packet);
+      broadcast(packet);
 
       input.value = '';
       input.focus();
