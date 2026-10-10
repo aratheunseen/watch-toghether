@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="h-full">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
@@ -22,14 +22,14 @@
 
         /* Safe area support for iOS notch and bottom gesture bar */
         .pb-safe {
-            padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
+            padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
         }
 
         /* Floating Animation for Synced Emojis */
         @keyframes floatUp {
             0% { transform: translateY(0px) scale(0.6); opacity: 0; }
             20% { opacity: 1; transform: translateY(-30px) scale(1.1); }
-            100% { transform: translateY(-240px) scale(0.95); opacity: 0; }
+            100% { transform: translateY(-220px) scale(0.95); opacity: 0; }
         }
 
         .floating-emoji {
@@ -56,7 +56,7 @@
         }
     </style>
 </head>
-<body class="h-screen w-screen overflow-hidden flex flex-col justify-between select-none">
+<body class="h-full w-screen overflow-hidden flex flex-col justify-between select-none">
 
     <!-- Header -->
     <header class="bg-slate-900 border-b border-slate-800/80 px-3 py-2 flex items-center justify-between shrink-0 z-40">
@@ -93,8 +93,8 @@
         </div>
     </header>
 
-    <!-- Main Content Area -->
-    <main class="flex-1 w-full max-w-3xl mx-auto flex flex-col justify-start items-center overflow-hidden p-2 sm:p-3 relative">
+    <!-- Main Content Container -->
+    <main class="flex-1 w-full max-w-3xl mx-auto flex flex-col justify-between items-center overflow-hidden p-2 sm:p-3 relative min-h-0">
 
         <!-- Toast Notification Banner -->
         <div id="toast-banner" class="hidden absolute top-2 z-50 bg-indigo-600 text-white text-xs font-medium px-4 py-2 rounded-xl shadow-2xl transition transform duration-300">
@@ -102,7 +102,7 @@
         </div>
 
         <!-- LOBBY CARD SCREEN -->
-        <div id="lobby-card" class="bg-slate-900/90 border border-slate-800/90 rounded-2xl p-5 shadow-2xl flex flex-col justify-center space-y-4 max-w-sm w-full my-auto backdrop-blur-md">
+        <div id="lobby-card" class="bg-slate-900/90 border border-slate-800/90 rounded-2xl p-5 shadow-2xl flex flex-col justify-center space-y-4 max-w-sm w-full my-auto backdrop-blur-md shrink-0">
             <div class="text-center space-y-1">
                 <h2 class="text-lg font-bold tracking-tight text-white">Create or Join Party</h2>
                 <p class="text-xs text-slate-400">Watch YouTube, Facebook, Vimeo & MP4 in real-time sync.</p>
@@ -146,15 +146,10 @@
                     <button onclick="joinRoom()" class="bg-slate-800 hover:bg-slate-700 text-white px-4 py-2 rounded-xl font-semibold text-xs transition active:scale-[0.98]">Join</button>
                 </div>
             </div>
-
-            <!-- Footer Credit -->
-            <div class="text-center pt-2 border-t border-slate-800/60 text-[10px] text-slate-500">
-                &copy; <span id="footer-year">2026</span> WatchParty &bull; by Ashiqur Rahman Alif
-            </div>
         </div>
 
-        <!-- WATCHROOM SCREEN (Snaps directly under header) -->
-        <div id="room-view" class="hidden flex flex-col w-full h-full justify-between overflow-hidden">
+        <!-- WATCHROOM SCREEN -->
+        <div id="room-view" class="hidden flex flex-col w-full h-full justify-between overflow-hidden gap-1.5">
 
             <!-- Video Player Stage Container -->
             <div id="player-wrapper" class="relative bg-black rounded-2xl overflow-hidden aspect-video w-full shadow-2xl border border-slate-800 flex items-center justify-center shrink-0">
@@ -162,7 +157,7 @@
                 <div id="youtube-player" class="w-full h-full hidden"></div>
                 <iframe id="generic-iframe" class="w-full h-full hidden border-0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
                 
-                <!-- Floating Emojis Overlay Layer (Overlaid on top of video) -->
+                <!-- Floating Emojis Overlay Layer -->
                 <div id="emoji-overlay" class="absolute inset-0 pointer-events-none overflow-hidden z-20"></div>
 
                 <!-- Video Initial Placeholder -->
@@ -172,40 +167,42 @@
                 </div>
             </div>
 
-            <!-- Icon-Only Video Action Controls Bar (Snaps TIGHTLY under video player) -->
-            <div class="flex items-center justify-center gap-3 bg-slate-900/95 border border-slate-800/80 p-2 rounded-2xl shadow-xl shrink-0 mt-1">
-                <!-- Change Video Button -->
-                <button onclick="openMediaModal()" class="w-11 h-11 bg-slate-950 hover:bg-indigo-600/20 border border-slate-800 text-slate-100 rounded-xl text-base flex items-center justify-center transition active:scale-95 shadow-sm" title="Change Video">
+            <!-- Icon-Only Video Action Controls Bar -->
+            <div class="flex items-center justify-center gap-3 bg-slate-900/95 border border-slate-800/80 p-1.5 rounded-2xl shadow-xl shrink-0">
+                <button onclick="openMediaModal()" class="w-10 h-10 bg-slate-950 hover:bg-indigo-600/20 border border-slate-800 text-slate-100 rounded-xl text-base flex items-center justify-center transition active:scale-95 shadow-sm" title="Change Video">
                     🎬
                 </button>
-                
-                <!-- Video History Button -->
-                <button onclick="openHistoryModal()" class="w-11 h-11 bg-slate-950 hover:bg-indigo-600/20 border border-slate-800 text-slate-100 rounded-xl text-base flex items-center justify-center transition active:scale-95 shadow-sm" title="Media History">
+                <button onclick="openHistoryModal()" class="w-10 h-10 bg-slate-950 hover:bg-indigo-600/20 border border-slate-800 text-slate-100 rounded-xl text-base flex items-center justify-center transition active:scale-95 shadow-sm" title="Media History">
                     📜
                 </button>
-                
-                <!-- Live Chat Button with Unread Badge Count -->
-                <button onclick="openChatModal()" class="relative w-11 h-11 bg-slate-950 hover:bg-indigo-600/20 border border-slate-800 text-slate-100 rounded-xl text-base flex items-center justify-center transition active:scale-95 shadow-sm" title="Live Chat">
+                <button onclick="openChatModal()" class="relative w-10 h-10 bg-slate-950 hover:bg-indigo-600/20 border border-slate-800 text-slate-100 rounded-xl text-base flex items-center justify-center transition active:scale-95 shadow-sm" title="Live Chat">
                     💬
                     <span id="chat-badge" class="hidden absolute -top-1.5 -right-1.5 bg-rose-500 text-white text-[10px] min-w-[20px] h-[20px] px-1 rounded-full font-bold border-2 border-slate-900 flex items-center justify-center">0</span>
                 </button>
             </div>
 
-            <!-- Bottom Emoji Reaction Bar (Optimized for Mobile visibility with pb-safe & high z-index) -->
-            <div class="z-40 mt-auto pt-2 pb-safe shrink-0 w-full flex justify-center">
-                <div class="bg-slate-900/95 border border-slate-800/90 px-3 py-2 rounded-2xl shadow-2xl flex items-center justify-around max-w-md w-full backdrop-blur-md">
-                    <button onclick="sendEmoji('🍿')" class="hover:bg-slate-800/80 p-2 rounded-xl text-2xl transition transform active:scale-90" title="Popcorn">🍿</button>
-                    <button onclick="sendEmoji('🔥')" class="hover:bg-slate-800/80 p-2 rounded-xl text-2xl transition transform active:scale-90" title="Fire">🔥</button>
-                    <button onclick="sendEmoji('❤️')" class="hover:bg-slate-800/80 p-2 rounded-xl text-2xl transition transform active:scale-90" title="Heart">❤️</button>
-                    <button onclick="sendEmoji('😱')" class="hover:bg-slate-800/80 p-2 rounded-xl text-2xl transition transform active:scale-90" title="Scream (Horror)">😱</button>
-                    <button onclick="sendEmoji('🧟')" class="hover:bg-slate-800/80 p-2 rounded-xl text-2xl transition transform active:scale-90" title="Zombie (Horror)">🧟</button>
-                    <button onclick="sendEmoji('👻')" class="hover:bg-slate-800/80 p-2 rounded-xl text-2xl transition transform active:scale-90" title="Ghost (Horror)">👻</button>
-                    <button onclick="sendEmoji('👏')" class="hover:bg-slate-800/80 p-2 rounded-xl text-2xl transition transform active:scale-90" title="Clap">👏</button>
+            <!-- Bottom Emoji Reaction Bar (Locked inside frame with pb-safe) -->
+            <div class="z-40 pb-safe shrink-0 w-full flex justify-center mt-auto">
+                <div class="bg-slate-900/95 border border-slate-800/90 px-2 py-1.5 rounded-2xl shadow-2xl flex items-center justify-between max-w-md w-full backdrop-blur-md">
+                    <button onclick="sendEmoji('🍿')" class="hover:bg-slate-800/80 p-1.5 sm:p-2 rounded-xl text-xl sm:text-2xl transition transform active:scale-90" title="Popcorn">🍿</button>
+                    <button onclick="sendEmoji('🔥')" class="hover:bg-slate-800/80 p-1.5 sm:p-2 rounded-xl text-xl sm:text-2xl transition transform active:scale-90" title="Fire">🔥</button>
+                    <button onclick="sendEmoji('❤️')" class="hover:bg-slate-800/80 p-1.5 sm:p-2 rounded-xl text-xl sm:text-2xl transition transform active:scale-90" title="Heart">❤️</button>
+                    <button onclick="sendEmoji('😱')" class="hover:bg-slate-800/80 p-1.5 sm:p-2 rounded-xl text-xl sm:text-2xl transition transform active:scale-90" title="Scream (Horror)">😱</button>
+                    <button onclick="sendEmoji('🧟')" class="hover:bg-slate-800/80 p-1.5 sm:p-2 rounded-xl text-xl sm:text-2xl transition transform active:scale-90" title="Zombie (Horror)">🧟</button>
+                    <button onclick="sendEmoji('👻')" class="hover:bg-slate-800/80 p-1.5 sm:p-2 rounded-xl text-xl sm:text-2xl transition transform active:scale-90" title="Ghost (Horror)">👻</button>
+                    <button onclick="sendEmoji('👏')" class="hover:bg-slate-800/80 p-1.5 sm:p-2 rounded-xl text-xl sm:text-2xl transition transform active:scale-90" title="Clap">👏</button>
                 </div>
             </div>
 
         </div>
     </main>
+
+    <!-- Global Page Footer (Outside Lobby Box) -->
+    <footer id="global-footer" class="w-full text-center py-2 pb-safe bg-slate-950/80 border-t border-slate-900 shrink-0 z-30">
+        <p class="text-[10px] text-slate-500 font-medium">
+            &copy; <span id="footer-year">2026</span> WatchParty &bull; Created by <span class="text-indigo-400 font-semibold">Ashiqur Rahman Alif</span>
+        </p>
+    </footer>
 
     <!-- Modal: Change Video URL -->
     <div id="media-modal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
@@ -317,7 +314,7 @@
         // Generate a dynamic random code word every time clicked
         function setSuggestedCode() {
             const prefix = suggestedPrefixes[Math.floor(Math.random() * suggestedPrefixes.length)];
-            const randomNum = Math.floor(10 + Math.random() * 90); // 2-digit number
+            const randomNum = Math.floor(10 + Math.random() * 90);
             document.getElementById('custom-room-input').value = `${prefix}${randomNum}`;
         }
 
