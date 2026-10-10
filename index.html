@@ -397,6 +397,12 @@
       roomCode = joinCode;
       isHost = false;
 
+      showToast(`Connecting to room ${roomCode}...`, '⏳');
+
+      if (peer) {
+        try { peer.destroy(); } catch(e) {}
+      }
+
       const peerId = `watchparty-${roomCode}-${Math.random().toString(36).substring(2, 7)}`;
       peer = new Peer(peerId);
 
@@ -406,8 +412,10 @@
       });
 
       peer.on('error', (err) => {
-        if (err.type === 'peer-not-found') {
+        if (err.type === 'peer-not-found' || err.type === 'unavailable-id') {
           showToast('Room not found! Check your code.', '⚠️');
+        } else {
+          showToast(`Connection error: ${err.type}`, '⚠️');
         }
       });
     }
@@ -415,7 +423,7 @@
     function closePasswordPrompt() {
       document.getElementById('password-prompt-modal').classList.add('hidden');
       if (peer) {
-        peer.destroy();
+        try { peer.destroy(); } catch(e) {}
         peer = null;
       }
     }
@@ -426,10 +434,11 @@
       document.getElementById('password-prompt-modal').classList.add('hidden');
       
       if (peer) {
-        peer.destroy();
+        try { peer.destroy(); } catch(e) {}
         peer = null;
       }
       
+      showToast(`Connecting with password...`, '⏳');
       const peerId = `watchparty-${roomCode}-${Math.random().toString(36).substring(2, 7)}`;
       peer = new Peer(peerId);
       peer.on('open', (id) => {
@@ -447,6 +456,10 @@
         roomCode = customCode || `PARTY${Math.floor(10 + Math.random() * 90)}`;
         roomPassword = document.getElementById('host-password-input').value.trim();
         isHost = true;
+      }
+
+      if (peer) {
+        try { peer.destroy(); } catch(e) {}
       }
 
       const peerId = isHost ? `watchparty-${roomCode}` : `watchparty-${roomCode}-${Math.random().toString(36).substring(2, 7)}`;
@@ -470,7 +483,7 @@
       });
 
       peer.on('error', (err) => {
-        if (!isHost && err.type === 'peer-not-found') {
+        if (!isHost && (err.type === 'peer-not-found' || err.type === 'unavailable-id')) {
           showToast('Room not found! Check your code.', '⚠️');
         }
       });
@@ -516,7 +529,7 @@
               return;
             }
             showToast(data.payload.message, '⚠️');
-            peer.destroy();
+            try { peer.destroy(); } catch(e) {}
             return;
           }
           setupUIForRoom();
@@ -525,6 +538,10 @@
           return;
         }
         handleIncomingPeerData(data, conn);
+      });
+
+      conn.on('error', () => {
+        showToast('Connection failed. Host might be offline.', '⚠️');
       });
 
       conn.on('close', () => {
