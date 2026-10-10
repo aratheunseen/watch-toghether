@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SyncParty - Serverless Watch Together</title>
+    <!-- Tailwind CSS for modern mobile-friendly UI -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- PeerJS for Serverless WebRTC P2P Connections -->
+    <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col">
+
+    <!-- Header -->
+    <header class="bg-slate-900 border-b border-slate-800 px-4 py-3 flex items-center justify-between">
+        <div class="flex items-center space-x-2">
+            <span class="text-2xl">🍿</span>
+            <h1 class="font-bold text-lg text-indigo-400">SyncParty</h1>
+        </div>
+        <div id="room-badge" class="hidden text-xs bg-indigo-950 text-indigo-300 border border-indigo-800 px-2.5 py-1 rounded-full">
+            Room: <span id="current-room-id" class="font-mono font-semibold"></span>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="flex-1 max-w-6xl w-full mx-auto p-4 flex flex-col lg:flex-row gap-6">
+
+        <!-- Left: Video & Controls Section -->
+        <section class="flex-1 flex flex-col space-y-4">
+            
+            <!-- Setup / Lobby Screen -->
+            <div id="lobby-card" class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col justify-center space-y-6">
+                <div class="text-center space-y-2">
+                    <h2 class="text-2xl font-bold tracking-tight">Host or Join a Watch Party</h2>
+                    <p class="text-sm text-slate-400">No servers or databases required. Connect directly with friends instantly.</p>
+                </div>
+                
+                <div class="space-y-4 max-w-md mx-auto w-full">
+                    <div>
+                        <label class="block text-xs font-medium text-slate-400 mb-1">Your Display Name</label>
+                        <input type="text" id="username-input" placeholder="e.g. MovieBuff99" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-indigo-500">
+                    </div>
+                    <button onclick="createRoom()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-medium py-2.5 rounded-xl transition shadow-lg shadow-indigo-600/20">
+                        Create New Room
+                    </button>
+                    <div class="relative flex py-2 items-center">
+                        <div class="flex-grow border-t border-slate-800"></div>
+                        <span class="flex-shrink mx-4 text-xs text-slate-500 uppercase">Or join existing</span>
+                        <div class="flex-grow border-t border-slate-800"></div>
+                    </div>
+                    <div class="flex gap-2">
+                        <input type="text" id="join-room-id" placeholder="Enter Room ID" class="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm uppercase focus:outline-none focus:border-indigo-500 font-mono">
+                        <button onclick="joinRoom()" class="bg-slate-800 hover:bg-slate-700 text-white px-5 py-2.5 rounded-xl font-medium text-sm transition">Join</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Active Watchroom -->
+            <div id="room-view" class="hidden flex flex-col space-y-4">
+                
+                <!-- Video Source Input Bar -->
+                <div class="flex gap-2 bg-slate-900 p-3 rounded-xl border border-slate-800">
+                    <input type="text" id="media-url-input" placeholder="Paste Direct Video URL (.mp4, .webm) or YouTube link" class="flex-1 bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-indigo-500">
+                    <button onclick="changeMediaSource()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-lg text-xs font-medium transition">Load Media</button>
+                </div>
+
+                <!-- Video Player Container -->
+                <div class="relative bg-black rounded-2xl overflow-hidden aspect-video shadow-2xl border border-slate-800 flex items-center justify-center">
+                    <video id="shared-video" controls class="w-full h-full object-contain"></video>
+                    <div id="youtube-container" class="hidden w-full h-full"></div>
+                    <div id="video-placeholder" class="absolute inset-0 flex flex-col items-center justify-center text-slate-500 space-y-2 bg-slate-900/80">
+                        <span class="text-4xl">🎬</span>
+                        <p class="text-sm">No video loaded yet. Paste a link above!</p>
+                    </div>
+                </div>
+
+                <!-- Room Invite Sharing -->
+                <div class="bg-slate-900 border border-slate-800 rounded-xl p-3 flex items-center justify-between text-xs">
+                    <div class="text-slate-400 truncate mr-2">Share link with friends to sync up: <span id="share-link" class="text-indigo-400 font-mono"></span></div>
+                    <button onclick="copyShareLink()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-1.5 rounded-lg font-medium transition shrink-0">Copy Link</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Right: Chat & Participants Section -->
+        <section id="sidebar" class="hidden lg:w-80 bg-slate-900 border border-slate-800 rounded-2xl flex flex-col h-[500px] lg:h-auto shadow-xl overflow-hidden">
+            <!-- Tabs -->
+            <div class="flex border-b border-slate-800 text-xs font-medium">
+                <button class="flex-1 py-3 text-center border-b-2 border-indigo-500 text-indigo-400">Chat & Room</button>
+            </div>
+
+            <!-- Participants list -->
+            <div class="p-3 border-b border-slate-800 bg-slate-950/50">
+                <h3 class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Connected Users (<span id="peer-count">1</span>)</h3>
+                <div id="participants-list" class="flex flex-wrap gap-1.5">
+                    <!-- Dynamic Badges -->
+                </div>
+            </div>
+
+            <!-- Chat Messages -->
+            <div id="chat-messages" class="flex-1 p-3 overflow-y-auto space-y-3 text-xs flex flex-col">
+                <div class="text-center text-slate-500 my-auto">Welcome to the chat! Messages are peer-to-peer.</div>
+            </div>
+
+            <!-- Chat Input -->
+            <div class="p-3 border-t border-slate-800 bg-slate-900 flex gap-2">
+                <input type="text" id="chat-input" onkeydown="handleChatKey(event)" placeholder="Type a message..." class="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-indigo-500">
+                <button onclick="sendChatMessage()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-xl text-xs font-medium transition">Send</button>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Client Script Logic -->
+    <script>
+        let peer = null;
+        let connections = []; // Array of active DataConnections (if host) or single connection (if guest)
+        let isHost = false;
+        let myId = '';
+        let myUsername = 'User_' + Math.floor(Math.random() * 1000);
+        let participants = [];
+        
+        const videoElement = document.getElementById('shared-video');
+        let syncLock = false; // Prevents infinite loops on play/pause triggers
+
+        // Auto-fill username if remembered
+        window.addEventListener('load', () => {
+            const savedName = localStorage.getItem('syncparty_username');
+            if (savedName) document.getElementById('username-input').value = savedName;
+
+            // Check if room is specified in URL hash
+            const hash = window.location.hash.substring(1);
+            if (hash) {
+                document.getElementById('join-room-id').value = hash;
+            }
+        });
+
+        function initPeer(customId = undefined) {
+            return new Promise((resolve, reject) => {
+                const nameVal = document.getElementById('username-input').value.trim();
+                if (nameVal) {
+                    myUsername = nameVal;
+                    localStorage.setItem('syncparty_username', myUsername);
+                }
+
+                // Using PeerJS public cloud server for signaling handshake (zero backend server setup for you)
+                peer = new Peer(customId, {
+                    debug: 1
+                });
+
+                peer.on('open', (id) => {
+                    myId = id;
+                    resolve(id);
+                });
+
+                peer.on('error', (err) => {
+                    alert('Connection Error: ' + err.type);
+                    reject(err);
+                });
+
+                peer.on('connection', (conn) => {
+                    setupConnection(conn);
+                });
+            });
+        }
+
+        async function createRoom() {
+            try {
+                // Generate a short random alphanumeric room code
+                const roomId = Math.random().toString(36).substring(2, 8).toUpperCase();
+                await initPeer(roomId);
+                isHost = true;
+                
+                participants.push({ id: myId, name: myUsername, host: true });
+                enterRoomUI(roomId);
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        async function joinRoom() {
+            const roomId = document.getElementById('join-room-id').value.trim().toUpperCase();
+            if (!roomId) return alert('Please enter a valid room ID.');
+
+            try {
+                await initPeer();
+                isHost = false;
+
+                const conn = peer.connect(roomId, {
+                    metadata: { username: myUsername }
+                });
+                setupConnection(conn);
+                enterRoomUI(roomId);
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        function enterRoomUI(roomId) {
+            document.getElementById('lobby-card').classList.add('hidden');
+            document.getElementById('room-view').classList.remove('hidden');
+            document.getElementById('sidebar').classList.remove('hidden');
+            document.getElementById('room-badge').classList.remove('hidden');
+            document.getElementById('current-room-id').innerText = roomId;
+            
+            const shareUrl = window.location.origin + window.location.pathname + '#' + roomId;
+            document.getElementById('share-link').innerText = shareUrl;
+            window.location.hash = roomId;
+
+            updateParticipantsUI();
+        }
+
+        function setupConnection(conn) {
+            connections.push(conn);
+
+            conn.on('open', () => {
+                if (!isHost) {
+                    // Send join metadata
+                    conn.send({ type: 'JOIN', username: myUsername });
+                }
+            });
+
+            conn.on('data', (data) => {
+                handleIncomingData(data, conn);
+            });
+
+            conn.on('close', () => {
+                connections = connections.filter(c => c !== conn);
+                appendSystemMessage(`A user disconnected.`);
+            });
+        }
+
+        function broadcast(data, excludeConn = null) {
+            if (isHost) {
+                connections.forEach(conn => {
+                    if (conn !== excludeConn) conn.send(data);
+                });
+            }
+        }
+
+        function handleIncomingData(data, conn) {
+            switch (data.type) {
+                case 'JOIN':
+                    if (isHost) {
+                        participants.push({ id: conn.peer, name: data.username, host: false });
+                        // Broadcast updated participant list and current media state
+                        broadcast({ type: 'PARTICIPANTS', list: participants });
+                        updateParticipantsUI();
+                        appendSystemMessage(`${data.username} joined the room.`);
+                    }
+                    break;
+                case 'PARTICIPANTS':
+                    participants = data.list;
+                    updateParticipantsUI();
+                    break;
+                case 'CHAT':
+                    appendChatMessage(data.username, data.message);
+                    if (isHost) broadcast(data, conn); // Relay chat if host
+                    break;
+                case 'MEDIA_CHANGE':
+                    loadVideoSource(data.url, false);
+                    if (isHost) broadcast(data, conn);
+                    break;
+                case 'VIDEO_ACTION':
+                    syncLock = true;
+                    if (data.action === 'play') {
+                        videoElement.currentTime = data.time;
+                        videoElement.play().catch(() => {});
+                    } else if (data.action === 'pause') {
+                        videoElement.currentTime = data.time;
+                        videoElement.pause();
+                    } else if (data.action === 'seek') {
+                        videoElement.currentTime = data.time;
+                    }
+                    setTimeout(() => { syncLock = false; }, 300);
+                    if (isHost) broadcast(data, conn);
+                    break;
+            }
+        }
+
+        // --- Video Sync Controls ---
+        function changeMediaSource() {
+            const url = document.getElementById('media-url-input').value.trim();
+            if (!url) return;
+            loadVideoSource(url, true);
+        }
+
+        function loadVideoSource(url, sendToOthers) {
+            document.getElementById('video-placeholder').classList.add('hidden');
+            videoElement.src = url;
+            videoElement.load();
+
+            if (sendToOthers) {
+                const payload = { type: 'MEDIA_CHANGE', url: url };
+                if (isHost) broadcast(payload);
+                else if (connections.length > 0) connections[0].send(payload);
+            }
+        }
+
+        // Attach video playback listeners to sync peers
+        videoElement.addEventListener('play', () => {
+            if (syncLock) return;
+            sendVideoAction('play', videoElement.currentTime);
+        });
+
+        videoElement.addEventListener('pause', () => {
+            if (syncLock) return;
+            sendVideoAction('pause', videoElement.currentTime);
+        });
+
+        videoElement.addEventListener('seeked', () => {
+            if (syncLock) return;
+            sendVideoAction('seek', videoElement.currentTime);
+        });
+
+        function sendVideoAction(action, time) {
+            const payload = { type: 'VIDEO_ACTION', action: action, time: time };
+            if (isHost) {
+                broadcast(payload);
+            } else if (connections.length > 0) {
+                connections[0].send(payload);
+            }
+        }
+
+        // --- Chat System ---
+        function handleChatKey(e) {
+            if (e.key === 'Enter') sendChatMessage();
+        }
+
+        function sendChatMessage() {
+            const input = document.getElementById('chat-input');
+            const msg = input.value.trim();
+            if (!msg) return;
+
+            appendChatMessage(myUsername, msg, true);
+            const payload = { type: 'CHAT', username: myUsername, message: msg };
+
+            if (isHost) {
+                broadcast(payload);
+            } else if (connections.length > 0) {
+                connections[0].send(payload);
+            }
+            input.value = '';
+        }
+
+        function appendChatMessage(username, message, isSelf = false) {
+            const chatBox = document.getElementById('chat-messages');
+            const div = document.createElement('div');
+            div.className = `flex flex-col ${isSelf ? 'items-end' : 'items-start'}`;
+            div.innerHTML = `
+                <span class="text-[10px] text-slate-500 mb-0.5">${username}</span>
+                <div class="px-3 py-2 rounded-xl max-w-[85%] break-words ${isSelf ? 'bg-indigo-600 text-white' : 'bg-slate-800 text-slate-200'}">${escapeHtml(message)}</div>
+            `;
+            chatBox.appendChild(div);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        function appendSystemMessage(message) {
+            const chatBox = document.getElementById('chat-messages');
+            const div = document.createElement('div');
+            div.className = 'text-center text-slate-500 text-[11px] italic my-1';
+            div.innerText = message;
+            chatBox.appendChild(div);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        function updateParticipantsUI() {
+            document.getElementById('peer-count').innerText = participants.length;
+            const container = document.getElementById('participants-list');
+            container.innerHTML = participants.map(p => `
+                <span class="bg-slate-800 border border-slate-700 text-slate-300 text-[11px] px-2.5 py-1 rounded-lg flex items-center gap-1">
+                    🟢 ${escapeHtml(p.name)} ${p.host ? '👑' : ''}
+                </span>
+            `).join('');
+        }
+
+        function copyShareLink() {
+            const link = document.getElementById('share-link').innerText;
+            navigator.clipboard.writeText(link);
+            alert('Room link copied to clipboard!');
+        }
+
+        function escapeHtml(text) {
+            const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+            return text.replace(/[&<>"']/g, m => map[m]);
+        }
+    </script>
+</body>
+</html>
