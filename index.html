@@ -1,870 +1,657 @@
 <!DOCTYPE html>
-<html lang="en" class="h-full">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>WatchParty by Ashiqur Rahman Alif</title>
-    <!-- Tailwind CSS CDN -->
+    <title>WatchParty - Watch Together</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- PeerJS CDN for P2P connection -->
-    <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
+    <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+    <script src="https://www.youtube.com/iframe_api"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #0b0f19;
-            color: #f8fafc;
-            overflow-x: hidden;
-        }
-        ::-webkit-scrollbar {
-            width: 5px;
-            height: 5px;
-        }
-        ::-webkit-scrollbar-track {
-            background: rgba(15, 23, 42, 0.6);
-        }
-        ::-webkit-scrollbar-thumb {
-            background: rgba(99, 102, 241, 0.4);
-            border-radius: 3px;
-        }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; touch-action: manipulation; }
+        
         @keyframes floatUp {
-            0% { transform: translateY(0px) scale(0.8); opacity: 1; }
-            50% { opacity: 1; }
-            100% { transform: translateY(-180px) scale(1.4); opacity: 0; }
+            0% { transform: translateY(0px) scale(0.5); opacity: 0; }
+            20% { opacity: 1; transform: translateY(-40px) scale(1.1); }
+            100% { transform: translateY(-260px) scale(0.9); opacity: 0; }
         }
         .floating-emoji {
-            animation: floatUp 2.4s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-        }
-        .glass-panel {
-            background: rgba(15, 23, 42, 0.9);
-            backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
+            position: absolute;
+            bottom: 20px;
+            animation: floatUp 3s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+            pointer-events: none;
+            font-size: 2rem;
+            z-index: 50;
         }
     </style>
 </head>
-<body class="h-full flex flex-col justify-between selection:bg-indigo-500 selection:text-white">
+<body class="bg-slate-950 text-slate-100 h-screen w-screen overflow-hidden flex flex-col select-none">
 
-    <!-- Toast Notification Banner -->
-    <div id="toast-notification" class="fixed top-5 left-1/2 -translate-x-1/2 z-50 pointer-events-none transition-all duration-300 opacity-0 -translate-y-10">
-        <div class="bg-indigo-600/90 text-white px-5 py-2.5 rounded-2xl shadow-xl backdrop-blur-md border border-indigo-400/30 flex items-center gap-2.5 text-sm font-medium">
-            <i class="fa-solid fa-circle-info text-indigo-200"></i>
-            <span id="toast-message">Notification message</span>
-        </div>
-    </div>
-
-    <!-- Link Copied Toast Banner -->
-    <div id="link-toast" class="fixed top-5 right-5 z-50 pointer-events-none transition-all duration-300 opacity-0 translate-y-[-20px]">
-        <div class="bg-slate-900/95 text-slate-100 px-4 py-3 rounded-2xl shadow-2xl backdrop-blur-xl border border-emerald-500/30 flex items-center gap-3 text-xs">
-            <div class="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
-                <i class="fa-solid fa-link text-sm"></i>
-            </div>
-            <div>
-                <p class="font-semibold text-emerald-400">Room Link Copied!</p>
-                <p id="copied-link-text" class="text-slate-400 font-mono text-[11px] truncate max-w-[200px]">https://...</p>
-            </div>
-        </div>
-    </div>
-
-    <!-- HOME / LOBBY SCREEN -->
-    <div id="lobby-screen" class="flex-1 flex flex-col items-center justify-center p-4 sm:p-6 relative min-h-screen">
-        <div class="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-indigo-600/15 rounded-full blur-3xl pointer-events-none"></div>
-        <div class="absolute bottom-1/4 left-1/3 w-80 h-80 bg-purple-600/15 rounded-full blur-3xl pointer-events-none"></div>
-
-        <div class="w-full max-w-md z-10 my-auto">
-            <!-- Branding Header -->
-            <div class="text-center mb-8">
-                <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-tr from-indigo-600 to-purple-600 shadow-xl shadow-indigo-600/30 text-white text-3xl mb-3 ring-1 ring-white/20">
-                    🍿
-                </div>
-                <h1 class="text-3xl font-extrabold tracking-tight text-white">WatchParty</h1>
-                <p class="text-[11px] font-semibold text-indigo-400 tracking-wider uppercase mt-0.5">by Ashiqur Rahman Alif</p>
-                <p class="text-xs text-slate-400 mt-2 max-w-xs mx-auto">Watch anything together in real-time, anywhere.</p>
-            </div>
-
-            <!-- Lobby Card Panel -->
-            <div class="glass-panel rounded-3xl p-6 sm:p-8 shadow-2xl">
-                <!-- Tab Switching -->
-                <div class="grid grid-cols-2 gap-1 bg-slate-900/90 p-1 rounded-xl mb-6 border border-slate-800">
-                    <button onclick="switchTab('host')" id="tab-host-btn" class="py-2.5 text-xs font-semibold rounded-lg bg-indigo-600 text-white shadow transition-all flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-plus-circle"></i> Create Room
-                    </button>
-                    <button onclick="switchTab('join')" id="tab-join-btn" class="py-2.5 text-xs font-semibold rounded-lg text-slate-400 hover:text-white transition-all flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-arrow-right-to-bracket"></i> Join Room
-                    </button>
-                </div>
-
-                <!-- HOST TAB -->
-                <div id="host-tab" class="space-y-4">
-                    <div>
-                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">
-                            Your Name <span class="text-slate-500 font-normal lowercase">(optional)</span>
-                        </label>
-                        <div class="relative">
-                            <i class="fa-solid fa-user absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-sm"></i>
-                            <input type="text" id="host-name-input" placeholder="e.g. Ashiq" 
-                                class="w-full pl-10 pr-4 py-2.5 bg-slate-900/80 border border-slate-700/80 rounded-xl text-slate-100 placeholder-slate-500 text-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all">
-                        </div>
-                    </div>
-
-                    <!-- Collapsible Dropdown for Room Code & Password Options -->
-                    <div class="border border-slate-800 rounded-2xl bg-slate-950/40 p-3">
-                        <button type="button" onclick="toggleAdvancedHostOptions()" class="w-full flex items-center justify-between text-xs font-semibold text-slate-300 hover:text-white transition-colors">
-                            <span class="flex items-center gap-2">
-                                <i class="fa-solid fa-sliders text-indigo-400"></i> Advanced Room Options (Optional)
-                            </span>
-                            <i id="advanced-options-icon" class="fa-solid fa-chevron-down text-[10px] text-slate-400"></i>
-                        </button>
-
-                        <div id="advanced-host-options" class="hidden mt-3 space-y-3 pt-3 border-t border-slate-800/80">
-                            <!-- Room Code Input -->
-                            <div>
-                                <div class="flex items-center justify-between mb-1.5">
-                                    <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-                                        Custom Room Code
-                                    </label>
-                                    <button type="button" onclick="useSuggestedCode('ALIF')" class="text-[11px] font-medium text-indigo-400 hover:text-indigo-300 transition-colors bg-indigo-500/10 hover:bg-indigo-500/20 px-2 py-0.5 rounded-md flex items-center gap-1">
-                                        <i class="fa-solid fa-dice text-[10px]"></i>
-                                        <span>Sug: ALIF</span>
-                                    </button>
-                                </div>
-                                <div class="relative">
-                                    <i class="fa-solid fa-key absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-sm"></i>
-                                    <input type="text" id="host-room-input" placeholder="Leave blank for random code" 
-                                        class="w-full pl-10 pr-4 py-2 bg-slate-900 border border-slate-700/80 rounded-xl text-slate-100 placeholder-slate-500 text-xs focus:outline-none focus:border-indigo-500 transition-all font-mono uppercase tracking-wider">
-                                </div>
-                            </div>
-
-                            <!-- Optional Password Input -->
-                            <div>
-                                <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1.5">
-                                    Room Password
-                                </label>
-                                <div class="relative">
-                                    <i class="fa-solid fa-lock absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-sm"></i>
-                                    <input type="password" id="host-password-input" placeholder="Optional protection" 
-                                        class="w-full pl-10 pr-4 py-2 bg-slate-900 border border-slate-700/80 rounded-xl text-slate-100 placeholder-slate-500 text-xs focus:outline-none focus:border-indigo-500 transition-all">
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <button onclick="handleHostParty()" class="w-full mt-2 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-semibold rounded-xl shadow-lg shadow-indigo-600/30 active:scale-[0.98] transition-all flex items-center justify-center gap-2 text-sm">
-                        <i class="fa-solid fa-rocket"></i> Create & Launch Room
-                    </button>
-                </div>
-
-                <!-- JOIN TAB -->
-                <div id="join-tab" class="hidden space-y-4">
-                    <div>
-                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">
-                            Your Name <span class="text-slate-500 font-normal lowercase">(optional)</span>
-                        </label>
-                        <div class="relative">
-                            <i class="fa-solid fa-user absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-sm"></i>
-                            <input type="text" id="join-name-input" placeholder="e.g. Ashiq" 
-                                class="w-full pl-10 pr-4 py-2.5 bg-slate-900/80 border border-slate-700/80 rounded-xl text-slate-100 placeholder-slate-500 text-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all">
-                        </div>
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">Room Code</label>
-                        <div class="relative">
-                            <i class="fa-solid fa-door-open absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-sm"></i>
-                            <input type="text" id="join-room-input" placeholder="e.g. ALIF" 
-                                class="w-full pl-10 pr-4 py-2.5 bg-slate-900/80 border border-slate-700/80 rounded-xl text-slate-100 placeholder-slate-500 text-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all font-mono uppercase tracking-wider">
-                        </div>
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">Room Password (if required)</label>
-                        <div class="relative">
-                            <i class="fa-solid fa-lock absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-sm"></i>
-                            <input type="password" id="join-password-input" placeholder="Optional password" 
-                                class="w-full pl-10 pr-4 py-2.5 bg-slate-900/80 border border-slate-700/80 rounded-xl text-slate-100 placeholder-slate-500 text-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all">
-                        </div>
-                    </div>
-
-                    <button onclick="handleJoinParty()" class="w-full mt-2 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-semibold rounded-xl shadow-lg shadow-purple-600/30 active:scale-[0.98] transition-all flex items-center justify-center gap-2 text-sm">
-                        <i class="fa-solid fa-right-to-bracket"></i> Join Party
-                    </button>
-                </div>
+    <!-- Header -->
+    <header class="bg-slate-900 border-b border-slate-800 px-3 py-2 flex items-center justify-between shrink-0 z-30">
+        <!-- Logo & Author -->
+        <div class="flex items-center space-x-2.5">
+            <span class="text-2xl">🍿</span>
+            <div class="flex flex-col">
+                <h1 class="font-bold text-base text-indigo-400 tracking-tight leading-tight">WatchParty</h1>
+                <span class="text-[9px] text-slate-400 font-medium tracking-wide">by Ashiqur Rahman Alif</span>
             </div>
         </div>
 
-        <!-- Footer at the bottom of the page -->
-        <footer class="mt-8 text-center text-xs text-slate-500 z-10 pb-4">
-            <span id="footer-year">© 2026</span> WatchParty • by Ashiqur Rahman Alif
-        </footer>
-    </div>
-
-    <!-- WATCH ROOM SCREEN -->
-    <div id="room-screen" class="hidden flex-1 flex flex-col h-full w-full max-h-screen">
-        <!-- Top Header Navigation -->
-        <header class="glass-panel border-b border-slate-800 px-4 py-2.5 flex items-center justify-between shrink-0 relative z-30">
-            <!-- Left Branding: Popcorn Logo with text under text -->
-            <div class="flex items-center gap-2.5">
-                <span class="text-2xl leading-none">🍿</span>
-                <div class="flex flex-col">
-                    <span class="text-sm font-extrabold tracking-tight text-white leading-tight">WatchParty</span>
-                    <span class="text-[9px] font-medium text-indigo-400 leading-none">by Ashiqur Rahman Alif</span>
-                </div>
-            </div>
-
-            <!-- Right Controls Header -->
-            <div class="flex items-center gap-2">
-                <!-- Viewer count button with green dot -->
-                <div class="relative">
-                    <button onclick="toggleViewersDropdown()" class="flex items-center gap-1.5 bg-slate-900/80 border border-slate-700/60 px-2.5 py-1.5 rounded-xl hover:bg-slate-800 transition-all text-xs font-semibold">
-                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                        <span id="viewer-count" class="text-slate-200 font-mono">1</span>
-                        <i class="fa-solid fa-chevron-down text-[9px] text-slate-400 ml-0.5"></i>
-                    </button>
-
-                    <!-- Viewers Popover Modal -->
-                    <div id="viewers-popover" class="hidden absolute right-0 mt-2 w-60 glass-panel rounded-2xl p-3 shadow-2xl border border-slate-700/60 z-50">
-                        <div class="flex items-center justify-between pb-2 mb-2 border-b border-slate-800 text-xs font-semibold text-slate-400">
-                            <span>Connected Users</span>
-                            <span id="participants-count-badge" class="bg-indigo-500/20 text-indigo-400 px-2 py-0.5 rounded-md">1 active</span>
-                        </div>
-                        <div id="participants-list" class="space-y-1.5 max-h-48 overflow-y-auto text-xs">
-                            <div class="flex items-center justify-between p-2 rounded-xl bg-slate-900/60 border border-slate-800">
-                                <span class="font-medium text-slate-200 truncate flex items-center gap-2">
-                                    <i class="fa-solid fa-crown text-amber-400 text-[10px]"></i> You (Host)
-                                </span>
-                                <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Room Code Badge with Copy Link button -->
-                <div class="flex items-center gap-1.5 bg-slate-900/80 border border-slate-700/60 px-2.5 py-1.5 rounded-xl">
-                    <span class="text-xs font-bold font-mono tracking-wider text-slate-200" id="display-room-code">ROOM</span>
-                    <button onclick="copyRoomLink()" class="text-indigo-400 hover:text-indigo-300 text-xs transition-colors ml-1" title="Copy Room Link">
-                        <i class="fa-solid fa-copy"></i>
-                    </button>
-                </div>
-            </div>
-        </header>
-
-        <!-- Main Video Stage (Positioned directly under header) -->
-        <div class="flex-1 flex flex-col bg-black/95 relative overflow-hidden items-center justify-center p-2 sm:p-4">
-            <div id="video-container" class="w-full max-w-5xl aspect-video bg-slate-950 rounded-2xl overflow-hidden shadow-2xl relative border border-slate-800/80 flex items-center justify-center">
-                
-                <!-- YouTube iframe -->
-                <div id="youtube-player-wrap" class="w-full h-full hidden">
-                    <iframe id="youtube-iframe" class="w-full h-full border-0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-                </div>
-                <!-- HTML5 Direct Video player -->
-                <video id="html5-video" class="w-full h-full object-contain hidden" controls playsinline></video>
-                <!-- Generic Iframe player -->
-                <div id="generic-player-wrap" class="w-full h-full hidden">
-                    <iframe id="generic-iframe" class="w-full h-full border-0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
-                </div>
-                <!-- Video Placeholder -->
-                <div id="video-placeholder" class="text-center p-6">
-                    <i class="fa-solid fa-film text-4xl text-slate-600 mb-3"></i>
-                    <p class="text-slate-400 text-xs sm:text-sm">No video loaded. Click the video button below to paste a URL.</p>
-                </div>
-
-                <!-- OVERLAID EMOJI LAYER: Directly inside video frame for all devices -->
-                <div id="floating-emoji-layer" class="absolute inset-0 pointer-events-none overflow-hidden z-20"></div>
-            </div>
-
-            <!-- Control Bar (Icon-only buttons: Change Video, History, Chat) -->
-            <div class="flex items-center gap-3 mt-3 z-30">
-                <!-- Change Video Button (Icon only) -->
-                <button onclick="openChangeVideoModal()" class="w-11 h-11 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-600/30 flex items-center justify-center text-base transition-all active:scale-95" title="Change Video">
-                    <i class="fa-solid fa-film"></i>
+        <!-- Right Header Elements -->
+        <div class="flex items-center gap-2">
+            <!-- Viewers Status Button (Hidden in lobby) -->
+            <div id="users-pill" class="hidden relative">
+                <button onclick="toggleUserPopup()" class="flex items-center gap-1 bg-slate-950 border border-slate-800 text-slate-200 px-2.5 py-1 rounded-full text-xs transition">
+                    <span id="header-status-dot" class="w-2 h-2 rounded-full bg-rose-500"></span>
+                    <strong id="peer-count" class="text-indigo-400">1</strong>
+                    <span class="text-[9px] text-slate-500">▼</span>
                 </button>
+                <!-- Popup Viewers List -->
+                <div id="users-popup" class="hidden absolute right-0 mt-2 w-48 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl p-2.5 z-50">
+                    <div class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1.5 border-b border-slate-800 pb-1">Connected Viewers</div>
+                    <div id="participants-list" class="flex flex-col gap-1 max-h-32 overflow-y-auto"></div>
+                </div>
+            </div>
 
-                <!-- Played History Button (Icon only) -->
-                <button onclick="openHistoryModal()" class="w-11 h-11 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700/60 shadow-lg flex items-center justify-center text-base transition-all active:scale-95" title="Video History">
-                    <i class="fa-solid fa-clock-rotate-left"></i>
-                </button>
-
-                <!-- Chat Popup Toggle Button (Icon + unread message badge count, beside history button) -->
-                <button onclick="toggleChatModal()" class="relative w-11 h-11 bg-slate-800 hover:bg-slate-700 border border-slate-700/60 text-indigo-400 rounded-2xl flex items-center justify-center text-base shadow-lg transition-all active:scale-95" title="Live Chat">
-                    <i class="fa-solid fa-comments"></i>
-                    <span id="chat-unread-badge" class="absolute -top-1.5 -right-1.5 bg-rose-500 text-white font-bold text-[10px] min-w-[20px] h-[20px] px-1 rounded-full flex items-center justify-center border-2 border-slate-900 hidden">0</span>
-                </button>
+            <!-- Room Badge & Top Copy Button -->
+            <div id="room-badge" class="hidden flex items-center gap-1.5 text-xs bg-indigo-950 text-indigo-300 border border-indigo-800 pl-2.5 pr-1 py-0.5 rounded-full">
+                <span class="font-mono font-bold text-[11px]" id="current-room-id"></span>
+                <button onclick="copyHeaderRoomLink()" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs p-1 rounded-full transition" title="Copy Room Link">📋</button>
             </div>
         </div>
+    </header>
 
-        <!-- Emoji Reaction Deck anchored at the bottom -->
-        <div class="glass-panel border-t border-slate-800 px-4 py-2.5 shrink-0 flex items-center justify-center gap-2 sm:gap-4 z-30 select-none">
-            <button onclick="sendEmojiReaction('❤️')" class="w-10 h-10 rounded-xl bg-slate-900/80 hover:bg-indigo-600/30 border border-slate-800 flex items-center justify-center text-lg transition-transform active:scale-90 shadow-sm">❤️</button>
-            <button onclick="sendEmojiReaction('🔥')" class="w-10 h-10 rounded-xl bg-slate-900/80 hover:bg-indigo-600/30 border border-slate-800 flex items-center justify-center text-lg transition-transform active:scale-90 shadow-sm">🔥</button>
-            <button onclick="sendEmojiReaction('😂')" class="w-10 h-10 rounded-xl bg-slate-900/80 hover:bg-indigo-600/30 border border-slate-800 flex items-center justify-center text-lg transition-transform active:scale-90 shadow-sm">😂</button>
-            <button onclick="sendEmojiReaction('👏')" class="w-10 h-10 rounded-xl bg-slate-900/80 hover:bg-indigo-600/30 border border-slate-800 flex items-center justify-center text-lg transition-transform active:scale-90 shadow-sm">👏</button>
-            <button onclick="sendEmojiReaction('😮')" class="w-10 h-10 rounded-xl bg-slate-900/80 hover:bg-indigo-600/30 border border-slate-800 flex items-center justify-center text-lg transition-transform active:scale-90 shadow-sm">😮</button>
-            <button onclick="sendEmojiReaction('🎉')" class="w-10 h-10 rounded-xl bg-slate-900/80 hover:bg-indigo-600/30 border border-slate-800 flex items-center justify-center text-lg transition-transform active:scale-90 shadow-sm">🎉</button>
-            <button onclick="sendEmojiReaction('👍')" class="w-10 h-10 rounded-xl bg-slate-900/80 hover:bg-indigo-600/30 border border-slate-800 flex items-center justify-center text-lg transition-transform active:scale-90 shadow-sm">👍</button>
+    <!-- Main Container -->
+    <main class="flex-1 w-full max-w-3xl mx-auto flex flex-col justify-start items-center overflow-hidden p-2 sm:p-3 relative">
+
+        <!-- Toast Notification Banner -->
+        <div id="toast-banner" class="hidden absolute top-2 z-50 bg-indigo-600 text-white text-xs px-4 py-2 rounded-xl shadow-2xl transition transform duration-300">
+            Link copied to clipboard!
         </div>
-    </div>
 
-    <!-- CHAT POPUP MODAL -->
-    <div id="chat-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden items-end sm:items-center justify-center p-0 sm:p-4">
-        <div class="glass-panel w-full sm:max-w-md h-[75vh] sm:h-[500px] rounded-t-3xl sm:rounded-3xl flex flex-col shadow-2xl border border-slate-700/80 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-            <div class="px-4 py-3 border-b border-slate-800 flex items-center justify-between text-xs font-semibold text-slate-300">
-                <span class="flex items-center gap-2"><i class="fa-solid fa-comments text-indigo-400"></i> Live Room Chat</span>
-                <button onclick="toggleChatModal()" class="w-7 h-7 rounded-xl bg-slate-900/80 text-slate-400 hover:text-white flex items-center justify-center">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
+        <!-- Lobby Screen -->
+        <div id="lobby-card" class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-2xl flex flex-col justify-center space-y-4 max-w-sm w-full my-auto">
+            <div class="text-center space-y-1">
+                <h2 class="text-lg font-bold tracking-tight">Start or Join Party</h2>
+                <p class="text-xs text-slate-400">Watch YouTube, Facebook, Vimeo & MP4 synced instantly.</p>
             </div>
-            <div id="chat-messages" class="flex-1 p-3 overflow-y-auto space-y-2.5 text-xs">
-                <div class="text-center text-slate-500 italic my-2 text-[11px]">Party chat started. Say hello!</div>
-            </div>
-            <div class="p-3 border-t border-slate-800 bg-slate-950/80">
-                <form onsubmit="sendChatMessage(event)" class="flex gap-2">
-                    <input type="text" id="chat-input" placeholder="Type message..." 
-                        class="flex-1 bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2.5 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-all">
-                    <button type="submit" class="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold transition-all">
-                        <i class="fa-solid fa-paper-plane"></i>
-                    </button>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <!-- CHANGE VIDEO MODAL -->
-    <div id="change-video-modal" class="fixed inset-0 bg-black/70 backdrop-blur-md z-50 hidden items-center justify-center p-4">
-        <div class="glass-panel w-full max-w-lg rounded-3xl p-6 shadow-2xl border border-slate-700/80">
-            <div class="flex items-center justify-between pb-4 mb-4 border-b border-slate-800">
-                <h3 class="font-semibold text-slate-100 text-sm flex items-center gap-2">
-                    <i class="fa-solid fa-film text-indigo-400"></i> Change Video Source
-                </h3>
-                <button onclick="closeChangeVideoModal()" class="text-slate-400 hover:text-slate-200 w-8 h-8 rounded-xl bg-slate-900/80 flex items-center justify-center transition-colors">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
-            </div>
-            <div class="space-y-4">
+            
+            <div class="space-y-3 w-full">
                 <div>
-                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">Paste Video URL</label>
-                    <textarea id="modal-video-url-input" rows="3" placeholder="https://www.youtube.com/watch?v=... or direct MP4 link" 
-                        class="w-full bg-slate-900/90 border border-slate-700/80 rounded-xl p-3 text-slate-100 placeholder-slate-500 text-xs focus:outline-none focus:border-indigo-500 transition-all"></textarea>
+                    <label class="block text-[11px] font-medium text-slate-400 mb-1">Your Name</label>
+                    <input type="text" id="username-input" placeholder="e.g. Ashiq" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-indigo-500">
                 </div>
-                <div class="flex justify-end gap-3 pt-2">
-                    <button onclick="closeChangeVideoModal()" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition-all">Cancel</button>
-                    <button onclick="submitNewVideo()" class="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow-lg shadow-indigo-600/30 transition-all flex items-center gap-2">
-                        <i class="fa-solid fa-play"></i> Load & Sync
+
+                <!-- Optional Advanced Room Options Dropdown -->
+                <div class="border border-slate-800 rounded-xl bg-slate-950/40 overflow-hidden">
+                    <button onclick="toggleAdvancedOptions()" class="w-full px-3 py-2 text-left text-[11px] font-medium text-indigo-400 flex justify-between items-center bg-slate-900/60">
+                        <span>🔒 Advanced Room Options (Optional)</span>
+                        <span id="advanced-arrow" class="text-slate-500">▼</span>
+                    </button>
+                    <div id="advanced-panel" class="hidden p-3 space-y-2.5 bg-slate-950/80 border-t border-slate-800">
+                        <div class="flex gap-1.5 items-center">
+                            <input type="text" id="custom-room-input" placeholder="Custom Room Code (Optional)" class="flex-1 bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs uppercase font-mono focus:outline-none focus:border-indigo-500">
+                            <button onclick="setSuggestedCode()" class="bg-slate-800 hover:bg-slate-700 text-indigo-300 text-[10px] px-2.5 py-1.5 rounded-lg font-mono font-medium transition shrink-0" title="Click for suggested code">🎲 ALIF</button>
+                        </div>
+                        <input type="password" id="create-password-input" placeholder="Room Password (Optional)" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:border-indigo-500">
+                    </div>
+                </div>
+
+                <div class="flex gap-2 pt-1">
+                    <button onclick="createRoom()" class="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white font-medium py-2 rounded-xl text-xs transition shadow-lg shadow-indigo-600/20">
+                        Create Room
                     </button>
                 </div>
+
+                <div class="relative flex py-0.5 items-center">
+                    <div class="flex-grow border-t border-slate-800"></div>
+                    <span class="flex-shrink mx-3 text-[9px] text-slate-500 uppercase">Or Join</span>
+                    <div class="flex-grow border-t border-slate-800"></div>
+                </div>
+
+                <div class="flex gap-2">
+                    <input type="text" id="join-room-id" placeholder="Enter Room Code" class="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs uppercase focus:outline-none focus:border-indigo-500 font-mono">
+                    <button onclick="joinRoom()" class="bg-slate-800 hover:bg-slate-700 text-white px-4 py-2 rounded-xl font-medium text-xs transition">Join</button>
+                </div>
+            </div>
+
+            <!-- Footer Credit inside lobby box -->
+            <div class="text-center pt-2 border-t border-slate-800/60 text-[10px] text-slate-500">
+                &copy; <span id="footer-year">2026</span> WatchParty &bull; by Ashiqur Rahman Alif
             </div>
         </div>
-    </div>
 
-    <!-- HISTORY MODAL -->
-    <div id="history-modal" class="fixed inset-0 bg-black/70 backdrop-blur-md z-50 hidden items-center justify-center p-4">
-        <div class="glass-panel w-full max-w-lg rounded-3xl p-6 shadow-2xl border border-slate-700/80">
-            <div class="flex items-center justify-between pb-4 mb-4 border-b border-slate-800">
-                <h3 class="font-semibold text-slate-100 text-sm flex items-center gap-2">
-                    <i class="fa-solid fa-clock-rotate-left text-indigo-400"></i> Video History
-                </h3>
-                <button onclick="closeHistoryModal()" class="text-slate-400 hover:text-slate-200 w-8 h-8 rounded-xl bg-slate-900/80 flex items-center justify-center transition-colors">
-                    <i class="fa-solid fa-xmark"></i>
+        <!-- Active Watchroom Screen (Snaps right under header) -->
+        <div id="room-view" class="hidden flex flex-col w-full h-full justify-between overflow-hidden pb-1">
+
+            <!-- Video Frame Container -->
+            <div id="player-wrapper" class="relative bg-black rounded-xl overflow-hidden aspect-video w-full shadow-2xl border border-slate-800 flex items-center justify-center shrink-0">
+                <video id="shared-video" controls class="w-full h-full object-contain hidden"></video>
+                <div id="youtube-player" class="w-full h-full hidden"></div>
+                <iframe id="generic-iframe" class="w-full h-full hidden border-0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+                
+                <!-- Floating Emojis Overlay Layer -->
+                <div id="emoji-overlay" class="absolute inset-0 pointer-events-none overflow-hidden z-20"></div>
+
+                <div id="video-placeholder" class="absolute inset-0 flex flex-col items-center justify-center text-slate-500 space-y-1 bg-slate-900/90 z-10 p-4 text-center">
+                    <span class="text-3xl">🍿</span>
+                    <p class="text-xs font-medium">Click "Change Video" below to load a movie or stream</p>
+                </div>
+            </div>
+
+            <!-- Icon-Only Video Action Buttons Bar (Under Video) -->
+            <div class="flex items-center justify-center gap-3 bg-slate-900/90 border border-slate-800 p-2 rounded-xl shadow shrink-0 my-1.5">
+                <button onclick="openMediaModal()" class="bg-slate-950 hover:bg-slate-800 border border-slate-800 text-slate-200 px-4 py-2 rounded-lg text-sm transition" title="Change Video">🎬</button>
+                <button onclick="openHistoryModal()" class="bg-slate-950 hover:bg-slate-800 border border-slate-800 text-slate-200 px-4 py-2 rounded-lg text-sm transition relative" title="Media History">📜</button>
+                
+                <!-- Chat Button with Unread Badge -->
+                <button onclick="openChatModal()" class="bg-slate-950 hover:bg-slate-800 border border-slate-800 text-slate-200 px-4 py-2 rounded-lg text-sm transition relative" title="Live Chat">
+                    💬
+                    <span id="chat-badge" class="hidden absolute -top-1.5 -right-1.5 bg-indigo-600 text-white text-[9px] px-1.5 py-0.2 rounded-full font-bold">0</span>
                 </button>
             </div>
-            <div id="history-list" class="space-y-2 max-h-64 overflow-y-auto">
-                <div class="text-center py-6 text-slate-500 text-xs italic">No video history recorded yet.</div>
+
+            <!-- Bottom Emoji Reaction Bar -->
+            <div class="flex justify-center bg-slate-900 border border-slate-800 p-1.5 rounded-xl shadow shrink-0">
+                <div class="flex items-center justify-between max-w-md w-full px-2">
+                    <button onclick="sendEmoji('🍿')" class="hover:bg-slate-800 p-1.5 rounded-lg text-xl transition transform active:scale-95">🍿</button>
+                    <button onclick="sendEmoji('🔥')" class="hover:bg-slate-800 p-1.5 rounded-lg text-xl transition transform active:scale-95">🔥</button>
+                    <button onclick="sendEmoji('❤️')" class="hover:bg-slate-800 p-1.5 rounded-lg text-xl transition transform active:scale-95">❤️</button>
+                    <button onclick="sendEmoji('😢')" class="hover:bg-slate-800 p-1.5 rounded-lg text-xl transition transform active:scale-95">😢</button>
+                    <button onclick="sendEmoji('👻')" class="hover:bg-slate-800 p-1.5 rounded-lg text-xl transition transform active:scale-95">👻</button>
+                    <button onclick="sendEmoji('🚀')" class="hover:bg-slate-800 p-1.5 rounded-lg text-xl transition transform active:scale-95">🚀</button>
+                    <button onclick="sendEmoji('👏')" class="hover:bg-slate-800 p-1.5 rounded-lg text-xl transition transform active:scale-95">👏</button>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Modal: Change Video URL -->
+    <div id="media-modal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 max-w-md w-full shadow-2xl space-y-4">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+                <h3 class="font-bold text-sm text-indigo-400">Load Media URL</h3>
+                <button onclick="closeMediaModal()" class="text-slate-400 hover:text-white text-sm">✕</button>
+            </div>
+            <div class="space-y-3">
+                <input type="text" id="modal-media-url" placeholder="Paste YouTube, Facebook, Vimeo or MP4 link..." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-xs focus:outline-none focus:border-indigo-500 font-mono">
+                <button onclick="submitModalMedia()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-medium py-2.5 rounded-xl text-xs transition shadow-lg">Load & Sync</button>
             </div>
         </div>
     </div>
 
+    <!-- Modal: Media History -->
+    <div id="history-modal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 max-w-md w-full shadow-2xl space-y-4">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+                <h3 class="font-bold text-sm text-indigo-400">Played Media History</h3>
+                <button onclick="closeHistoryModal()" class="text-slate-400 hover:text-white text-sm">✕</button>
+            </div>
+            <div id="history-list" class="flex flex-col gap-2 max-h-60 overflow-y-auto text-xs">
+                <span class="text-slate-500 italic text-center py-4">No history records yet</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Live Chat -->
+    <div id="chat-modal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 max-w-md w-full h-[400px] shadow-2xl flex flex-col justify-between">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+                <h3 class="font-bold text-sm text-indigo-400">Room Live Chat</h3>
+                <button onclick="closeChatModal()" class="text-slate-400 hover:text-white text-sm">✕</button>
+            </div>
+            <div id="chat-messages" class="flex-1 overflow-y-auto space-y-2.5 text-xs py-2 flex flex-col">
+                <div class="text-center text-slate-500 my-auto italic">Say hi to everyone in the room!</div>
+            </div>
+            <div class="flex gap-2 pt-2 border-t border-slate-800">
+                <input type="text" id="chat-input" onkeydown="handleChatKey(event)" placeholder="Type a message..." class="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-indigo-500">
+                <button onclick="sendChatMessage()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-xl text-xs font-medium transition">Send</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script Application Logic -->
     <script>
-        // Set dynamic copyright year in footer
-        document.getElementById('footer-year').textContent = `© ${new Date().getFullYear()}`;
+        document.getElementById('footer-year').innerText = new Date().getFullYear();
 
-        // Application State
-        const state = {
-            userName: '',
-            roomCode: '',
-            isHost: false,
-            currentMediaUrl: '',
-            videoHistory: [],
-            peers: {},
-            conn: null,
-            peer: null,
-            unreadChatCount: 0,
-            isChatOpen: false
-        };
+        let peer = null;
+        let connections = []; // Active DataConnections array
+        let isHost = false;
+        let myId = '';
+        let myUsername = 'Viewer_' + Math.floor(Math.random() * 1000);
+        let participants = [];
+        let roomPassword = '';
+        let playedHistory = [];
+        let unreadMessagesCount = 0;
 
-        function switchTab(tab) {
-            const hostBtn = document.getElementById('tab-host-btn');
-            const joinBtn = document.getElementById('tab-join-btn');
-            const hostTab = document.getElementById('host-tab');
-            const joinTab = document.getElementById('join-tab');
+        const videoElement = document.getElementById('shared-video');
+        const genericIframe = document.getElementById('generic-iframe');
+        let ytPlayer = null;
+        let currentMode = null;
+        let syncLock = false;
 
-            if (tab === 'host') {
-                hostBtn.className = 'py-2.5 text-xs font-semibold rounded-lg bg-indigo-600 text-white shadow transition-all flex items-center justify-center gap-2';
-                joinBtn.className = 'py-2.5 text-xs font-semibold rounded-lg text-slate-400 hover:text-white transition-all flex items-center justify-center gap-2';
-                hostTab.classList.remove('hidden');
-                joinTab.classList.add('hidden');
-            } else {
-                joinBtn.className = 'py-2.5 text-xs font-semibold rounded-lg bg-indigo-600 text-white shadow transition-all flex items-center justify-center gap-2';
-                hostBtn.className = 'py-2.5 text-xs font-semibold rounded-lg text-slate-400 hover:text-white transition-all flex items-center justify-center gap-2';
-                joinTab.classList.remove('hidden');
-                hostTab.classList.add('hidden');
-            }
-        }
+        window.addEventListener('load', () => {
+            const savedName = localStorage.getItem('syncparty_username');
+            if (savedName) document.getElementById('username-input').value = savedName;
+            const hash = window.location.hash.substring(1);
+            if (hash) document.getElementById('join-room-id').value = hash;
 
-        function toggleAdvancedHostOptions() {
-            const options = document.getElementById('advanced-host-options');
-            const icon = document.getElementById('advanced-options-icon');
-            options.classList.toggle('hidden');
-            icon.classList.toggle('fa-chevron-down');
-            icon.classList.toggle('fa-chevron-up');
-        }
-
-        function useSuggestedCode(code) {
-            document.getElementById('host-room-input').value = code;
-        }
-
-        function getRandomCode(length = 6) {
-            const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-            let result = '';
-            for (let i = 0; i < length; i++) {
-                result += chars.charAt(Math.floor(Math.random() * chars.length));
-            }
-            return result;
-        }
-
-        window.addEventListener('DOMContentLoaded', () => {
-            const urlParams = new URLSearchParams(window.location.search);
-            const roomParam = urlParams.get('room');
-            if (roomParam) {
-                switchTab('join');
-                document.getElementById('join-room-input').value = roomParam;
-            }
+            window.addEventListener('click', (e) => {
+                const pill = document.getElementById('users-pill');
+                const popup = document.getElementById('users-popup');
+                if (pill && !pill.contains(e.target)) {
+                    popup.classList.add('hidden');
+                }
+            });
         });
 
-        function showNotification(msg) {
-            const toast = document.getElementById('toast-notification');
-            const msgEl = document.getElementById('toast-message');
-            msgEl.textContent = msg;
-            toast.classList.remove('opacity-0', '-translate-y-10');
-            toast.classList.add('opacity-100', 'translate-y-0');
-            setTimeout(() => {
-                toast.classList.remove('opacity-100', 'translate-y-0');
-                toast.classList.add('opacity-0', '-translate-y-10');
-            }, 3000);
+        function toggleAdvancedOptions() {
+            const panel = document.getElementById('advanced-panel');
+            const arrow = document.getElementById('advanced-arrow');
+            panel.classList.toggle('hidden');
+            arrow.innerText = panel.classList.contains('hidden') ? '▼' : '▲';
         }
 
-        function handleHostParty() {
-            let name = document.getElementById('host-name-input').value.trim();
-            let room = document.getElementById('host-room-input').value.trim().toUpperCase();
-
-            if (!name) name = 'Ashiq';
-            if (!room) room = getRandomCode(6);
-
-            state.userName = name;
-            state.roomCode = room;
-            state.isHost = true;
-            state.currentMediaUrl = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ';
-
-            initPeerConnection(true);
+        function setSuggestedCode() {
+            const randomCode = 'ALIF' + Math.floor(Math.random() * 900 + 100);
+            document.getElementById('custom-room-input').value = randomCode;
         }
 
-        function handleJoinParty() {
-            let name = document.getElementById('join-name-input').value.trim();
-            const room = document.getElementById('join-room-input').value.trim().toUpperCase();
+        function toggleUserPopup() {
+            document.getElementById('users-popup').classList.toggle('hidden');
+        }
 
-            if (!name) name = 'Guest';
-            if (!room) {
-                showNotification('Please enter a room code.');
-                return;
+        function openMediaModal() { document.getElementById('media-modal').classList.remove('hidden'); }
+        function closeMediaModal() { document.getElementById('media-modal').classList.add('hidden'); }
+        
+        function openHistoryModal() { 
+            document.getElementById('history-modal').classList.remove('hidden'); 
+            renderHistoryModalUI();
+        }
+        function closeHistoryModal() { document.getElementById('history-modal').classList.add('hidden'); }
+
+        function openChatModal() { 
+            document.getElementById('chat-modal').classList.remove('hidden'); 
+            unreadMessagesCount = 0;
+            updateChatBadgeUI();
+        }
+        function closeChatModal() { document.getElementById('chat-modal').classList.add('hidden'); }
+
+        function onYouTubeIframeAPIReady() {}
+
+        function parseVideoPlatform(url) {
+            const ytMatch = url.match(/^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/);
+            if (ytMatch && ytMatch[2].length === 11) return { type: 'youtube', id: ytMatch[2], name: 'YouTube Video' };
+
+            const vimeoMatch = url.match(/(?:vimeo)\.com.*(?:videos\/|video\/|channels\/|channels\/\w+\/|)([\d]+)/);
+            if (vimeoMatch && vimeoMatch[1]) return { type: 'vimeo', url: `https://player.vimeo.com/video/${vimeoMatch[1]}?autoplay=1`, name: 'Vimeo Video' };
+
+            if (url.includes('facebook.com') || url.includes('fb.watch')) {
+                return { type: 'facebook', url: `https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(url)}&show_text=0`, name: 'Facebook Video' };
             }
 
-            state.userName = name;
-            state.roomCode = room;
-            state.isHost = false;
-
-            initPeerConnection(false);
+            return { type: 'html5', url: url, name: 'Direct Video File' };
         }
 
-        function initPeerConnection(isHosting) {
-            const peerId = isHosting ? `wp-${state.roomCode}` : undefined;
-            
-            state.peer = new Peer(peerId, {
-                config: {
-                    iceServers: [
-                        { urls: 'stun:stun.l.google.com:19302' },
-                        { urls: 'stun:stun1.l.google.com:19302' }
-                    ]
-                },
-                debug: 1
-            });
-
-            state.peer.on('open', (id) => {
-                if (!isHosting) {
-                    const hostId = `wp-${state.roomCode}`;
-                    const conn = state.peer.connect(hostId, {
-                        metadata: { name: state.userName }
-                    });
-                    setupConnection(conn);
-                } else {
-                    enterRoomUI();
+        function initPeer(customId = undefined) {
+            return new Promise((resolve, reject) => {
+                const nameVal = document.getElementById('username-input').value.trim();
+                if (nameVal) {
+                    myUsername = nameVal;
+                    localStorage.setItem('syncparty_username', myUsername);
                 }
-            });
 
-            state.peer.on('connection', (conn) => {
-                if (state.isHost) {
-                    setupHostConnection(conn);
-                }
-            });
-
-            state.peer.on('error', (err) => {
-                console.error(err);
-                showNotification('Peer error: ' + err.type);
-            });
-        }
-
-        function setupHostConnection(conn) {
-            conn.on('open', () => {
-                state.peers[conn.peer] = { conn, name: conn.metadata?.name || 'Guest' };
-                updateParticipantsList();
-                
-                conn.send({
-                    type: 'SYNC_STATE',
-                    mediaUrl: state.currentMediaUrl,
-                    history: state.videoHistory
+                peer = new Peer(customId, {
+                    config: {
+                        'iceServers': [
+                            { urls: 'stun:stun.l.google.com:19302' },
+                            { urls: 'stun:stun1.l.google.com:19302' }
+                        ]
+                    },
+                    debug: 1
                 });
 
-                appendSystemChat(`${conn.metadata?.name || 'A participant'} joined.`);
-            });
+                peer.on('open', (id) => {
+                    myId = id;
+                    updateHeaderStatusDot(true);
+                    resolve(id);
+                });
 
-            conn.on('data', (data) => {
-                handlePeerData(data, conn);
-            });
+                peer.on('error', (err) => {
+                    updateHeaderStatusDot(false);
+                    reject(err);
+                });
 
-            conn.on('close', () => {
-                const name = state.peers[conn.peer]?.name || 'User';
-                delete state.peers[conn.peer];
-                updateParticipantsList();
-                appendSystemChat(`${name} left.`);
+                peer.on('connection', (conn) => {
+                    setupConnection(conn);
+                });
             });
+        }
+
+        function updateHeaderStatusDot(isOnline) {
+            const dot = document.getElementById('header-status-dot');
+            if (isOnline) {
+                dot.className = "w-2 h-2 rounded-full bg-emerald-500 shadow-sm shadow-emerald-500/50";
+            } else {
+                dot.className = "w-2 h-2 rounded-full bg-rose-500";
+            }
+        }
+
+        async function createRoom() {
+            const customKey = document.getElementById('custom-room-input').value.trim().toUpperCase();
+            roomPassword = document.getElementById('create-password-input').value.trim();
+            const roomId = customKey || Math.random().toString(36).substring(2, 8).toUpperCase();
+
+            try {
+                await initPeer(roomId);
+                isHost = true;
+                participants = [{ id: myId, name: myUsername, host: true }];
+                enterRoomUI(roomId);
+            } catch (e) { console.error(e); }
+        }
+
+        async function joinRoom() {
+            const roomId = document.getElementById('join-room-id').value.trim().toUpperCase();
+            if (!roomId) return alert('Please enter room code.');
+            try {
+                await initPeer();
+                isHost = false;
+                participants = [{ id: myId, name: myUsername, host: false }];
+                const conn = peer.connect(roomId, { metadata: { username: myUsername } });
+                setupConnection(conn);
+                enterRoomUI(roomId);
+            } catch (e) { console.error(e); }
+        }
+
+        function enterRoomUI(roomId) {
+            document.getElementById('lobby-card').classList.add('hidden');
+            document.getElementById('room-view').classList.remove('hidden');
+            document.getElementById('room-badge').classList.remove('hidden');
+            document.getElementById('users-pill').classList.remove('hidden');
+            document.getElementById('current-room-id').innerText = roomId;
+            window.location.hash = roomId;
+            updateParticipantsUI();
         }
 
         function setupConnection(conn) {
-            state.conn = conn;
+            connections.push(conn);
+
             conn.on('open', () => {
-                enterRoomUI();
-                appendSystemChat('Joined room successfully!');
+                if (!isHost) {
+                    const passInput = roomPassword || prompt("Enter room password (if required):") || "";
+                    conn.send({ type: 'JOIN', username: myUsername, password: passInput });
+                }
             });
 
             conn.on('data', (data) => {
-                handlePeerData(data, conn);
+                handleIncomingData(data, conn);
             });
 
             conn.on('close', () => {
-                showNotification('Disconnected from host.');
-                leaveRoom();
+                connections = connections.filter(c => c !== conn);
+                participants = participants.filter(p => p.id !== conn.peer);
+                updateParticipantsUI();
+                if (isHost) broadcast({ type: 'PARTICIPANTS', list: participants });
             });
         }
 
-        function handlePeerData(data, conn) {
-            if (data.type === 'SYNC_STATE') {
-                state.currentMediaUrl = data.mediaUrl;
-                state.videoHistory = data.history || [];
-                loadMedia(state.currentMediaUrl);
-            } else if (data.type === 'CHANGE_VIDEO') {
-                state.currentMediaUrl = data.url;
-                addToHistory(data.url);
-                loadMedia(data.url);
-                appendSystemChat(`Video changed: ${data.url}`);
-            } else if (data.type === 'CHAT') {
-                appendChatBubble(data.sender, data.message);
-                if (!state.isChatOpen) {
-                    state.unreadChatCount++;
-                    updateChatBadge();
-                }
-            } else if (data.type === 'EMOJI') {
-                triggerFloatingEmoji(data.emoji);
+        function broadcast(data, excludeConn = null) {
+            if (isHost) {
+                connections.forEach(conn => { if (conn !== excludeConn) conn.send(data); });
             }
+        }
 
-            if (state.isHost) {
-                Object.values(state.peers).forEach(p => {
-                    if (p.conn.peer !== conn.peer) {
-                        p.conn.send(data);
+        function handleIncomingData(data, conn) {
+            switch (data.type) {
+                case 'JOIN':
+                    if (isHost) {
+                        if (roomPassword && data.password !== roomPassword) {
+                            conn.send({ type: 'AUTH_FAILED' });
+                            conn.close();
+                            return;
+                        }
+                        if (!participants.some(p => p.id === conn.peer)) {
+                            participants.push({ id: conn.peer, name: data.username, host: false });
+                        }
+                        broadcast({ type: 'PARTICIPANTS', list: participants });
+                        updateParticipantsUI();
                     }
-                });
+                    break;
+                case 'AUTH_FAILED':
+                    alert('Incorrect password!');
+                    window.location.reload();
+                    break;
+                case 'PARTICIPANTS':
+                    participants = data.list;
+                    updateParticipantsUI();
+                    break;
+                case 'EMOJI':
+                    spawnFloatingEmoji(data.emoji);
+                    if (isHost) broadcast(data, conn);
+                    break;
+                case 'CHAT':
+                    appendChatMessage(data.username, data.message);
+                    if (document.getElementById('chat-modal').classList.contains('hidden')) {
+                        unreadMessagesCount++;
+                        updateChatBadgeUI();
+                    }
+                    if (isHost) broadcast(data, conn);
+                    break;
+                case 'MEDIA_CHANGE':
+                    loadMediaSource(data.url, false);
+                    if (isHost) broadcast(data, conn);
+                    break;
+                case 'VIDEO_ACTION':
+                    syncLock = true;
+                    executeVideoAction(data.action, data.time);
+                    setTimeout(() => { syncLock = false; }, 400);
+                    if (isHost) broadcast(data, conn);
+                    break;
             }
         }
 
-        function enterRoomUI() {
-            document.getElementById('lobby-screen').classList.add('hidden');
-            document.getElementById('room-screen').classList.remove('hidden');
-            document.getElementById('display-room-code').textContent = state.roomCode;
-            
-            if (state.currentMediaUrl) {
-                addToHistory(state.currentMediaUrl);
-                loadMedia(state.currentMediaUrl);
-            }
-            updateParticipantsList();
-        }
-
-        function leaveRoom() {
-            if (state.peer) state.peer.destroy();
-            window.location.reload();
-        }
-
-        function copyRoomLink() {
-            const link = `${window.location.origin}${window.location.pathname}?room=${state.roomCode}`;
-            const tempInput = document.createElement('input');
-            tempInput.value = link;
-            document.body.appendChild(tempInput);
-            tempInput.select();
-            document.execCommand('copy');
-            document.body.removeChild(tempInput);
-
-            document.getElementById('copied-link-text').textContent = link;
-            const toast = document.getElementById('link-toast');
-            toast.classList.remove('opacity-0', 'translate-y-[-20px]');
-            toast.classList.add('opacity-100', 'translate-y-0');
-            setTimeout(() => {
-                toast.classList.remove('opacity-100', 'translate-y-0');
-                toast.classList.add('opacity-0', 'translate-y-[-20px]');
-            }, 3500);
-        }
-
-        function toggleViewersDropdown() {
-            const popover = document.getElementById('viewers-popover');
-            popover.classList.toggle('hidden');
-        }
-
-        function updateParticipantsList() {
-            const listEl = document.getElementById('participants-list');
-            const countEl = document.getElementById('viewer-count');
-            const badgeEl = document.getElementById('participants-count-badge');
-            
-            const totalCount = state.isHost ? Object.keys(state.peers).length + 1 : 2;
-            countEl.textContent = totalCount;
-            badgeEl.textContent = `${totalCount} active`;
-
-            let html = `
-                <div class="flex items-center justify-between p-2 rounded-xl bg-slate-900/60 border border-slate-800">
-                    <span class="font-medium text-slate-200 truncate flex items-center gap-2">
-                        <i class="fa-solid fa-crown text-amber-400 text-[10px]"></i> ${state.userName} ${state.isHost ? '(Host)' : ''}
-                    </span>
-                    <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+        function updateParticipantsUI() {
+            document.getElementById('peer-count').innerText = participants.length;
+            const container = document.getElementById('participants-list');
+            container.innerHTML = participants.map(p => `
+                <div class="flex items-center justify-between text-[11px] text-slate-300 bg-slate-950 px-2 py-1 rounded border border-slate-800">
+                    <span class="truncate">🟢 ${escapeHtml(p.name)}</span>
+                    <span>${p.host ? '👑' : ''}</span>
                 </div>
-            `;
-
-            if (state.isHost) {
-                Object.values(state.peers).forEach(p => {
-                    html += `
-                        <div class="flex items-center justify-between p-2 rounded-xl bg-slate-900/60 border border-slate-800">
-                            <span class="font-medium text-slate-200 truncate flex items-center gap-2">
-                                <i class="fa-solid fa-user text-slate-400 text-[10px]"></i> ${p.name}
-                            </span>
-                            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-                        </div>
-                    `;
-                });
-            }
-            listEl.innerHTML = html;
+            `).join('');
         }
 
-        function loadMedia(url) {
-            const ytWrap = document.getElementById('youtube-player-wrap');
-            const html5Video = document.getElementById('html5-video');
-            const genWrap = document.getElementById('generic-player-wrap');
-            const placeholder = document.getElementById('video-placeholder');
-
-            ytWrap.classList.add('hidden');
-            html5Video.classList.add('hidden');
-            genWrap.classList.add('hidden');
-            placeholder.classList.add('hidden');
-
-            if (url.includes('youtube.com') || url.includes('youtu.be')) {
-                ytWrap.classList.remove('hidden');
-                const videoId = extractYouTubeId(url);
-                document.getElementById('youtube-iframe').src = `https://www.youtube.com/embed/${videoId}?autoplay=1&enablejsapi=1`;
-            } else if (url.endsWith('.mp4') || url.endsWith('.webm') || url.includes('blob:')) {
-                html5Video.classList.remove('hidden');
-                html5Video.src = url;
-                html5Video.play().catch(e => console.log("Autoplay blocked:", e));
-            } else {
-                genWrap.classList.remove('hidden');
-                document.getElementById('generic-iframe').src = url;
-            }
-        }
-
-        function extractYouTubeId(url) {
-            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
-            const match = url.match(regExp);
-            return (match && match[2].length === 11) ? match[2] : 'dQw4w9WgXcQ';
-        }
-
-        function openChangeVideoModal() {
-            document.getElementById('change-video-modal').classList.remove('hidden');
-            document.getElementById('change-video-modal').classList.add('flex');
-        }
-
-        function closeChangeVideoModal() {
-            document.getElementById('change-video-modal').classList.remove('flex');
-            document.getElementById('change-video-modal').classList.add('hidden');
-        }
-
-        function submitNewVideo() {
-            const urlInput = document.getElementById('modal-video-url-input').value.trim();
-            if (!urlInput) {
-                showNotification('Please paste a video URL.');
-                return;
-            }
-
-            state.currentMediaUrl = urlInput;
-            addToHistory(urlInput);
-            loadMedia(urlInput);
-            closeChangeVideoModal();
-
-            const payload = { type: 'CHANGE_VIDEO', url: urlInput };
-            if (state.isHost) {
-                Object.values(state.peers).forEach(p => p.conn.send(payload));
-            } else if (state.conn) {
-                state.conn.send(payload);
-            }
-            appendSystemChat(`Changed video to: ${urlInput}`);
-        }
-
-        function openHistoryModal() {
-            document.getElementById('history-modal').classList.remove('hidden');
-            document.getElementById('history-modal').classList.add('flex');
-            renderHistoryList();
-        }
-
-        function closeHistoryModal() {
-            document.getElementById('history-modal').classList.remove('flex');
-            document.getElementById('history-modal').classList.add('hidden');
-        }
-
-        function addToHistory(url) {
-            if (!state.videoHistory.includes(url)) {
-                state.videoHistory.unshift(url);
-                if (state.videoHistory.length > 15) state.videoHistory.pop();
-            }
-        }
-
-        function renderHistoryList() {
-            const listEl = document.getElementById('history-list');
-            if (state.videoHistory.length === 0) {
-                listEl.innerHTML = `<div class="text-center py-6 text-slate-500 text-xs italic">No video history recorded yet.</div>`;
-                return;
-            }
-
-            let html = '';
-            state.videoHistory.forEach((url) => {
-                html += `
-                    <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-900/80 border border-slate-800 text-xs">
-                        <span class="truncate text-slate-300 font-mono mr-2 max-w-[260px]">${url}</span>
-                        <button onclick="loadHistoryVideo('${encodeURIComponent(url)}')" class="px-3 py-1 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-medium shrink-0 transition-all">Play</button>
-                    </div>
-                `;
-            });
-            listEl.innerHTML = html;
-        }
-
-        function loadHistoryVideo(encodedUrl) {
-            const url = decodeURIComponent(encodedUrl);
-            state.currentMediaUrl = url;
-            loadMedia(url);
-            closeHistoryModal();
-
-            const payload = { type: 'CHANGE_VIDEO', url: url };
-            if (state.isHost) {
-                Object.values(state.peers).forEach(p => p.conn.send(payload));
-            } else if (state.conn) {
-                state.conn.send(payload);
-            }
-        }
-
-        // Synced Floating Emoji Overlay
-        function sendEmojiReaction(emoji) {
-            triggerFloatingEmoji(emoji);
+        // --- Emoji Reactions Sync ---
+        function sendEmoji(emoji) {
+            spawnFloatingEmoji(emoji);
             const payload = { type: 'EMOJI', emoji: emoji };
-            if (state.isHost) {
-                Object.values(state.peers).forEach(p => p.conn.send(payload));
-            } else if (state.conn) {
-                state.conn.send(payload);
+            if (isHost) {
+                broadcast(payload);
+            } else if (connections.length > 0) {
+                connections[0].send(payload);
             }
         }
 
-        function triggerFloatingEmoji(emoji) {
-            const layer = document.getElementById('floating-emoji-layer');
-            if (!layer) return;
+        function spawnFloatingEmoji(emoji) {
+            const overlay = document.getElementById('emoji-overlay');
             const el = document.createElement('div');
-            el.className = 'absolute bottom-6 floating-emoji text-3xl pointer-events-none select-none z-30';
-            el.style.left = `${Math.random() * 80 + 10}%`;
-            el.textContent = emoji;
-            layer.appendChild(el);
-            setTimeout(() => el.remove(), 2400);
+            el.className = 'floating-emoji';
+            el.innerText = emoji;
+            const randomX = Math.random() * 75 + 12; 
+            el.style.left = `${randomX}%`;
+            overlay.appendChild(el);
+            setTimeout(() => { el.remove(); }, 3000);
         }
 
-        // Chat Popup Logic
-        function toggleChatModal() {
-            const modal = document.getElementById('chat-modal');
-            state.isChatOpen = !state.isChatOpen;
-            if (state.isChatOpen) {
-                modal.classList.remove('hidden');
-                modal.classList.add('flex');
-                state.unreadChatCount = 0;
-                updateChatBadge();
-            } else {
-                modal.classList.remove('flex');
-                modal.classList.add('hidden');
+        // --- Chat System ---
+        function handleChatKey(e) { if (e.key === 'Enter') sendChatMessage(); }
+        
+        function sendChatMessage() {
+            const input = document.getElementById('chat-input');
+            const msg = input.value.trim();
+            if (!msg) return;
+
+            appendChatMessage(myUsername, msg, true);
+            const payload = { type: 'CHAT', username: myUsername, message: msg };
+
+            if (isHost) {
+                broadcast(payload);
+            } else if (connections.length > 0) {
+                connections[0].send(payload);
             }
+            input.value = '';
         }
 
-        function updateChatBadge() {
-            const badge = document.getElementById('chat-unread-badge');
-            if (state.unreadChatCount > 0) {
-                badge.textContent = state.unreadChatCount > 9 ? '9+' : state.unreadChatCount;
+        function appendChatMessage(username, message, isSelf = false) {
+            const chatBox = document.getElementById('chat-messages');
+            const div = document.createElement('div');
+            div.className = `flex flex-col ${isSelf ? 'items-end' : 'items-start'}`;
+            div.innerHTML = `<span class="text-[9px] text-slate-500 mb-0.5">${username}</span><div class="px-3 py-1.5 rounded-xl max-w-[85%] break-words ${isSelf ? 'bg-indigo-600 text-white' : 'bg-slate-800 text-slate-200'}">${escapeHtml(message)}</div>`;
+            chatBox.appendChild(div);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        function updateChatBadgeUI() {
+            const badge = document.getElementById('chat-badge');
+            if (unreadMessagesCount > 0) {
+                badge.innerText = unreadMessagesCount;
                 badge.classList.remove('hidden');
             } else {
                 badge.classList.add('hidden');
             }
         }
 
-        function sendChatMessage(e) {
-            e.preventDefault();
-            const input = document.getElementById('chat-input');
-            const msg = input.value.trim();
-            if (!msg) return;
+        // --- Media Handling & Sync ---
+        function submitModalMedia() {
+            const url = document.getElementById('modal-media-url').value.trim();
+            if (!url) return;
+            closeMediaModal();
+            loadMediaSource(url, true);
+        }
 
-            appendChatBubble('You', msg);
-            input.value = '';
+        function loadMediaSource(url, sendToOthers) {
+            document.getElementById('video-placeholder').classList.add('hidden');
+            const parsed = parseVideoPlatform(url);
 
-            const payload = { type: 'CHAT', sender: state.userName, message: msg };
-            if (state.isHost) {
-                Object.values(state.peers).forEach(p => p.conn.send(payload));
-            } else if (state.conn) {
-                state.conn.send(payload);
+            if (parsed.type === 'youtube') {
+                currentMode = 'youtube';
+                videoElement.classList.add('hidden');
+                genericIframe.classList.add('hidden');
+                videoElement.pause();
+                document.getElementById('youtube-player').classList.remove('hidden');
+
+                if (!ytPlayer) {
+                    ytPlayer = new YT.Player('youtube-player', {
+                        height: '100%',
+                        width: '100%',
+                        videoId: parsed.id,
+                        playerVars: { 'autoplay': 1, 'controls': 1 },
+                        events: { 'onStateChange': onYTStateChange }
+                    });
+                } else {
+                    ytPlayer.loadVideoById(parsed.id);
+                }
+            } else if (parsed.type === 'vimeo' || parsed.type === 'facebook') {
+                currentMode = 'iframe';
+                videoElement.classList.add('hidden');
+                document.getElementById('youtube-player').classList.add('hidden');
+                if (ytPlayer && ytPlayer.stopVideo) ytPlayer.stopVideo();
+                
+                genericIframe.src = parsed.url;
+                genericIframe.classList.remove('hidden');
+            } else {
+                currentMode = 'html5';
+                document.getElementById('youtube-player').classList.add('hidden');
+                genericIframe.classList.add('hidden');
+                if (ytPlayer && ytPlayer.stopVideo) ytPlayer.stopVideo();
+                
+                videoElement.classList.remove('hidden');
+                videoElement.src = url;
+                videoElement.load();
+            }
+
+            addToHistory(parsed.name, url);
+
+            if (sendToOthers) {
+                const payload = { type: 'MEDIA_CHANGE', url: url };
+                if (isHost) broadcast(payload);
+                else if (connections.length > 0) connections[0].send(payload);
             }
         }
 
-        function appendChatBubble(sender, message) {
-            const chatBox = document.getElementById('chat-messages');
-            const isMe = sender === 'You' || sender === state.userName;
-            const bubble = document.createElement('div');
-            bubble.className = `p-2.5 rounded-2xl max-w-[85%] text-xs ${isMe ? 'bg-indigo-600/30 border border-indigo-500/30 ml-auto text-slate-100' : 'bg-slate-900 border border-slate-800 text-slate-300'}`;
-            bubble.innerHTML = `<p class="font-semibold text-[10px] text-indigo-400 mb-0.5">${sender}</p><p class="break-words">${escapeHtml(message)}</p>`;
-            chatBox.appendChild(bubble);
-            chatBox.scrollTop = chatBox.scrollHeight;
+        function addToHistory(name, url) {
+            if (!playedHistory.some(item => item.url === url)) {
+                playedHistory.unshift({ name, url });
+                if (playedHistory.length > 8) playedHistory.pop();
+            }
         }
 
-        function appendSystemChat(message) {
-            const chatBox = document.getElementById('chat-messages');
-            const bubble = document.createElement('div');
-            bubble.className = 'text-center text-[11px] text-slate-500 italic my-1.5';
-            bubble.textContent = message;
-            chatBox.appendChild(bubble);
-            chatBox.scrollTop = chatBox.scrollHeight;
+        function renderHistoryModalUI() {
+            const list = document.getElementById('history-list');
+            if (playedHistory.length === 0) {
+                list.innerHTML = `<span class="text-slate-500 italic text-center py-4">No history records yet</span>`;
+                return;
+            }
+            list.innerHTML = playedHistory.map((item) => `
+                <button onclick="closeHistoryModal(); loadMediaSource('${escapeHtml(item.url)}', true);" class="flex items-center justify-between bg-slate-950 hover:bg-slate-800 border border-slate-800 p-2.5 rounded-xl transition text-left">
+                    <span class="font-medium text-slate-200 truncate pr-2">${escapeHtml(item.name)}</span>
+                    <span class="text-[10px] text-indigo-400 shrink-0">▶ Play</span>
+                </button>
+            `).join('');
+        }
+
+        videoElement.addEventListener('play', () => {
+            if (syncLock || currentMode !== 'html5') return;
+            sendVideoAction('play', videoElement.currentTime);
+        });
+        videoElement.addEventListener('pause', () => {
+            if (syncLock || currentMode !== 'html5') return;
+            sendVideoAction('pause', videoElement.currentTime);
+        });
+        videoElement.addEventListener('seeked', () => {
+            if (syncLock || currentMode !== 'html5') return;
+            sendVideoAction('seek', videoElement.currentTime);
+        });
+
+        function onYTStateChange(event) {
+            if (syncLock || currentMode !== 'youtube') return;
+            const time = ytPlayer.getCurrentTime();
+            if (event.data === YT.PlayerState.PLAYING) sendVideoAction('play', time);
+            else if (event.data === YT.PlayerState.PAUSED) sendVideoAction('pause', time);
+        }
+
+        function executeVideoAction(action, time) {
+            if (currentMode === 'html5') {
+                if (action === 'play') { videoElement.currentTime = time; videoElement.play().catch(() => {}); }
+                else if (action === 'pause') { videoElement.currentTime = time; videoElement.pause(); }
+                else if (action === 'seek') { videoElement.currentTime = time; }
+            } else if (currentMode === 'youtube' && ytPlayer && ytPlayer.seekTo) {
+                const diff = Math.abs(ytPlayer.getCurrentTime() - time);
+                if (diff > 1.5) ytPlayer.seekTo(time, true);
+                if (action === 'play') ytPlayer.playVideo();
+                else if (action === 'pause') ytPlayer.pauseVideo();
+            }
+        }
+
+        function sendVideoAction(action, time) {
+            const payload = { type: 'VIDEO_ACTION', action: action, time: time };
+            if (isHost) broadcast(payload);
+            else if (connections.length > 0) connections[0].send(payload);
+        }
+
+        function copyHeaderRoomLink() {
+            navigator.clipboard.writeText(window.location.href);
+            const toast = document.getElementById('toast-banner');
+            toast.classList.remove('hidden');
+            setTimeout(() => { toast.classList.add('hidden'); }, 2500);
         }
 
         function escapeHtml(text) {
-            return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+            const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+            return text.replace(/[&<>"']/g, m => map[m]);
         }
     </script>
 </body>
