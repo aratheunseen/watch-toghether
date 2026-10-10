@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>WatchParty - Sync Videos with Friends</title>
+    <title>WatchParty by Ashiqur Rahman Alif</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome Icons -->
@@ -18,10 +18,9 @@
             color: #f8fafc;
             overflow-x: hidden;
         }
-        /* Custom scrollbar */
         ::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
+            width: 5px;
+            height: 5px;
         }
         ::-webkit-scrollbar-track {
             background: rgba(15, 23, 42, 0.6);
@@ -29,9 +28,6 @@
         ::-webkit-scrollbar-thumb {
             background: rgba(99, 102, 241, 0.4);
             border-radius: 3px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: rgba(99, 102, 241, 0.7);
         }
         @keyframes floatUp {
             0% { transform: translateY(0px) scale(0.8); opacity: 1; }
@@ -41,7 +37,7 @@
             animation: floatUp 2.2s ease-out forwards;
         }
         .glass-panel {
-            background: rgba(15, 23, 42, 0.85);
+            background: rgba(15, 23, 42, 0.9);
             backdrop-filter: blur(16px);
             border: 1px solid rgba(255, 255, 255, 0.08);
         }
@@ -49,6 +45,7 @@
 </head>
 <body class="h-full flex flex-col justify-between selection:bg-indigo-500 selection:text-white">
 
+    <!-- Toast Notification Banner -->
     <div id="toast-notification" class="fixed top-5 left-1/2 -translate-x-1/2 z-50 pointer-events-none transition-all duration-300 opacity-0 -translate-y-10">
         <div class="bg-indigo-600/90 text-white px-5 py-2.5 rounded-2xl shadow-xl backdrop-blur-md border border-indigo-400/30 flex items-center gap-2.5 text-sm font-medium">
             <i class="fa-solid fa-circle-info text-indigo-200"></i>
@@ -56,6 +53,7 @@
         </div>
     </div>
 
+    <!-- Link Copied Toast -->
     <div id="link-toast" class="fixed top-5 right-5 z-50 pointer-events-none transition-all duration-300 opacity-0 translate-y-[-20px]">
         <div class="bg-slate-900/95 text-slate-100 px-4 py-3 rounded-2xl shadow-2xl backdrop-blur-xl border border-emerald-500/30 flex items-center gap-3 text-xs">
             <div class="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
@@ -70,12 +68,10 @@
 
     <!-- HOME / LOBBY SCREEN -->
     <div id="lobby-screen" class="flex-1 flex flex-col items-center justify-center p-4 sm:p-6 relative">
-        <!-- Background Ambient Glows -->
         <div class="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-indigo-600/15 rounded-full blur-3xl pointer-events-none"></div>
         <div class="absolute bottom-1/4 left-1/3 w-80 h-80 bg-purple-600/15 rounded-full blur-3xl pointer-events-none"></div>
 
         <div class="w-full max-w-md z-10 my-auto">
-            <!-- App Branding -->
             <div class="text-center mb-8">
                 <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-tr from-indigo-600 to-purple-600 shadow-xl shadow-indigo-600/30 text-white text-2xl mb-4 ring-1 ring-white/20">
                     <i class="fa-solid fa-play"></i>
@@ -84,9 +80,7 @@
                 <p class="text-sm text-slate-400 max-w-xs mx-auto">Cool stuff in one sentence.</p>
             </div>
 
-            <!-- Card Box -->
             <div class="glass-panel rounded-3xl p-6 sm:p-8 shadow-2xl">
-                <!-- Tabs -->
                 <div class="grid grid-cols-2 gap-1 bg-slate-900/90 p-1 rounded-xl mb-6 border border-slate-800">
                     <button onclick="switchTab('host')" id="tab-host-btn" class="py-2.5 text-xs font-semibold rounded-lg bg-indigo-600 text-white shadow transition-all flex items-center justify-center gap-2">
                         <i class="fa-solid fa-plus-circle"></i> Create Room
@@ -99,7 +93,9 @@
                 <!-- HOST TAB -->
                 <div id="host-tab" class="space-y-4">
                     <div>
-                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">Your Name</label>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">
+                            Your Name <span class="text-slate-500 font-normal lowercase">(optional)</span>
+                        </label>
                         <div class="relative">
                             <i class="fa-solid fa-user absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-sm"></i>
                             <input type="text" id="host-name-input" placeholder="e.g. Ashiq" 
@@ -124,15 +120,6 @@
                         </div>
                     </div>
 
-                    <div>
-                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">Media Source URL</label>
-                        <div class="relative">
-                            <i class="fa-solid fa-link absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-sm"></i>
-                            <input type="text" id="host-media-input" placeholder="YouTube, Vimeo, MP4 link..." 
-                                class="w-full pl-10 pr-4 py-2.5 bg-slate-900/80 border border-slate-700/80 rounded-xl text-slate-100 placeholder-slate-500 text-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all">
-                        </div>
-                    </div>
-
                     <!-- Optional Password Dropdown -->
                     <div>
                         <button type="button" onclick="togglePasswordSection()" class="w-full flex items-center justify-between text-xs font-semibold text-slate-400 hover:text-slate-200 py-1 transition-colors">
@@ -153,7 +140,9 @@
                 <!-- JOIN TAB -->
                 <div id="join-tab" class="hidden space-y-4">
                     <div>
-                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">Your Name</label>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">
+                            Your Name <span class="text-slate-500 font-normal lowercase">(optional)</span>
+                        </label>
                         <div class="relative">
                             <i class="fa-solid fa-user absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-sm"></i>
                             <input type="text" id="join-name-input" placeholder="e.g. Ashiq" 
@@ -186,127 +175,144 @@
             </div>
         </div>
 
-        <!-- Footer at the bottom of the page -->
+        <!-- Footer at the very bottom of website -->
         <footer class="mt-8 text-center text-xs text-slate-500 z-10 pb-4">
             <span id="footer-year">© 2026</span> WatchParty • by Ashiqur Rahman Alif
         </footer>
     </div>
 
+    <!-- WATCH ROOM SCREEN -->
     <div id="room-screen" class="hidden flex-1 flex flex-col h-full w-full">
-        <!-- Top Navbar -->
+        <!-- Top Header -->
         <header class="glass-panel border-b border-slate-800 px-4 py-3 flex items-center justify-between shrink-0 relative z-30">
+            <!-- Left: Title / Branding -->
             <div class="flex items-center gap-3">
-                <div class="flex items-center gap-2 bg-slate-900/80 border border-slate-700/60 px-3 py-1.5 rounded-xl">
-                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                    <span class="text-xs font-bold font-mono tracking-wider text-slate-200" id="display-room-code">ROOM-CODE</span>
-                    <button onclick="copyRoomLink()" class="text-indigo-400 hover:text-indigo-300 ml-1 text-xs transition-colors" title="Copy Room Link">
+                <span class="text-xs sm:text-sm font-bold tracking-tight text-white flex items-center gap-2">
+                    <i class="fa-solid fa-play text-indigo-400"></i> WatchParty by Ashiqur Rahman Alif
+                </span>
+            </div>
+
+            <!-- Center/Right Controls Header -->
+            <div class="flex items-center gap-2.5">
+                <!-- Room code with copy button -->
+                <div class="flex items-center gap-1.5 bg-slate-900/80 border border-slate-700/60 px-3 py-1.5 rounded-xl">
+                    <span class="text-xs font-bold font-mono tracking-wider text-slate-200" id="display-room-code">ROOM</span>
+                    <button onclick="copyRoomLink()" class="text-indigo-400 hover:text-indigo-300 text-xs transition-colors" title="Copy Room Link">
                         <i class="fa-solid fa-copy"></i>
                     </button>
                 </div>
-            </div>
 
-            <!-- Viewers List Toggle & Count with Green/Red Signals -->
-            <div class="relative">
-                <button onclick="toggleViewersDropdown()" class="flex items-center gap-2 bg-slate-900/80 border border-slate-700/60 px-3.5 py-1.5 rounded-xl hover:bg-slate-800 transition-all text-xs font-medium">
-                    <div class="flex items-center gap-1.5">
-                        <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-                        <span class="w-2 h-2 rounded-full bg-rose-500"></span>
-                    </div>
-                    <span class="text-slate-300"><span id="viewer-count">1</span> Viewers</span>
-                    <i class="fa-solid fa-chevron-down text-[10px] text-slate-400"></i>
-                </button>
+                <!-- Viewer count with green status dot (no text "viewer") -->
+                <div class="relative">
+                    <button onclick="toggleViewersDropdown()" class="flex items-center gap-2 bg-slate-900/80 border border-slate-700/60 px-3 py-1.5 rounded-xl hover:bg-slate-800 transition-all text-xs font-semibold">
+                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                        <span id="viewer-count" class="text-slate-200">1</span>
+                        <i class="fa-solid fa-chevron-down text-[10px] text-slate-400"></i>
+                    </button>
 
-                <!-- Viewers Popover -->
-                <div id="viewers-popover" class="hidden absolute right-0 mt-2 w-64 glass-panel rounded-2xl p-3 shadow-2xl border border-slate-700/60 z-50">
-                    <div class="flex items-center justify-between pb-2 mb-2 border-b border-slate-800 text-xs font-semibold text-slate-400">
-                        <span>Connected Participants</span>
-                        <span id="participants-count-badge" class="bg-indigo-500/20 text-indigo-400 px-2 py-0.5 rounded-md">1 active</span>
-                    </div>
-                    <div id="participants-list" class="space-y-1.5 max-h-48 overflow-y-auto text-xs">
-                        <div class="flex items-center justify-between p-2 rounded-xl bg-slate-900/60 border border-slate-800">
-                            <span class="font-medium text-slate-200 truncate flex items-center gap-2">
-                                <i class="fa-solid fa-crown text-amber-400 text-[10px]"></i> You (Host)
-                            </span>
-                            <span class="w-2 h-2 rounded-full bg-emerald-500" title="Connected"></span>
+                    <!-- Viewers Popover -->
+                    <div id="viewers-popover" class="hidden absolute right-0 mt-2 w-64 glass-panel rounded-2xl p-3 shadow-2xl border border-slate-700/60 z-50">
+                        <div class="flex items-center justify-between pb-2 mb-2 border-b border-slate-800 text-xs font-semibold text-slate-400">
+                            <span>Connected Participants</span>
+                            <span id="participants-count-badge" class="bg-indigo-500/20 text-indigo-400 px-2 py-0.5 rounded-md">1 active</span>
+                        </div>
+                        <div id="participants-list" class="space-y-1.5 max-h-48 overflow-y-auto text-xs">
+                            <div class="flex items-center justify-between p-2 rounded-xl bg-slate-900/60 border border-slate-800">
+                                <span class="font-medium text-slate-200 truncate flex items-center gap-2">
+                                    <i class="fa-solid fa-crown text-amber-400 text-[10px]"></i> You (Host)
+                                </span>
+                                <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <div class="flex items-center gap-2">
-                <button onclick="openHistoryModal()" class="px-3 py-1.5 bg-slate-800/80 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-medium transition-all flex items-center gap-1.5 border border-slate-700/60">
-                    <i class="fa-solid fa-clock-rotate-left text-indigo-400"></i>
-                    <span class="hidden sm:inline">History</span>
+                <!-- Chat Popup Toggle Button with unread count badge -->
+                <button onclick="toggleChatModal()" class="relative p-2.5 bg-slate-900/80 hover:bg-slate-800 border border-slate-700/60 text-indigo-400 rounded-xl text-xs transition-all" title="Open Chat">
+                    <i class="fa-solid fa-comments text-sm"></i>
+                    <span id="chat-unread-badge" class="absolute -top-1.5 -right-1.5 bg-rose-500 text-white font-bold text-[10px] w-5 h-5 rounded-full flex items-center justify-center border-2 border-slate-900 hidden">0</span>
                 </button>
-                <button onclick="openChangeVideoModal()" class="px-3 py-1.5 bg-indigo-600/80 hover:bg-indigo-600 text-white rounded-xl text-xs font-medium transition-all flex items-center gap-1.5 shadow-md shadow-indigo-600/20">
-                    <i class="fa-solid fa-film"></i>
-                    <span>Change Video</span>
-                </button>
-                <button onclick="leaveRoom()" class="p-2 bg-rose-500/20 hover:bg-rose-500/30 text-rose-400 rounded-xl text-xs transition-all" title="Leave Room">
+
+                <!-- Leave Room -->
+                <button onclick="leaveRoom()" class="p-2.5 bg-rose-500/20 hover:bg-rose-500/30 text-rose-400 rounded-xl text-xs transition-all" title="Leave Room">
                     <i class="fa-solid fa-right-from-bracket"></i>
                 </button>
             </div>
         </header>
 
-        <div class="flex-1 flex flex-col lg:flex-row overflow-hidden relative">
-            <!-- Main Video Stage -->
-            <div class="flex-1 flex flex-col bg-black/90 relative overflow-hidden items-center justify-center p-2 sm:p-4">
-                <div id="video-container" class="w-full max-w-5xl aspect-video bg-slate-950 rounded-2xl overflow-hidden shadow-2xl relative border border-slate-800 flex items-center justify-center">
-                    <!-- YouTube iframe fallback -->
-                    <div id="youtube-player-wrap" class="w-full h-full hidden">
-                        <iframe id="youtube-iframe" class="w-full h-full border-0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-                    </div>
-                    <!-- HTML5 Video / Direct MP4 player -->
-                    <video id="html5-video" class="w-full h-full object-contain hidden" controls playsinline></video>
-                    <!-- Generic Iframe player (Vimeo/Facebook) -->
-                    <div id="generic-player-wrap" class="w-full h-full hidden">
-                        <iframe id="generic-iframe" class="w-full h-full border-0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
-                    </div>
-                    <!-- Placeholder state -->
-                    <div id="video-placeholder" class="text-center p-6">
-                        <i class="fa-solid fa-film text-4xl text-slate-600 mb-3"></i>
-                        <p class="text-slate-400 text-sm">No video loaded yet. Click 'Change Video' above.</p>
-                    </div>
+        <!-- Video Stage directly under header -->
+        <div class="flex-1 flex flex-col bg-black/95 relative overflow-hidden items-center justify-center p-3 sm:p-4">
+            <div id="video-container" class="w-full max-w-5xl aspect-video bg-slate-950 rounded-2xl overflow-hidden shadow-2xl relative border border-slate-800 flex items-center justify-center">
+                <!-- YouTube iframe fallback -->
+                <div id="youtube-player-wrap" class="w-full h-full hidden">
+                    <iframe id="youtube-iframe" class="w-full h-full border-0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
                 </div>
-
-                <!-- Floating Emoji Reaction Layer -->
-                <div id="floating-emoji-layer" class="absolute inset-0 pointer-events-none overflow-hidden z-20"></div>
+                <!-- HTML5 Video / Direct MP4 player -->
+                <video id="html5-video" class="w-full h-full object-contain hidden" controls playsinline></video>
+                <!-- Generic Iframe player (Vimeo/Facebook) -->
+                <div id="generic-player-wrap" class="w-full h-full hidden">
+                    <iframe id="generic-iframe" class="w-full h-full border-0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
+                </div>
+                <!-- Placeholder state -->
+                <div id="video-placeholder" class="text-center p-6">
+                    <i class="fa-solid fa-film text-4xl text-slate-600 mb-3"></i>
+                    <p class="text-slate-400 text-sm">No video loaded yet. Click the Change Video button below.</p>
+                </div>
             </div>
 
-            <!-- Chat Sidebar -->
-            <div class="w-full lg:w-80 glass-panel border-t lg:border-t-0 lg:border-l border-slate-800 flex flex-col h-56 lg:h-auto shrink-0 z-10">
-                <div class="px-4 py-3 border-b border-slate-800 flex items-center justify-between text-xs font-semibold text-slate-300">
-                    <span class="flex items-center gap-2"><i class="fa-solid fa-comments text-indigo-400"></i> Live Room Chat</span>
-                    <span class="text-[10px] text-slate-500 font-mono">P2P Encrypted</span>
-                </div>
-                <div id="chat-messages" class="flex-1 p-3 overflow-y-auto space-y-2.5 text-xs">
-                    <div class="text-center text-slate-500 italic my-2 text-[11px]">Party chat started. Say hello!</div>
-                </div>
-                <div class="p-3 border-t border-slate-800 bg-slate-950/60">
-                    <form onsubmit="sendChatMessage(event)" class="flex gap-2">
-                        <input type="text" id="chat-input" placeholder="Type message..." 
-                            class="flex-1 bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-all">
-                        <button type="submit" class="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold transition-all">
-                            <i class="fa-solid fa-paper-plane"></i>
-                        </button>
-                    </form>
-                </div>
+            <!-- Floating Emoji Reaction Layer -->
+            <div id="floating-emoji-layer" class="absolute inset-0 pointer-events-none overflow-hidden z-20"></div>
+
+            <!-- Action buttons directly under the video (icon-only, no text titles) -->
+            <div class="flex items-center gap-3 mt-3">
+                <button onclick="openChangeVideoModal()" class="w-11 h-11 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-600/30 flex items-center justify-center text-base transition-all active:scale-95" title="Change Video">
+                    <i class="fa-solid fa-film"></i>
+                </button>
+                <button onclick="openHistoryModal()" class="w-11 h-11 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700/60 shadow-lg flex items-center justify-center text-base transition-all active:scale-95" title="Played History">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                </button>
             </div>
         </div>
 
+        <!-- Emoji Bar at the bottom -->
         <div class="glass-panel border-t border-slate-800 px-4 py-2.5 shrink-0 flex items-center justify-center gap-2 sm:gap-4 z-30 select-none">
-            <button onclick="sendEmojiReaction('❤️')" class="w-10 h-10 rounded-xl bg-slate-900/80 hover:bg-indigo-600/30 border border-slate-800 flex items-center justify-center text-lg transition-transform active:scale-90 shadow-sm" title="Love">❤️</button>
-            <button onclick="sendEmojiReaction('🔥')" class="w-10 h-10 rounded-xl bg-slate-900/80 hover:bg-indigo-600/30 border border-slate-800 flex items-center justify-center text-lg transition-transform active:scale-90 shadow-sm" title="Fire">🔥</button>
-            <button onclick="sendEmojiReaction('😂')" class="w-10 h-10 rounded-xl bg-slate-900/80 hover:bg-indigo-600/30 border border-slate-800 flex items-center justify-center text-lg transition-transform active:scale-90 shadow-sm" title="Laugh">😂</button>
-            <button onclick="sendEmojiReaction('👏')" class="w-10 h-10 rounded-xl bg-slate-900/80 hover:bg-indigo-600/30 border border-slate-800 flex items-center justify-center text-lg transition-transform active:scale-90 shadow-sm" title="Clap">👏</button>
-            <button onclick="sendEmojiReaction('😮')" class="w-10 h-10 rounded-xl bg-slate-900/80 hover:bg-indigo-600/30 border border-slate-800 flex items-center justify-center text-lg transition-transform active:scale-90 shadow-sm" title="Wow">😮</button>
-            <button onclick="sendEmojiReaction('🎉')" class="w-10 h-10 rounded-xl bg-slate-900/80 hover:bg-indigo-600/30 border border-slate-800 flex items-center justify-center text-lg transition-transform active:scale-90 shadow-sm" title="Party">🎉</button>
-            <button onclick="sendEmojiReaction('👍')" class="w-10 h-10 rounded-xl bg-slate-900/80 hover:bg-indigo-600/30 border border-slate-800 flex items-center justify-center text-lg transition-transform active:scale-90 shadow-sm" title="Thumbs Up">👍</button>
+            <button onclick="sendEmojiReaction('❤️')" class="w-10 h-10 rounded-xl bg-slate-900/80 hover:bg-indigo-600/30 border border-slate-800 flex items-center justify-center text-lg transition-transform active:scale-90 shadow-sm">❤️</button>
+            <button onclick="sendEmojiReaction('🔥')" class="w-10 h-10 rounded-xl bg-slate-900/80 hover:bg-indigo-600/30 border border-slate-800 flex items-center justify-center text-lg transition-transform active:scale-90 shadow-sm">🔥</button>
+            <button onclick="sendEmojiReaction('😂')" class="w-10 h-10 rounded-xl bg-slate-900/80 hover:bg-indigo-600/30 border border-slate-800 flex items-center justify-center text-lg transition-transform active:scale-90 shadow-sm">😂</button>
+            <button onclick="sendEmojiReaction('👏')" class="w-10 h-10 rounded-xl bg-slate-900/80 hover:bg-indigo-600/30 border border-slate-800 flex items-center justify-center text-lg transition-transform active:scale-90 shadow-sm">👏</button>
+            <button onclick="sendEmojiReaction('😮')" class="w-10 h-10 rounded-xl bg-slate-900/80 hover:bg-indigo-600/30 border border-slate-800 flex items-center justify-center text-lg transition-transform active:scale-90 shadow-sm">😮</button>
+            <button onclick="sendEmojiReaction('🎉')" class="w-10 h-10 rounded-xl bg-slate-900/80 hover:bg-indigo-600/30 border border-slate-800 flex items-center justify-center text-lg transition-transform active:scale-90 shadow-sm">🎉</button>
+            <button onclick="sendEmojiReaction('👍')" class="w-10 h-10 rounded-xl bg-slate-900/80 hover:bg-indigo-600/30 border border-slate-800 flex items-center justify-center text-lg transition-transform active:scale-90 shadow-sm">👍</button>
         </div>
     </div>
 
+    <!-- CHAT POPUP MODAL -->
+    <div id="chat-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden items-end sm:items-center justify-center p-0 sm:p-4">
+        <div class="glass-panel w-full sm:max-w-md h-[75vh] sm:h-[500px] rounded-t-3xl sm:rounded-3xl flex flex-col shadow-2xl border border-slate-700/80 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div class="px-4 py-3 border-b border-slate-800 flex items-center justify-between text-xs font-semibold text-slate-300">
+                <span class="flex items-center gap-2"><i class="fa-solid fa-comments text-indigo-400"></i> Live Room Chat</span>
+                <button onclick="toggleChatModal()" class="w-7 h-7 rounded-xl bg-slate-900/80 text-slate-400 hover:text-white flex items-center justify-center">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div id="chat-messages" class="flex-1 p-3 overflow-y-auto space-y-2.5 text-xs">
+                <div class="text-center text-slate-500 italic my-2 text-[11px]">Party chat started. Say hello!</div>
+            </div>
+            <div class="p-3 border-t border-slate-800 bg-slate-950/80">
+                <form onsubmit="sendChatMessage(event)" class="flex gap-2">
+                    <input type="text" id="chat-input" placeholder="Type message..." 
+                        class="flex-1 bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2.5 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-all">
+                    <button type="submit" class="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold transition-all">
+                        <i class="fa-solid fa-paper-plane"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- CHANGE VIDEO MODAL -->
     <div id="change-video-modal" class="fixed inset-0 bg-black/70 backdrop-blur-md z-50 hidden items-center justify-center p-4">
-        <div class="glass-panel w-full max-w-lg rounded-3xl p-6 shadow-2xl border border-slate-700/80 animate-in fade-in zoom-in-95 duration-200">
+        <div class="glass-panel w-full max-w-lg rounded-3xl p-6 shadow-2xl border border-slate-700/80">
             <div class="flex items-center justify-between pb-4 mb-4 border-b border-slate-800">
                 <h3 class="font-semibold text-slate-100 flex items-center gap-2">
                     <i class="fa-solid fa-film text-indigo-400"></i> Change Video Source
@@ -331,6 +337,7 @@
         </div>
     </div>
 
+    <!-- HISTORY MODAL -->
     <div id="history-modal" class="fixed inset-0 bg-black/70 backdrop-blur-md z-50 hidden items-center justify-center p-4">
         <div class="glass-panel w-full max-w-lg rounded-3xl p-6 shadow-2xl border border-slate-700/80">
             <div class="flex items-center justify-between pb-4 mb-4 border-b border-slate-800">
@@ -348,7 +355,7 @@
     </div>
 
     <script>
-        // Set dynamic current year in footer
+        // Footer dynamic year
         document.getElementById('footer-year').textContent = `© ${new Date().getFullYear()}`;
 
         // App State
@@ -358,12 +365,13 @@
             isHost: false,
             currentMediaUrl: '',
             videoHistory: [],
-            peers: {}, // connected PeerJS connections
+            peers: {},
             conn: null,
-            peer: null
+            peer: null,
+            unreadChatCount: 0,
+            isChatOpen: false
         };
 
-        // Tab Switching
         function switchTab(tab) {
             const hostBtn = document.getElementById('tab-host-btn');
             const joinBtn = document.getElementById('tab-join-btn');
@@ -383,7 +391,6 @@
             }
         }
 
-        // Random Code Generator
         function getRandomCode(length = 6) {
             const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
             let result = '';
@@ -407,7 +414,6 @@
             const textEl = document.getElementById('suggest-code-text');
             if (textEl) textEl.textContent = `Sug: ${currentSuggestedCode}`;
 
-            // Check if URL has room code prefilled (e.g. ?room=X7K2P9)
             const urlParams = new URLSearchParams(window.location.search);
             const roomParam = urlParams.get('room');
             if (roomParam) {
@@ -436,38 +442,26 @@
             }, 3000);
         }
 
-        // Handle Host Launch
         function handleHostParty() {
-            const name = document.getElementById('host-name-input').value.trim();
+            let name = document.getElementById('host-name-input').value.trim();
             let room = document.getElementById('host-room-input').value.trim().toUpperCase();
-            const mediaUrl = document.getElementById('host-media-input').value.trim();
 
-            if (!name) {
-                showNotification('Please enter your display name.');
-                return;
-            }
-
-            if (!room) {
-                room = getRandomCode(6);
-            }
+            if (!name) name = 'Ashiq';
+            if (!room) room = getRandomCode(6);
 
             state.userName = name;
             state.roomCode = room;
             state.isHost = true;
-            state.currentMediaUrl = mediaUrl || 'https://www.youtube.com/watch?v=dQw4w9WgXcQ';
+            state.currentMediaUrl = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ';
 
             initPeerConnection(true);
         }
 
-        // Handle Join Party
         function handleJoinParty() {
-            const name = document.getElementById('join-name-input').value.trim();
+            let name = document.getElementById('join-name-input').value.trim();
             const room = document.getElementById('join-room-input').value.trim().toUpperCase();
 
-            if (!name) {
-                showNotification('Please enter your display name.');
-                return;
-            }
+            if (!name) name = 'Guest';
             if (!room) {
                 showNotification('Please enter a room code.');
                 return;
@@ -480,18 +474,13 @@
             initPeerConnection(false);
         }
 
-        // PeerJS Initialization & P2P Sync
         function initPeerConnection(isHosting) {
             const peerId = isHosting ? `wp-${state.roomCode}` : undefined;
             
-            // Initialize Peer
-            state.peer = new Peer(peerId, {
-                debug: 1
-            });
+            state.peer = new Peer(peerId, { debug: 1 });
 
             state.peer.on('open', (id) => {
                 if (!isHosting) {
-                    // Connect to Host
                     const hostId = `wp-${state.roomCode}`;
                     const conn = state.peer.connect(hostId, {
                         metadata: { name: state.userName }
@@ -519,7 +508,6 @@
                 state.peers[conn.peer] = { conn, name: conn.metadata?.name || 'Guest' };
                 updateParticipantsList();
                 
-                // Send current state to new participant
                 conn.send({
                     type: 'SYNC_STATE',
                     mediaUrl: state.currentMediaUrl,
@@ -570,11 +558,14 @@
                 appendSystemChat(`Video changed to: ${data.url}`);
             } else if (data.type === 'CHAT') {
                 appendChatBubble(data.sender, data.message);
+                if (!state.isChatOpen) {
+                    state.unreadChatCount++;
+                    updateChatBadge();
+                }
             } else if (data.type === 'EMOJI') {
                 triggerFloatingEmoji(data.emoji);
             }
 
-            // If host, broadcast data to all other peers
             if (state.isHost) {
                 Object.values(state.peers).forEach(p => {
                     if (p.conn.peer !== conn.peer) {
@@ -601,7 +592,6 @@
             window.location.reload();
         }
 
-        // Copy Room Link with Toast Banner
         function copyRoomLink() {
             const link = `${window.location.origin}${window.location.pathname}?room=${state.roomCode}`;
             const tempInput = document.createElement('input');
@@ -621,7 +611,6 @@
             }, 3500);
         }
 
-        // Viewers Popover Toggle
         function toggleViewersDropdown() {
             const popover = document.getElementById('viewers-popover');
             popover.classList.toggle('hidden');
@@ -632,7 +621,7 @@
             const countEl = document.getElementById('viewer-count');
             const badgeEl = document.getElementById('participants-count-badge');
             
-            const totalCount = state.isHost ? Object.keys(state.peers).length + 1 : 2; // rough estimation for guest
+            const totalCount = state.isHost ? Object.keys(state.peers).length + 1 : 2;
             countEl.textContent = totalCount;
             badgeEl.textContent = `${totalCount} active`;
 
@@ -660,7 +649,6 @@
             listEl.innerHTML = html;
         }
 
-        // Media Loading & Handling
         function loadMedia(url) {
             const ytWrap = document.getElementById('youtube-player-wrap');
             const html5Video = document.getElementById('html5-video');
@@ -692,7 +680,6 @@
             return (match && match[2].length === 11) ? match[2] : 'dQw4w9WgXcQ';
         }
 
-        // Change Video Modal
         function openChangeVideoModal() {
             document.getElementById('change-video-modal').classList.remove('hidden');
             document.getElementById('change-video-modal').classList.add('flex');
@@ -724,7 +711,6 @@
             appendSystemChat(`Changed video to: ${urlInput}`);
         }
 
-        // History Modal
         function openHistoryModal() {
             document.getElementById('history-modal').classList.remove('hidden');
             document.getElementById('history-modal').classList.add('flex');
@@ -776,7 +762,7 @@
             }
         }
 
-        // Emoji & Chat
+        // Emoji & Floating Sync
         function sendEmojiReaction(emoji) {
             triggerFloatingEmoji(emoji);
             const payload = { type: 'EMOJI', emoji: emoji };
@@ -795,6 +781,31 @@
             el.textContent = emoji;
             layer.appendChild(el);
             setTimeout(() => el.remove(), 2200);
+        }
+
+        // Chat Modal Toggle & Messaging
+        function toggleChatModal() {
+            const modal = document.getElementById('chat-modal');
+            state.isChatOpen = !state.isChatOpen;
+            if (state.isChatOpen) {
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+                state.unreadChatCount = 0;
+                updateChatBadge();
+            } else {
+                modal.classList.remove('flex');
+                modal.classList.add('hidden');
+            }
+        }
+
+        function updateChatBadge() {
+            const badge = document.getElementById('chat-unread-badge');
+            if (state.unreadChatCount > 0) {
+                badge.textContent = state.unreadChatCount > 9 ? '9+' : state.unreadChatCount;
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
         }
 
         function sendChatMessage(e) {
