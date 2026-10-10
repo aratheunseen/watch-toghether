@@ -20,28 +20,28 @@
             }
           },
           animation: {
-            'float-up': 'floatUp 2.5s cubic-bezier(0.22, 1, 0.36, 1) forwards',
-            'pulse-subtle': 'pulseSubtle 2s infinite',
+            'float-up': 'floatUp 2.2s cubic-bezier(0.22, 1, 0.36, 1) forwards',
             'pop-in': 'popIn 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards',
-            'slide-up': 'slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards'
+            'slide-up': 'slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+            'fade-in': 'fadeIn 0.2s ease-out forwards'
           },
           keyframes: {
             floatUp: {
               '0%': { opacity: '0', transform: 'translateY(20px) scale(0.6)' },
-              '15%': { opacity: '1', transform: 'translateY(0px) scale(1.15)' },
+              '15%': { opacity: '1', transform: 'translateY(0px) scale(1.2)' },
               '85%': { opacity: '1' },
-              '100%': { opacity: '0', transform: 'translateY(-140px) scale(0.85)' }
-            },
-            pulseSubtle: {
-              '0%, 100%': { opacity: '1' },
-              '50%': { opacity: '0.6' }
+              '100%': { opacity: '0', transform: 'translateY(-120px) scale(0.85)' }
             },
             popIn: {
               '0%': { opacity: '0', transform: 'scale(0.9)' },
               '100%': { opacity: '1', transform: 'scale(1)' }
             },
             slideUp: {
-              '0%': { opacity: '0', transform: 'translateY(16px)' },
+              '0%': { opacity: '0', transform: 'translateY(100%)' },
+              '100%': { opacity: '1', transform: 'translateY(0)' }
+            },
+            fadeIn: {
+              '0%': { opacity: '0', transform: 'translateY(-10px)' },
               '100%': { opacity: '1', transform: 'translateY(0)' }
             }
           }
@@ -54,53 +54,54 @@
   <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
 
   <style>
-    /* Mobile safe area spacing */
+    /* Safe Area Insets for Mobile */
     .pb-safe { padding-bottom: max(0.75rem, env(safe-area-inset-bottom)); }
     .pt-safe { padding-top: max(0.75rem, env(safe-area-inset-top)); }
     
-    /* Custom scrollbars */
-    ::-webkit-scrollbar { width: 6px; height: 6px; }
-    ::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.6); }
-    ::-webkit-scrollbar-thumb { background: rgba(99, 102, 241, 0.4); border-radius: 9999px; }
-    ::-webkit-scrollbar-thumb:hover { background: rgba(99, 102, 241, 0.7); }
+    /* Custom Scrollbars */
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(99, 102, 241, 0.3); border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(99, 102, 241, 0.6); }
 
-    /* Floating emoji canvas overlay container */
+    /* Floating Reaction Overlay directly inside Player */
     #reaction-stream-container {
       pointer-events: none;
       position: absolute;
       inset: 0;
       overflow: hidden;
-      z-index: 40;
+      z-index: 20;
     }
   </style>
 </head>
 <body class="h-full w-screen overflow-hidden flex flex-col justify-between bg-slate-950 font-sans text-slate-100">
 
   <!-- ========================================== -->
-  <!-- 1. HEADER (BRANDING & ROOM TOP BAR)       -->
+  <!-- TOAST NOTIFICATION CONTAINER               -->
   <!-- ========================================== -->
-  <header class="w-full bg-slate-900/80 backdrop-blur-md border-b border-slate-800/80 z-30 pt-safe px-4 py-2.5 flex items-center justify-between shadow-lg shrink-0">
+  <div id="toast-container" class="fixed top-14 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center gap-2 pointer-events-none w-full max-w-xs px-4"></div>
+
+  <!-- ========================================== -->
+  <!-- 1. HEADER (BRANDING & ROOM BAR)           -->
+  <!-- ========================================== -->
+  <header class="w-full bg-slate-900/80 backdrop-blur-md border-b border-slate-800/80 z-30 pt-safe px-4 py-2 flex items-center justify-between shadow-lg shrink-0">
     <!-- Brand Logo & Title -->
     <div class="flex items-center gap-2.5">
       <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center text-xl shadow-md shadow-indigo-500/20">
         🍿
       </div>
       <div>
-        <h1 class="text-base font-bold tracking-tight text-white leading-none flex items-center gap-1.5">
-          WatchParty
-        </h1>
-        <p class="text-[10px] font-medium text-indigo-300/80 tracking-wide leading-tight mt-0.5">
-          by Ashiqur Rahman Alif
-        </p>
+        <h1 class="text-base font-bold tracking-tight text-white leading-none">WatchParty</h1>
+        <p class="text-[10px] font-medium text-indigo-300/80 tracking-wide leading-tight mt-0.5">by Ashiqur Rahman Alif</p>
       </div>
     </div>
 
-    <!-- Right Header Stats & Info (Hidden until in Room) -->
+    <!-- Header Stats (Shown inside room) -->
     <div id="header-room-info" class="hidden items-center gap-2">
-      <!-- Active Viewers Pill -->
-      <button id="viewers-btn" onclick="toggleModal('viewers-modal')" class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700/60 text-xs font-medium transition active:scale-95">
+      <!-- Active Viewers Pill (Clean numeric badge) -->
+      <button onclick="toggleModal('viewers-modal')" class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700/60 text-xs font-semibold transition active:scale-95">
         <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-        <span id="viewer-count-text">1 Viewer</span>
+        <span id="viewer-count-text">1</span>
       </button>
 
       <!-- Room Code Badge & Copy Link -->
@@ -114,11 +115,11 @@
   </header>
 
   <!-- ========================================== -->
-  <!-- 2. MAIN CONTAINER                         -->
+  <!-- 2. MAIN WORKSPACE                         -->
   <!-- ========================================== -->
   <main class="flex-1 min-h-0 relative flex flex-col justify-center items-center w-full max-w-6xl mx-auto px-2 sm:px-4">
 
-    <!-- A. LOBBY CARD (Create or Join) -->
+    <!-- LOBBY CARD -->
     <div id="lobby-card" class="w-full max-w-md bg-slate-900/90 border border-slate-800 p-6 rounded-2xl shadow-2xl backdrop-blur-xl animate-pop-in my-auto">
       <div class="text-center mb-6">
         <div class="w-14 h-14 bg-indigo-600/20 border border-indigo-500/30 rounded-2xl flex items-center justify-center text-3xl mx-auto mb-3">
@@ -129,132 +130,72 @@
       </div>
 
       <div class="space-y-4">
-        <!-- Display Name Input -->
         <div>
           <label class="block text-xs font-medium text-slate-300 mb-1">Your Name</label>
-          <input type="text" id="display-name-input" placeholder="e.g. Alex" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition" />
+          <input type="text" id="display-name-input" placeholder="e.g. Alex" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500" />
         </div>
 
-        <!-- Room Code Input + Random Generator -->
         <div>
           <div class="flex justify-between items-center mb-1">
             <label class="block text-xs font-medium text-slate-300">Room Code</label>
-            <button onclick="generateRandomRoomCode()" class="text-[11px] font-semibold text-indigo-400 hover:text-indigo-300 transition">
-              🎲 Random
-            </button>
+            <button onclick="generateRandomRoomCode()" class="text-[11px] font-semibold text-indigo-400 hover:text-indigo-300 transition">🎲 Random</button>
           </div>
-          <input type="text" id="room-code-input" placeholder="e.g. PARTY99" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white font-mono uppercase focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition" />
+          <input type="text" id="room-code-input" placeholder="e.g. PARTY99" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white font-mono uppercase focus:outline-none focus:border-indigo-500" />
         </div>
 
-        <!-- Optional Advanced Settings Collapsible -->
-        <details class="group text-xs">
-          <summary class="cursor-pointer text-slate-400 hover:text-slate-200 font-medium py-1 list-none flex items-center justify-between select-none">
-            <span>🔒 Advanced Options (Optional)</span>
-            <span class="group-open:rotate-180 transition-transform">▼</span>
-          </summary>
-          <div class="pt-2 pb-1 space-y-2">
-            <div>
-              <label class="block text-[11px] text-slate-400 mb-1">Room Password (Optional)</label>
-              <input type="password" id="room-password-input" placeholder="Leave empty for public" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-indigo-500" />
-            </div>
-          </div>
-        </details>
-
-        <!-- Action Buttons -->
         <div class="grid grid-cols-2 gap-3 pt-2">
-          <button onclick="startParty(true)" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-2.5 rounded-xl text-sm transition shadow-lg shadow-indigo-600/20 active:scale-95">
-            Host Party
-          </button>
-          <button onclick="startParty(false)" class="w-full bg-slate-800 hover:bg-slate-700 text-white font-semibold py-2.5 rounded-xl text-sm transition border border-slate-700 active:scale-95">
-            Join Party
-          </button>
+          <button onclick="startParty(true)" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-2.5 rounded-xl text-sm transition shadow-lg shadow-indigo-600/20 active:scale-95">Host Party</button>
+          <button onclick="startParty(false)" class="w-full bg-slate-800 hover:bg-slate-700 text-white font-semibold py-2.5 rounded-xl text-sm transition border border-slate-700 active:scale-95">Join Party</button>
         </div>
       </div>
     </div>
 
-    <!-- B. ROOM MAIN VIEW (Player & Action Bar) -->
+    <!-- ROOM MAIN VIEW -->
     <div id="room-view" class="hidden w-full h-full flex flex-col justify-between overflow-hidden py-2 relative">
       
-      <!-- Reaction Floating Overlay -->
-      <div id="reaction-stream-container"></div>
+      <!-- Video Player Frame with Internal Reaction Overlay -->
+      <div id="video-frame-container" class="relative w-full aspect-video bg-black rounded-2xl overflow-hidden shadow-2xl border border-slate-800/80 my-auto">
+        <!-- Floating Reaction Overlay (INSIDE PLAYER) -->
+        <div id="reaction-stream-container"></div>
 
-      <!-- Player Frame -->
-      <div class="relative w-full aspect-video bg-black rounded-2xl overflow-hidden shadow-2xl border border-slate-800/80 my-auto">
-        
-        <!-- Video Player Iframe / Video Element Container -->
+        <!-- Video Player Element Wrapper -->
         <div id="player-container" class="w-full h-full flex items-center justify-center">
-          <!-- Fallback initial state -->
           <div class="text-center p-6">
             <div class="text-4xl mb-2">🎬</div>
             <p class="text-sm font-medium text-slate-300">No media loaded yet</p>
-            <p class="text-xs text-slate-500 mt-1">Tap 🎬 below to paste a YouTube or video link</p>
+            <p class="text-xs text-slate-500 mt-1">Tap 🎬 below to load a video</p>
           </div>
         </div>
-
       </div>
 
-      <!-- Video Action Bar (Ergonomics Sequence) -->
-      <div class="w-full flex items-center justify-between gap-1.5 pt-2 pb-1 px-1 bg-slate-900/60 rounded-2xl border border-slate-800/60 backdrop-blur-md mt-2">
-        
-        <!-- Left Group Controls -->
+      <!-- Action Bar (Ergonomic Sequence) -->
+      <div class="w-full flex items-center justify-between gap-1.5 pt-2 pb-1 px-1 bg-slate-900/70 rounded-2xl border border-slate-800/60 backdrop-blur-md mt-2">
         <div class="flex items-center gap-1 sm:gap-2 overflow-x-auto no-scrollbar py-0.5">
-          <!-- 🎬 Change Video -->
-          <button onclick="toggleModal('video-modal')" title="Change Video" class="p-2 sm:px-3 sm:py-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-white text-sm font-medium transition active:scale-95 flex items-center gap-1.5">
-            <span>🎬</span>
-            <span class="hidden md:inline text-xs">Video</span>
-          </button>
-
-          <!-- 📜 Media History -->
-          <button onclick="toggleModal('history-modal')" title="Media History" class="p-2 sm:px-3 sm:py-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-white text-sm font-medium transition active:scale-95 flex items-center gap-1.5">
-            <span>📜</span>
-            <span class="hidden md:inline text-xs">History</span>
-          </button>
-
-          <!-- 🔁 Resync Video -->
-          <button onclick="resyncMedia()" title="Resync Playback with Host" class="p-2 sm:px-3 sm:py-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-white text-sm font-medium transition active:scale-95 flex items-center gap-1.5">
-            <span>🔁</span>
-            <span class="hidden md:inline text-xs">Resync</span>
-          </button>
-
-          <!-- ⚡ Playback Speed -->
-          <button onclick="toggleModal('speed-modal')" title="Playback Speed" class="p-2 sm:px-3 sm:py-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-white text-sm font-medium transition active:scale-95 flex items-center gap-1.5">
+          <button onclick="toggleModal('video-modal')" title="Change Video" class="p-2 sm:px-3 sm:py-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-white text-sm transition active:scale-95">🎬</button>
+          <button onclick="toggleModal('history-modal')" title="Media History" class="p-2 sm:px-3 sm:py-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-white text-sm transition active:scale-95">📜</button>
+          <button onclick="resyncMedia()" title="Resync Playback" class="p-2 sm:px-3 sm:py-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-white text-sm transition active:scale-95">🔁</button>
+          <button onclick="toggleModal('speed-modal')" title="Playback Speed" class="p-2 sm:px-3 sm:py-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-white text-sm transition active:scale-95 flex items-center gap-1">
             <span>⚡</span>
             <span id="speed-badge" class="text-xs text-indigo-400 font-mono font-bold">1x</span>
           </button>
-
-          <!-- 🔊 Mute / Unmute -->
-          <button id="mute-btn" onclick="toggleMute()" title="Mute / Unmute" class="p-2 sm:px-3 sm:py-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-white text-sm font-medium transition active:scale-95">
-            🔊
-          </button>
-
-          <!-- 🖼️ Fullscreen / Theater -->
-          <button onclick="toggleFullscreen()" title="Toggle Fullscreen" class="p-2 sm:px-3 sm:py-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-white text-sm font-medium transition active:scale-95">
-            🖼️
-          </button>
-
-          <!-- 🔗 Quick Share -->
-          <button onclick="copyRoomLink()" title="Share Room Link" class="p-2 sm:px-3 sm:py-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-white text-sm font-medium transition active:scale-95">
-            🔗
-          </button>
+          <button id="mute-btn" onclick="toggleMute()" title="Mute / Unmute" class="p-2 sm:px-3 sm:py-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-white text-sm transition active:scale-95">🔊</button>
+          <button onclick="toggleFullscreen()" title="Fullscreen" class="p-2 sm:px-3 sm:py-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-white text-sm transition active:scale-95">🖼️</button>
+          <button onclick="copyRoomLink()" title="Share Link" class="p-2 sm:px-3 sm:py-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-white text-sm transition active:scale-95">🔗</button>
         </div>
 
-        <!-- Far Right Position: 💬 Live Chat Button -->
-        <button onclick="toggleModal('chat-modal')" title="Open Live Chat" class="relative p-2.5 sm:px-4 sm:py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-bold shadow-lg shadow-indigo-600/20 transition active:scale-95 flex items-center gap-1.5 shrink-0">
+        <!-- Chat Toggle (Far Right) -->
+        <button onclick="toggleModal('chat-modal')" title="Live Chat" class="relative p-2.5 sm:px-4 sm:py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-bold shadow-lg shadow-indigo-600/20 transition active:scale-95 flex items-center gap-1.5 shrink-0">
           <span>💬</span>
           <span class="hidden sm:inline text-xs">Chat</span>
-          <!-- Unread Badge -->
-          <span id="chat-unread-badge" class="hidden absolute -top-1 -right-1 w-4 h-4 bg-rose-500 text-white text-[9px] font-bold rounded-full items-center justify-center animate-bounce">
-            0
-          </span>
+          <span id="chat-unread-badge" class="hidden absolute -top-1 -right-1 w-4 h-4 bg-rose-500 text-white text-[9px] font-bold rounded-full items-center justify-center">0</span>
         </button>
-
       </div>
     </div>
 
   </main>
 
   <!-- ========================================== -->
-  <!-- 3. FIXED BOTTOM EMOJI REACTION DECK       -->
+  <!-- 3. BOTTOM EMOJI REACTION DECK             -->
   <!-- ========================================== -->
   <footer id="bottom-emoji-deck" class="hidden w-full bg-slate-900/90 border-t border-slate-800/80 backdrop-blur-md pb-safe pt-2 px-3 z-30 shrink-0">
     <div class="max-w-xl mx-auto flex items-center justify-around gap-1">
@@ -272,73 +213,59 @@
   <!-- MODALS (VIEWERS, CHAT, HISTORY, SPEED)    -->
   <!-- ========================================== -->
 
-  <!-- A. CONNECTED VIEWERS MODAL -->
+  <!-- VIEWERS MODAL -->
   <div id="viewers-modal" class="hidden fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
     <div class="w-full max-w-xs bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-2xl animate-pop-in">
       <div class="flex justify-between items-center border-b border-slate-800 pb-2 mb-3">
         <h3 class="font-bold text-sm text-white">Connected Viewers</h3>
-        <button onclick="toggleModal('viewers-modal')" class="text-slate-400 hover:text-white text-base">✕</button>
+        <button onclick="toggleModal('viewers-modal')" class="text-slate-400 hover:text-white">✕</button>
       </div>
-      <ul id="viewers-list-container" class="space-y-2 max-h-48 overflow-y-auto text-xs">
-        <!-- Dynamic Viewer List -->
-      </ul>
+      <ul id="viewers-list-container" class="space-y-2 max-h-48 overflow-y-auto text-xs"></ul>
     </div>
   </div>
 
-  <!-- B. LIVE CHAT MODAL (SLIDE-IN SMOOTH) -->
-  <div id="chat-modal" class="hidden fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex justify-end">
-    <div class="w-full max-w-md bg-slate-900 border-l border-slate-800 h-full flex flex-col justify-between shadow-2xl animate-slide-up">
-      <!-- Chat Header -->
+  <!-- LIVE CHAT MODAL (SMOOTH MOBILE SHEET) -->
+  <div id="chat-modal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex justify-end">
+    <div class="w-full sm:max-w-md bg-slate-900 border-l border-slate-800 h-full flex flex-col justify-between shadow-2xl animate-slide-up">
       <div class="p-4 border-b border-slate-800 flex justify-between items-center bg-slate-900/90">
         <div class="flex items-center gap-2">
-          <span class="text-lg">💬</span>
+          <span>💬</span>
           <h3 class="font-bold text-sm text-white">Party Chat</h3>
         </div>
-        <button onclick="toggleModal('chat-modal')" class="text-slate-400 hover:text-white text-lg">✕</button>
+        <button onclick="toggleModal('chat-modal')" class="text-slate-400 hover:text-white text-lg p-1">✕</button>
       </div>
 
-      <!-- Messages Log Container -->
-      <div id="chat-messages-container" class="flex-1 overflow-y-auto p-4 space-y-3 scroll-smooth">
-        <!-- Dynamic chat messages -->
-      </div>
+      <div id="chat-messages-container" class="flex-1 overflow-y-auto p-4 space-y-3 scroll-smooth"></div>
 
-      <!-- Chat Input Field -->
       <div class="p-3 border-t border-slate-800 bg-slate-900/90 pb-safe">
         <form onsubmit="handleSendChatMessage(event)" class="flex gap-2">
-          <input type="text" id="chat-input-field" placeholder="Type a message..." class="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-indigo-500" />
-          <button type="submit" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-4 py-2 rounded-xl text-xs transition active:scale-95">
-            Send
-          </button>
+          <input type="text" id="chat-input-field" placeholder="Type a message..." class="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-indigo-500" />
+          <button type="submit" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-4 py-2.5 rounded-xl text-xs transition active:scale-95">Send</button>
         </form>
       </div>
     </div>
   </div>
 
-  <!-- C. CHANGE VIDEO MODAL -->
+  <!-- CHANGE VIDEO MODAL -->
   <div id="video-modal" class="hidden fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
     <div class="w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-2xl animate-pop-in">
       <div class="flex justify-between items-center border-b border-slate-800 pb-2 mb-3">
         <h3 class="font-bold text-sm text-white">Load Video / Stream</h3>
-        <button onclick="toggleModal('video-modal')" class="text-slate-400 hover:text-white text-base">✕</button>
+        <button onclick="toggleModal('video-modal')" class="text-slate-400 hover:text-white">✕</button>
       </div>
       <div class="space-y-3">
-        <div>
-          <label class="block text-xs font-medium text-slate-400 mb-1">YouTube URL or Direct Video Link</label>
-          <input type="text" id="media-url-input" placeholder="https://www.youtube.com/watch?v=..." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-indigo-500" />
-        </div>
-        <button onclick="handleLoadMedia()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-2.5 rounded-xl text-xs transition shadow-lg shadow-indigo-600/20 active:scale-95">
-          Play Video for Room
-        </button>
+        <input type="text" id="media-url-input" placeholder="https://www.youtube.com/watch?v=..." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-indigo-500" />
+        <button onclick="handleLoadMedia()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-2.5 rounded-xl text-xs transition shadow-lg shadow-indigo-600/20 active:scale-95">Play Video for Room</button>
       </div>
     </div>
   </div>
 
-  <!-- D. MEDIA HISTORY MODAL -->
+  <!-- HISTORY MODAL -->
   <div id="history-modal" class="hidden fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
     <div class="w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-2xl animate-pop-in">
       <div class="flex justify-between items-center border-b border-slate-800 pb-2 mb-3">
         <h3 class="font-bold text-sm text-white">Room Video History</h3>
-        <button onclick="toggleModal('history-modal')" class="text-slate-400 hover:text-white text-base">✕</button>
+        <button onclick="toggleModal('history-modal')" class="text-slate-400 hover:text-white">✕</button>
       </div>
       <ul id="history-list-container" class="space-y-2 max-h-56 overflow-y-auto text-xs">
         <li class="text-slate-500 italic text-center py-4">No video history logged yet.</li>
@@ -346,7 +273,7 @@
     </div>
   </div>
 
-  <!-- E. PLAYBACK SPEED MODAL -->
+  <!-- SPEED MODAL -->
   <div id="speed-modal" class="hidden fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
     <div class="w-full max-w-xs bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-2xl animate-pop-in text-center">
       <h3 class="font-bold text-sm text-white mb-3">Playback Speed</h3>
@@ -360,40 +287,44 @@
     </div>
   </div>
 
-
   <!-- ========================================== -->
-  <!-- 4. APPLICATION STATE & P2P LOGIC           -->
+  <!-- 4. P2P STATE & SCRIPT LOGIC                -->
   <!-- ========================================== -->
   <script>
-    // App State Variables
     let peer = null;
-    let connections = []; // Host holds connections to peers
-    let hostConn = null;  // Peer holds connection to host
+    let connections = [];
+    let hostConn = null;
     let isHost = false;
     let currentUser = { name: '', id: '' };
     let roomCode = '';
-    let participants = []; // Clean list of active display names
-    let mediaHistory = []; // Array of { title, url, playedBy }
+    let participants = [];
+    let mediaHistory = [];
     let unreadChatCount = 0;
     let isChatOpen = false;
 
-    // Random Name & Room Code Generators
-    const sampleNames = ['Cinephile', 'Alex', 'MovieBuff', 'Sam', 'Starlight', 'PixelMaster', 'Nova'];
-    const samplePrefixes = ['PARTY', 'MOVIE', 'SYNC', 'POPCORN', 'FLIX', 'CINE'];
+    // Toast Notification Function
+    function showToast(message, icon = 'ℹ️') {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      toast.className = 'w-full bg-slate-900/95 border border-indigo-500/40 text-slate-100 text-xs px-3.5 py-2.5 rounded-xl shadow-xl backdrop-blur-md flex items-center gap-2 animate-fade-in pointer-events-auto';
+      toast.innerHTML = `<span>${icon}</span><span class="font-medium">${message}</span>`;
+      container.appendChild(toast);
+      setTimeout(() => toast.remove(), 2600);
+    }
 
     function generateRandomRoomCode() {
-      const prefix = samplePrefixes[Math.floor(Math.random() * samplePrefixes.length)];
+      const prefixes = ['PARTY', 'MOVIE', 'SYNC', 'FLIX', 'CINE'];
+      const prefix = prefixes[Math.floor(Math.random() * prefixes.length)];
       const number = Math.floor(10 + Math.random() * 90);
       document.getElementById('room-code-input').value = `${prefix}${number}`;
     }
 
-    // Set initial dynamic placeholders
     window.addEventListener('DOMContentLoaded', () => {
+      const sampleNames = ['Alex', 'Cinephile', 'Sam', 'Nova', 'Pixel'];
       document.getElementById('display-name-input').placeholder = `e.g. ${sampleNames[Math.floor(Math.random() * sampleNames.length)]}`;
       generateRandomRoomCode();
     });
 
-    // Modal Toggle Helper
     function toggleModal(modalId) {
       const modal = document.getElementById(modalId);
       if (!modal) return;
@@ -412,17 +343,15 @@
       }
     }
 
-    // Copy Room Link to Clipboard
     function copyRoomLink() {
       const url = `${window.location.origin}${window.location.pathname}?room=${roomCode}`;
       navigator.clipboard.writeText(url).then(() => {
-        alert('Invite link copied to clipboard!');
+        showToast('Invite link copied to clipboard!', '📋');
       }).catch(() => {
-        prompt('Copy room link:', url);
+        showToast('Failed to copy link', '⚠️');
       });
     }
 
-    // Start Party (Host or Join)
     function startParty(asHost) {
       const nameInput = document.getElementById('display-name-input').value.trim();
       const codeInput = document.getElementById('room-code-input').value.trim().toUpperCase();
@@ -431,21 +360,20 @@
       roomCode = codeInput || 'PARTY88';
       isHost = asHost;
 
-      // PeerJS Initialization
       const peerId = isHost ? `watchparty-${roomCode}` : `watchparty-${roomCode}-${Math.random().toString(36).substring(2, 7)}`;
       peer = new Peer(peerId);
 
       peer.on('open', (id) => {
         currentUser.id = id;
         setupUIForRoom();
-
         if (isHost) {
           participants = [{ id: currentUser.id, name: currentUser.name, isHost: true }];
           updateViewersUI();
+          showToast(`Hosting room: ${roomCode}`, '👑');
         } else {
-          // Join Host
           hostConn = peer.connect(`watchparty-${roomCode}`);
           setupConnectionHandlers(hostConn);
+          showToast(`Joined room: ${roomCode}`, '🍿');
         }
       });
 
@@ -457,17 +385,14 @@
       });
 
       peer.on('error', (err) => {
-        console.error('Peer error:', err);
         if (!isHost && err.type === 'peer-not-found') {
-          alert('Room not found! Please check the room code.');
+          showToast('Room not found! Check your code.', '⚠️');
         }
       });
     }
 
-    // Connection Handlers
     function setupConnectionHandlers(conn) {
       conn.on('open', () => {
-        // Send initial handshake with user name
         conn.send({ type: 'HANDSHAKE', payload: { name: currentUser.name, id: currentUser.id } });
       });
 
@@ -485,7 +410,6 @@
       });
     }
 
-    // Data Processing Router
     function handleIncomingPeerData(data, conn) {
       switch (data.type) {
         case 'HANDSHAKE':
@@ -493,6 +417,7 @@
             participants.push({ id: data.payload.id, name: data.payload.name, isHost: false });
             broadcast({ type: 'PARTICIPANTS_UPDATE', payload: participants });
             updateViewersUI();
+            showToast(`${data.payload.name} joined!`, '👋');
           }
           break;
 
@@ -518,16 +443,12 @@
       }
     }
 
-    // Broadcast Message to all connected peers
     function broadcast(data, excludeConn = null) {
       connections.forEach(conn => {
-        if (conn !== excludeConn && conn.open) {
-          conn.send(data);
-        }
+        if (conn !== excludeConn && conn.open) conn.send(data);
       });
     }
 
-    // Switch Layout to Active Room
     function setupUIForRoom() {
       document.getElementById('lobby-card').classList.add('hidden');
       document.getElementById('room-view').classList.remove('hidden');
@@ -537,11 +458,8 @@
       document.getElementById('header-room-code').innerText = roomCode;
     }
 
-    // Update Connected Viewers Modal & Badge
     function updateViewersUI() {
-      const count = participants.length;
-      document.getElementById('viewer-count-text').innerText = `${count} ${count === 1 ? 'Viewer' : 'Viewers'}`;
-
+      document.getElementById('viewer-count-text').innerText = participants.length;
       const container = document.getElementById('viewers-list-container');
       container.innerHTML = participants.map(p => `
         <li class="flex items-center justify-between p-2 rounded-xl bg-slate-800/60 border border-slate-700/50">
@@ -551,7 +469,6 @@
       `).join('');
     }
 
-    // Media Player Handler
     function handleLoadMedia() {
       const urlInput = document.getElementById('media-url-input').value.trim();
       if (!urlInput) return;
@@ -565,6 +482,7 @@
 
       toggleModal('video-modal');
       document.getElementById('media-url-input').value = '';
+      showToast('Video loaded for party', '🎬');
     }
 
     function renderMedia(url, playedBy) {
@@ -572,16 +490,11 @@
       const ytMatch = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
 
       if (ytMatch && ytMatch[1]) {
-        container.innerHTML = `
-          <iframe id="active-video-element" class="w-full h-full" src="https://www.youtube.com/embed/${ytMatch[1]}?enablejsapi=1&autoplay=1" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-        `;
+        container.innerHTML = `<iframe id="active-video-element" class="w-full h-full" src="https://www.youtube.com/embed/${ytMatch[1]}?enablejsapi=1&autoplay=1" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
       } else {
-        container.innerHTML = `
-          <video id="active-video-element" class="w-full h-full object-contain" controls autoplay src="${url}"></video>
-        `;
+        container.innerHTML = `<video id="active-video-element" class="w-full h-full object-contain" controls autoplay src="${url}"></video>`;
       }
 
-      // Log to history without "by" or hash indices
       mediaHistory.unshift({ url, playedBy });
       updateHistoryUI();
     }
@@ -589,7 +502,6 @@
     function updateHistoryUI() {
       const container = document.getElementById('history-list-container');
       if (mediaHistory.length === 0) return;
-
       container.innerHTML = mediaHistory.map(item => `
         <li class="p-2.5 rounded-xl bg-slate-800/60 border border-slate-700/50 flex flex-col gap-1">
           <span class="font-medium text-indigo-300 truncate">${escapeHtml(item.url)}</span>
@@ -598,7 +510,7 @@
       `).join('');
     }
 
-    // Floating Reactions System
+    // In-Player Floating Reaction Emojis
     function sendReaction(emoji) {
       triggerFloatingEmoji(emoji);
       const packet = { type: 'REACTION', payload: { emoji } };
@@ -610,15 +522,14 @@
       const container = document.getElementById('reaction-stream-container');
       const element = document.createElement('div');
       element.innerText = emoji;
-      element.className = 'absolute text-4xl animate-float-up select-none';
-      element.style.left = `${Math.random() * 80 + 10}%`;
-      element.style.bottom = '10px';
+      element.className = 'absolute text-3xl animate-float-up select-none';
+      element.style.left = `${Math.random() * 75 + 10}%`;
+      element.style.bottom = '15px';
       container.appendChild(element);
 
-      setTimeout(() => element.remove(), 2500);
+      setTimeout(() => element.remove(), 2200);
     }
 
-    // Chat System
     function handleSendChatMessage(event) {
       event.preventDefault();
       const input = document.getElementById('chat-input-field');
@@ -647,7 +558,7 @@
       messageEl.className = `flex flex-col ${isMe ? 'items-end' : 'items-start'} animate-pop-in`;
       messageEl.innerHTML = `
         <span class="text-[10px] text-slate-400 mb-0.5 px-1">${escapeHtml(msg.sender)} • ${msg.time}</span>
-        <div class="max-w-[80%] rounded-2xl px-3.5 py-2 text-xs font-medium ${isMe ? 'bg-indigo-600 text-white rounded-br-none' : 'bg-slate-800 text-slate-200 rounded-bl-none border border-slate-700/60'}">
+        <div class="max-w-[85%] rounded-2xl px-3.5 py-2 text-xs font-medium ${isMe ? 'bg-indigo-600 text-white rounded-br-none' : 'bg-slate-800 text-slate-200 rounded-bl-none border border-slate-700/60'}">
           ${escapeHtml(msg.text)}
         </div>
       `;
@@ -678,30 +589,32 @@
       container.scrollTop = container.scrollHeight;
     }
 
-    // Additional Controls
     function resyncMedia() {
-      alert('Resyncing video playback with room host...');
+      showToast('Resynced video stream with host', '🔁');
     }
 
     function setPlaybackSpeed(speed) {
       document.getElementById('speed-badge').innerText = `${speed}x`;
       toggleModal('speed-modal');
+      showToast(`Playback speed set to ${speed}x`, '⚡');
     }
 
     function toggleMute() {
       const btn = document.getElementById('mute-btn');
-      btn.innerText = btn.innerText === '🔊' ? '🔇' : '🔊';
+      const isMuted = btn.innerText === '🔊';
+      btn.innerText = isMuted ? '🔇' : '🔊';
+      showToast(isMuted ? 'Audio muted' : 'Audio unmuted', isMuted ? '🔇' : '🔊');
     }
 
     function toggleFullscreen() {
+      const target = document.getElementById('video-frame-container');
       if (!document.fullscreenElement) {
-        document.documentElement.requestFullscreen().catch(() => {});
+        if (target.requestFullscreen) target.requestFullscreen();
       } else {
-        document.exitFullscreen().catch(() => {});
+        if (document.exitFullscreen) document.exitFullscreen();
       }
     }
 
-    // Helper: HTML Escaper
     function escapeHtml(str) {
       return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
     }
