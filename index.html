@@ -2,167 +2,205 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>WatchParty - Watch Together</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>WatchParty by Ashiqur Rahman Alif</title>
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- PeerJS CDN -->
     <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+    <!-- YouTube IFrame API -->
     <script src="https://www.youtube.com/iframe_api"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; touch-action: manipulation; }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
         
-        @keyframes floatUp {
-            0% { transform: translateY(0px) scale(0.5); opacity: 0; }
-            20% { opacity: 1; transform: translateY(-40px) scale(1.1); }
-            100% { transform: translateY(-260px) scale(0.9); opacity: 0; }
+        body {
+            font-family: 'Inter', sans-serif;
+            touch-action: manipulation;
+            background-color: #030712;
+            color: #f9fafb;
         }
+
+        /* Safe area support for iOS notch and bottom gesture bar */
+        .pb-safe {
+            padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
+        }
+
+        /* Floating Animation for Synced Emojis */
+        @keyframes floatUp {
+            0% { transform: translateY(0px) scale(0.6); opacity: 0; }
+            20% { opacity: 1; transform: translateY(-30px) scale(1.1); }
+            100% { transform: translateY(-240px) scale(0.95); opacity: 0; }
+        }
+
         .floating-emoji {
             position: absolute;
             bottom: 20px;
-            animation: floatUp 3s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+            animation: floatUp 2.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
             pointer-events: none;
-            font-size: 2rem;
+            font-size: 2.2rem;
             z-index: 50;
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.5));
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 4px;
+            height: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.6);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(99, 102, 241, 0.5);
+            border-radius: 4px;
         }
     </style>
 </head>
-<body class="bg-slate-950 text-slate-100 h-screen w-screen overflow-hidden flex flex-col select-none">
+<body class="h-screen w-screen overflow-hidden flex flex-col justify-between select-none">
 
     <!-- Header -->
-    <header class="bg-slate-900 border-b border-slate-800 px-3 py-2 flex items-center justify-between shrink-0 z-30">
-        <!-- Logo & Author -->
-        <div class="flex items-center space-x-2.5">
-            <span class="text-2xl">🍿</span>
+    <header class="bg-slate-900 border-b border-slate-800/80 px-3 py-2 flex items-center justify-between shrink-0 z-40">
+        <!-- Top Left Branding -->
+        <div class="flex items-center space-x-2">
+            <span class="text-2xl leading-none">🍿</span>
             <div class="flex flex-col">
-                <h1 class="font-bold text-base text-indigo-400 tracking-tight leading-tight">WatchParty</h1>
+                <h1 class="font-extrabold text-sm sm:text-base text-indigo-400 tracking-tight leading-tight">WatchParty</h1>
                 <span class="text-[9px] text-slate-400 font-medium tracking-wide">by Ashiqur Rahman Alif</span>
             </div>
         </div>
 
-        <!-- Right Header Elements -->
+        <!-- Header Right Stats & Actions -->
         <div class="flex items-center gap-2">
-            <!-- Viewers Status Button (Hidden in lobby) -->
+            <!-- Connected Viewers Pill (Hidden in lobby) -->
             <div id="users-pill" class="hidden relative">
-                <button onclick="toggleUserPopup()" class="flex items-center gap-1 bg-slate-950 border border-slate-800 text-slate-200 px-2.5 py-1 rounded-full text-xs transition">
+                <button onclick="toggleUserPopup()" class="flex items-center gap-1.5 bg-slate-950 border border-slate-800 text-slate-200 px-2.5 py-1 rounded-full text-xs hover:border-slate-700 transition">
                     <span id="header-status-dot" class="w-2 h-2 rounded-full bg-rose-500"></span>
-                    <strong id="peer-count" class="text-indigo-400">1</strong>
-                    <span class="text-[9px] text-slate-500">▼</span>
+                    <strong id="peer-count" class="text-indigo-400 font-mono">1</strong>
+                    <span class="text-[8px] text-slate-500">▼</span>
                 </button>
-                <!-- Popup Viewers List -->
-                <div id="users-popup" class="hidden absolute right-0 mt-2 w-48 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl p-2.5 z-50">
+                <!-- Viewers List Popup -->
+                <div id="users-popup" class="hidden absolute right-0 mt-2 w-52 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl p-2.5 z-50">
                     <div class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1.5 border-b border-slate-800 pb-1">Connected Viewers</div>
-                    <div id="participants-list" class="flex flex-col gap-1 max-h-32 overflow-y-auto"></div>
+                    <div id="participants-list" class="flex flex-col gap-1 max-h-36 overflow-y-auto"></div>
                 </div>
             </div>
 
-            <!-- Room Badge & Top Copy Button -->
-            <div id="room-badge" class="hidden flex items-center gap-1.5 text-xs bg-indigo-950 text-indigo-300 border border-indigo-800 pl-2.5 pr-1 py-0.5 rounded-full">
+            <!-- Room Badge & Link Copy -->
+            <div id="room-badge" class="hidden flex items-center gap-1.5 text-xs bg-indigo-950/80 text-indigo-300 border border-indigo-800/80 pl-2.5 pr-1 py-0.5 rounded-full">
                 <span class="font-mono font-bold text-[11px]" id="current-room-id"></span>
-                <button onclick="copyHeaderRoomLink()" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs p-1 rounded-full transition" title="Copy Room Link">📋</button>
+                <button onclick="copyHeaderRoomLink()" class="bg-indigo-600 hover:bg-indigo-500 text-white text-[11px] w-6 h-6 rounded-full flex items-center justify-center transition shadow" title="Copy Room Link">📋</button>
             </div>
         </div>
     </header>
 
-    <!-- Main Container -->
+    <!-- Main Content Area -->
     <main class="flex-1 w-full max-w-3xl mx-auto flex flex-col justify-start items-center overflow-hidden p-2 sm:p-3 relative">
 
         <!-- Toast Notification Banner -->
-        <div id="toast-banner" class="hidden absolute top-2 z-50 bg-indigo-600 text-white text-xs px-4 py-2 rounded-xl shadow-2xl transition transform duration-300">
+        <div id="toast-banner" class="hidden absolute top-2 z-50 bg-indigo-600 text-white text-xs font-medium px-4 py-2 rounded-xl shadow-2xl transition transform duration-300">
             Link copied to clipboard!
         </div>
 
-        <!-- Lobby Screen -->
-        <div id="lobby-card" class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-2xl flex flex-col justify-center space-y-4 max-w-sm w-full my-auto">
+        <!-- LOBBY CARD SCREEN -->
+        <div id="lobby-card" class="bg-slate-900/90 border border-slate-800/90 rounded-2xl p-5 shadow-2xl flex flex-col justify-center space-y-4 max-w-sm w-full my-auto backdrop-blur-md">
             <div class="text-center space-y-1">
-                <h2 class="text-lg font-bold tracking-tight">Start or Join Party</h2>
-                <p class="text-xs text-slate-400">Watch YouTube, Facebook, Vimeo & MP4 synced instantly.</p>
+                <h2 class="text-lg font-bold tracking-tight text-white">Create or Join Party</h2>
+                <p class="text-xs text-slate-400">Watch YouTube, Facebook, Vimeo & MP4 in real-time sync.</p>
             </div>
             
             <div class="space-y-3 w-full">
                 <div>
                     <label class="block text-[11px] font-medium text-slate-400 mb-1">Your Name</label>
-                    <input type="text" id="username-input" placeholder="e.g. Ashiq" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-indigo-500">
+                    <input type="text" id="username-input" placeholder="e.g. Cinephile" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-indigo-500 text-slate-100 placeholder-slate-500">
                 </div>
 
                 <!-- Optional Advanced Room Options Dropdown -->
-                <div class="border border-slate-800 rounded-xl bg-slate-950/40 overflow-hidden">
-                    <button onclick="toggleAdvancedOptions()" class="w-full px-3 py-2 text-left text-[11px] font-medium text-indigo-400 flex justify-between items-center bg-slate-900/60">
+                <div class="border border-slate-800 rounded-xl bg-slate-950/50 overflow-hidden">
+                    <button onclick="toggleAdvancedOptions()" class="w-full px-3 py-2 text-left text-[11px] font-semibold text-indigo-400 flex justify-between items-center bg-slate-900/60 hover:bg-slate-900 transition">
                         <span>🔒 Advanced Room Options (Optional)</span>
-                        <span id="advanced-arrow" class="text-slate-500">▼</span>
+                        <span id="advanced-arrow" class="text-slate-500 text-[10px]">▼</span>
                     </button>
                     <div id="advanced-panel" class="hidden p-3 space-y-2.5 bg-slate-950/80 border-t border-slate-800">
                         <div class="flex gap-1.5 items-center">
-                            <input type="text" id="custom-room-input" placeholder="Custom Room Code (Optional)" class="flex-1 bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs uppercase font-mono focus:outline-none focus:border-indigo-500">
-                            <button onclick="setSuggestedCode()" class="bg-slate-800 hover:bg-slate-700 text-indigo-300 text-[10px] px-2.5 py-1.5 rounded-lg font-mono font-medium transition shrink-0" title="Click for suggested code">🎲 ALIF</button>
+                            <input type="text" id="custom-room-input" placeholder="Custom Code (Optional)" class="flex-1 bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs uppercase font-mono focus:outline-none focus:border-indigo-500 text-slate-100">
+                            <button onclick="setSuggestedCode()" class="bg-slate-800 hover:bg-slate-700 text-indigo-300 text-[10px] px-2.5 py-1.5 rounded-lg font-mono font-semibold transition shrink-0">🎲 Random</button>
                         </div>
-                        <input type="password" id="create-password-input" placeholder="Room Password (Optional)" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:border-indigo-500">
+                        <input type="password" id="create-password-input" placeholder="Room Password (Optional)" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:border-indigo-500 text-slate-100">
                     </div>
                 </div>
 
                 <div class="flex gap-2 pt-1">
-                    <button onclick="createRoom()" class="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white font-medium py-2 rounded-xl text-xs transition shadow-lg shadow-indigo-600/20">
+                    <button onclick="createRoom()" class="flex-1 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-semibold py-2.5 rounded-xl text-xs transition shadow-lg shadow-indigo-600/20 active:scale-[0.98]">
                         Create Room
                     </button>
                 </div>
 
                 <div class="relative flex py-0.5 items-center">
                     <div class="flex-grow border-t border-slate-800"></div>
-                    <span class="flex-shrink mx-3 text-[9px] text-slate-500 uppercase">Or Join</span>
+                    <span class="flex-shrink mx-3 text-[9px] text-slate-500 uppercase tracking-wider font-semibold">Or Join</span>
                     <div class="flex-grow border-t border-slate-800"></div>
                 </div>
 
                 <div class="flex gap-2">
-                    <input type="text" id="join-room-id" placeholder="Enter Room Code" class="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs uppercase focus:outline-none focus:border-indigo-500 font-mono">
-                    <button onclick="joinRoom()" class="bg-slate-800 hover:bg-slate-700 text-white px-4 py-2 rounded-xl font-medium text-xs transition">Join</button>
+                    <input type="text" id="join-room-id" placeholder="Enter Room Code" class="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs uppercase focus:outline-none focus:border-indigo-500 font-mono text-slate-100">
+                    <button onclick="joinRoom()" class="bg-slate-800 hover:bg-slate-700 text-white px-4 py-2 rounded-xl font-semibold text-xs transition active:scale-[0.98]">Join</button>
                 </div>
             </div>
 
-            <!-- Footer Credit inside lobby box -->
+            <!-- Footer Credit -->
             <div class="text-center pt-2 border-t border-slate-800/60 text-[10px] text-slate-500">
                 &copy; <span id="footer-year">2026</span> WatchParty &bull; by Ashiqur Rahman Alif
             </div>
         </div>
 
-        <!-- Active Watchroom Screen (Snaps right under header) -->
-        <div id="room-view" class="hidden flex flex-col w-full h-full justify-between overflow-hidden pb-1">
+        <!-- WATCHROOM SCREEN (Snaps directly under header) -->
+        <div id="room-view" class="hidden flex flex-col w-full h-full justify-between overflow-hidden">
 
-            <!-- Video Frame Container -->
-            <div id="player-wrapper" class="relative bg-black rounded-xl overflow-hidden aspect-video w-full shadow-2xl border border-slate-800 flex items-center justify-center shrink-0">
+            <!-- Video Player Stage Container -->
+            <div id="player-wrapper" class="relative bg-black rounded-2xl overflow-hidden aspect-video w-full shadow-2xl border border-slate-800 flex items-center justify-center shrink-0">
                 <video id="shared-video" controls class="w-full h-full object-contain hidden"></video>
                 <div id="youtube-player" class="w-full h-full hidden"></div>
                 <iframe id="generic-iframe" class="w-full h-full hidden border-0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
                 
-                <!-- Floating Emojis Overlay Layer -->
+                <!-- Floating Emojis Overlay Layer (Overlaid on top of video) -->
                 <div id="emoji-overlay" class="absolute inset-0 pointer-events-none overflow-hidden z-20"></div>
 
-                <div id="video-placeholder" class="absolute inset-0 flex flex-col items-center justify-center text-slate-500 space-y-1 bg-slate-900/90 z-10 p-4 text-center">
-                    <span class="text-3xl">🍿</span>
-                    <p class="text-xs font-medium">Click "Change Video" below to load a movie or stream</p>
+                <!-- Video Initial Placeholder -->
+                <div id="video-placeholder" class="absolute inset-0 flex flex-col items-center justify-center text-slate-500 space-y-1.5 bg-slate-950 z-10 p-4 text-center">
+                    <span class="text-4xl">🍿</span>
+                    <p class="text-xs font-semibold text-slate-400">Click 🎬 below to paste & sync a video link</p>
                 </div>
             </div>
 
-            <!-- Icon-Only Video Action Buttons Bar (Under Video) -->
-            <div class="flex items-center justify-center gap-3 bg-slate-900/90 border border-slate-800 p-2 rounded-xl shadow shrink-0 my-1.5">
-                <button onclick="openMediaModal()" class="bg-slate-950 hover:bg-slate-800 border border-slate-800 text-slate-200 px-4 py-2 rounded-lg text-sm transition" title="Change Video">🎬</button>
-                <button onclick="openHistoryModal()" class="bg-slate-950 hover:bg-slate-800 border border-slate-800 text-slate-200 px-4 py-2 rounded-lg text-sm transition relative" title="Media History">📜</button>
+            <!-- Icon-Only Video Action Controls Bar (Snaps TIGHTLY under video player) -->
+            <div class="flex items-center justify-center gap-3 bg-slate-900/95 border border-slate-800/80 p-2 rounded-2xl shadow-xl shrink-0 mt-1">
+                <!-- Change Video Button -->
+                <button onclick="openMediaModal()" class="w-11 h-11 bg-slate-950 hover:bg-indigo-600/20 border border-slate-800 text-slate-100 rounded-xl text-base flex items-center justify-center transition active:scale-95 shadow-sm" title="Change Video">
+                    🎬
+                </button>
                 
-                <!-- Chat Button with Unread Badge -->
-                <button onclick="openChatModal()" class="bg-slate-950 hover:bg-slate-800 border border-slate-800 text-slate-200 px-4 py-2 rounded-lg text-sm transition relative" title="Live Chat">
+                <!-- Video History Button -->
+                <button onclick="openHistoryModal()" class="w-11 h-11 bg-slate-950 hover:bg-indigo-600/20 border border-slate-800 text-slate-100 rounded-xl text-base flex items-center justify-center transition active:scale-95 shadow-sm" title="Media History">
+                    📜
+                </button>
+                
+                <!-- Live Chat Button with Unread Badge Count -->
+                <button onclick="openChatModal()" class="relative w-11 h-11 bg-slate-950 hover:bg-indigo-600/20 border border-slate-800 text-slate-100 rounded-xl text-base flex items-center justify-center transition active:scale-95 shadow-sm" title="Live Chat">
                     💬
-                    <span id="chat-badge" class="hidden absolute -top-1.5 -right-1.5 bg-indigo-600 text-white text-[9px] px-1.5 py-0.2 rounded-full font-bold">0</span>
+                    <span id="chat-badge" class="hidden absolute -top-1.5 -right-1.5 bg-rose-500 text-white text-[10px] min-w-[20px] h-[20px] px-1 rounded-full font-bold border-2 border-slate-900 flex items-center justify-center">0</span>
                 </button>
             </div>
 
-            <!-- Bottom Emoji Reaction Bar -->
-            <div class="flex justify-center bg-slate-900 border border-slate-800 p-1.5 rounded-xl shadow shrink-0">
-                <div class="flex items-center justify-between max-w-md w-full px-2">
-                    <button onclick="sendEmoji('🍿')" class="hover:bg-slate-800 p-1.5 rounded-lg text-xl transition transform active:scale-95">🍿</button>
-                    <button onclick="sendEmoji('🔥')" class="hover:bg-slate-800 p-1.5 rounded-lg text-xl transition transform active:scale-95">🔥</button>
-                    <button onclick="sendEmoji('❤️')" class="hover:bg-slate-800 p-1.5 rounded-lg text-xl transition transform active:scale-95">❤️</button>
-                    <button onclick="sendEmoji('😢')" class="hover:bg-slate-800 p-1.5 rounded-lg text-xl transition transform active:scale-95">😢</button>
-                    <button onclick="sendEmoji('👻')" class="hover:bg-slate-800 p-1.5 rounded-lg text-xl transition transform active:scale-95">👻</button>
-                    <button onclick="sendEmoji('🚀')" class="hover:bg-slate-800 p-1.5 rounded-lg text-xl transition transform active:scale-95">🚀</button>
-                    <button onclick="sendEmoji('👏')" class="hover:bg-slate-800 p-1.5 rounded-lg text-xl transition transform active:scale-95">👏</button>
+            <!-- Bottom Emoji Reaction Bar (Optimized for Mobile visibility with pb-safe & high z-index) -->
+            <div class="z-40 mt-auto pt-2 pb-safe shrink-0 w-full flex justify-center">
+                <div class="bg-slate-900/95 border border-slate-800/90 px-3 py-2 rounded-2xl shadow-2xl flex items-center justify-around max-w-md w-full backdrop-blur-md">
+                    <button onclick="sendEmoji('🍿')" class="hover:bg-slate-800/80 p-2 rounded-xl text-2xl transition transform active:scale-90" title="Popcorn">🍿</button>
+                    <button onclick="sendEmoji('🔥')" class="hover:bg-slate-800/80 p-2 rounded-xl text-2xl transition transform active:scale-90" title="Fire">🔥</button>
+                    <button onclick="sendEmoji('❤️')" class="hover:bg-slate-800/80 p-2 rounded-xl text-2xl transition transform active:scale-90" title="Heart">❤️</button>
+                    <button onclick="sendEmoji('😱')" class="hover:bg-slate-800/80 p-2 rounded-xl text-2xl transition transform active:scale-90" title="Scream (Horror)">😱</button>
+                    <button onclick="sendEmoji('🧟')" class="hover:bg-slate-800/80 p-2 rounded-xl text-2xl transition transform active:scale-90" title="Zombie (Horror)">🧟</button>
+                    <button onclick="sendEmoji('👻')" class="hover:bg-slate-800/80 p-2 rounded-xl text-2xl transition transform active:scale-90" title="Ghost (Horror)">👻</button>
+                    <button onclick="sendEmoji('👏')" class="hover:bg-slate-800/80 p-2 rounded-xl text-2xl transition transform active:scale-90" title="Clap">👏</button>
                 </div>
             </div>
 
@@ -170,25 +208,29 @@
     </main>
 
     <!-- Modal: Change Video URL -->
-    <div id="media-modal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div id="media-modal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
         <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 max-w-md w-full shadow-2xl space-y-4">
             <div class="flex justify-between items-center border-b border-slate-800 pb-2">
-                <h3 class="font-bold text-sm text-indigo-400">Load Media URL</h3>
-                <button onclick="closeMediaModal()" class="text-slate-400 hover:text-white text-sm">✕</button>
+                <h3 class="font-bold text-sm text-indigo-400 flex items-center gap-2">
+                    <span>🎬</span> Change Video Source
+                </h3>
+                <button onclick="closeMediaModal()" class="w-7 h-7 rounded-lg bg-slate-950 text-slate-400 hover:text-white flex items-center justify-center text-xs">✕</button>
             </div>
             <div class="space-y-3">
-                <input type="text" id="modal-media-url" placeholder="Paste YouTube, Facebook, Vimeo or MP4 link..." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-xs focus:outline-none focus:border-indigo-500 font-mono">
-                <button onclick="submitModalMedia()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-medium py-2.5 rounded-xl text-xs transition shadow-lg">Load & Sync</button>
+                <input type="text" id="modal-media-url" placeholder="Paste YouTube, Facebook, Vimeo or direct MP4 link..." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-xs focus:outline-none focus:border-indigo-500 font-mono text-slate-100">
+                <button onclick="submitModalMedia()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-2.5 rounded-xl text-xs transition shadow-lg shadow-indigo-600/30 active:scale-[0.98]">Load & Sync</button>
             </div>
         </div>
     </div>
 
     <!-- Modal: Media History -->
-    <div id="history-modal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div id="history-modal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
         <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 max-w-md w-full shadow-2xl space-y-4">
             <div class="flex justify-between items-center border-b border-slate-800 pb-2">
-                <h3 class="font-bold text-sm text-indigo-400">Played Media History</h3>
-                <button onclick="closeHistoryModal()" class="text-slate-400 hover:text-white text-sm">✕</button>
+                <h3 class="font-bold text-sm text-indigo-400 flex items-center gap-2">
+                    <span>📜</span> Played Video History
+                </h3>
+                <button onclick="closeHistoryModal()" class="w-7 h-7 rounded-lg bg-slate-950 text-slate-400 hover:text-white flex items-center justify-center text-xs">✕</button>
             </div>
             <div id="history-list" class="flex flex-col gap-2 max-h-60 overflow-y-auto text-xs">
                 <span class="text-slate-500 italic text-center py-4">No history records yet</span>
@@ -197,31 +239,38 @@
     </div>
 
     <!-- Modal: Live Chat -->
-    <div id="chat-modal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 max-w-md w-full h-[400px] shadow-2xl flex flex-col justify-between">
+    <div id="chat-modal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 max-w-md w-full h-[420px] shadow-2xl flex flex-col justify-between">
             <div class="flex justify-between items-center border-b border-slate-800 pb-2">
-                <h3 class="font-bold text-sm text-indigo-400">Room Live Chat</h3>
-                <button onclick="closeChatModal()" class="text-slate-400 hover:text-white text-sm">✕</button>
+                <h3 class="font-bold text-sm text-indigo-400 flex items-center gap-2">
+                    <span>💬</span> Room Live Chat
+                </h3>
+                <button onclick="closeChatModal()" class="w-7 h-7 rounded-lg bg-slate-950 text-slate-400 hover:text-white flex items-center justify-center text-xs">✕</button>
             </div>
             <div id="chat-messages" class="flex-1 overflow-y-auto space-y-2.5 text-xs py-2 flex flex-col">
-                <div class="text-center text-slate-500 my-auto italic">Say hi to everyone in the room!</div>
+                <div class="text-center text-slate-500 my-auto italic">Party chat started. Say hi!</div>
             </div>
             <div class="flex gap-2 pt-2 border-t border-slate-800">
-                <input type="text" id="chat-input" onkeydown="handleChatKey(event)" placeholder="Type a message..." class="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-indigo-500">
-                <button onclick="sendChatMessage()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-xl text-xs font-medium transition">Send</button>
+                <input type="text" id="chat-input" onkeydown="handleChatKey(event)" placeholder="Type a message..." class="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-indigo-500 text-slate-100">
+                <button onclick="sendChatMessage()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-xl text-xs font-semibold transition">Send</button>
             </div>
         </div>
     </div>
 
-    <!-- Script Application Logic -->
     <script>
+        // Footer dynamic year
         document.getElementById('footer-year').innerText = new Date().getFullYear();
 
+        // Random generator pools for names & room codes
+        const suggestedNames = ['Alex', 'Sam', 'MovieBuff', 'Cinephile', 'PopcornFan', 'ChillSeeker', 'NightOwl', 'ScreenStar', 'SkyWalker', 'PixelKnight'];
+        const suggestedPrefixes = ['PARTY', 'MOVIE', 'SYNC', 'VIBE', 'FLIX', 'LOUNGE', 'STREAM', 'POPCORN', 'CHILL', 'NIGHT'];
+
+        // State Variables
         let peer = null;
-        let connections = []; // Active DataConnections array
+        let connections = []; 
         let isHost = false;
         let myId = '';
-        let myUsername = 'Viewer_' + Math.floor(Math.random() * 1000);
+        let myUsername = 'Guest';
         let participants = [];
         let roomPassword = '';
         let playedHistory = [];
@@ -233,9 +282,19 @@
         let currentMode = null;
         let syncLock = false;
 
+        // On Load Setup
         window.addEventListener('load', () => {
-            const savedName = localStorage.getItem('syncparty_username');
-            if (savedName) document.getElementById('username-input').value = savedName;
+            const savedName = localStorage.getItem('watchparty_username');
+            const usernameInput = document.getElementById('username-input');
+            
+            // Randomly set a friendly placeholder each load
+            const randomName = suggestedNames[Math.floor(Math.random() * suggestedNames.length)];
+            usernameInput.placeholder = `e.g. ${randomName}`;
+
+            if (savedName) {
+                usernameInput.value = savedName;
+            }
+
             const hash = window.location.hash.substring(1);
             if (hash) document.getElementById('join-room-id').value = hash;
 
@@ -255,9 +314,11 @@
             arrow.innerText = panel.classList.contains('hidden') ? '▼' : '▲';
         }
 
+        // Generate a dynamic random code word every time clicked
         function setSuggestedCode() {
-            const randomCode = 'ALIF' + Math.floor(Math.random() * 900 + 100);
-            document.getElementById('custom-room-input').value = randomCode;
+            const prefix = suggestedPrefixes[Math.floor(Math.random() * suggestedPrefixes.length)];
+            const randomNum = Math.floor(10 + Math.random() * 90); // 2-digit number
+            document.getElementById('custom-room-input').value = `${prefix}${randomNum}`;
         }
 
         function toggleUserPopup() {
@@ -296,13 +357,15 @@
             return { type: 'html5', url: url, name: 'Direct Video File' };
         }
 
+        // Initialize PeerJS
         function initPeer(customId = undefined) {
             return new Promise((resolve, reject) => {
-                const nameVal = document.getElementById('username-input').value.trim();
-                if (nameVal) {
-                    myUsername = nameVal;
-                    localStorage.setItem('syncparty_username', myUsername);
+                let nameVal = document.getElementById('username-input').value.trim();
+                if (!nameVal) {
+                    nameVal = suggestedNames[Math.floor(Math.random() * suggestedNames.length)];
                 }
+                myUsername = nameVal;
+                localStorage.setItem('watchparty_username', myUsername);
 
                 peer = new Peer(customId, {
                     config: {
@@ -457,14 +520,14 @@
             document.getElementById('peer-count').innerText = participants.length;
             const container = document.getElementById('participants-list');
             container.innerHTML = participants.map(p => `
-                <div class="flex items-center justify-between text-[11px] text-slate-300 bg-slate-950 px-2 py-1 rounded border border-slate-800">
+                <div class="flex items-center justify-between text-[11px] text-slate-300 bg-slate-950 px-2 py-1 rounded-lg border border-slate-800">
                     <span class="truncate">🟢 ${escapeHtml(p.name)}</span>
                     <span>${p.host ? '👑' : ''}</span>
                 </div>
             `).join('');
         }
 
-        // --- Emoji Reactions Sync ---
+        // Synced Floating Emoji System
         function sendEmoji(emoji) {
             spawnFloatingEmoji(emoji);
             const payload = { type: 'EMOJI', emoji: emoji };
@@ -477,16 +540,17 @@
 
         function spawnFloatingEmoji(emoji) {
             const overlay = document.getElementById('emoji-overlay');
+            if (!overlay) return;
             const el = document.createElement('div');
             el.className = 'floating-emoji';
             el.innerText = emoji;
             const randomX = Math.random() * 75 + 12; 
             el.style.left = `${randomX}%`;
             overlay.appendChild(el);
-            setTimeout(() => { el.remove(); }, 3000);
+            setTimeout(() => { el.remove(); }, 2800);
         }
 
-        // --- Chat System ---
+        // Live Chat Logic
         function handleChatKey(e) { if (e.key === 'Enter') sendChatMessage(); }
         
         function sendChatMessage() {
@@ -494,7 +558,7 @@
             const msg = input.value.trim();
             if (!msg) return;
 
-            appendChatMessage(myUsername, msg, true);
+            appendChatMessage('You', msg);
             const payload = { type: 'CHAT', username: myUsername, message: msg };
 
             if (isHost) {
@@ -505,11 +569,12 @@
             input.value = '';
         }
 
-        function appendChatMessage(username, message, isSelf = false) {
+        function appendChatMessage(username, message) {
             const chatBox = document.getElementById('chat-messages');
+            const isSelf = username === 'You' || username === myUsername;
             const div = document.createElement('div');
             div.className = `flex flex-col ${isSelf ? 'items-end' : 'items-start'}`;
-            div.innerHTML = `<span class="text-[9px] text-slate-500 mb-0.5">${username}</span><div class="px-3 py-1.5 rounded-xl max-w-[85%] break-words ${isSelf ? 'bg-indigo-600 text-white' : 'bg-slate-800 text-slate-200'}">${escapeHtml(message)}</div>`;
+            div.innerHTML = `<span class="text-[9px] text-slate-500 mb-0.5">${escapeHtml(username)}</span><div class="px-3 py-1.5 rounded-xl max-w-[85%] break-words ${isSelf ? 'bg-indigo-600 text-white' : 'bg-slate-800 text-slate-200'}">${escapeHtml(message)}</div>`;
             chatBox.appendChild(div);
             chatBox.scrollTop = chatBox.scrollHeight;
         }
@@ -517,14 +582,14 @@
         function updateChatBadgeUI() {
             const badge = document.getElementById('chat-badge');
             if (unreadMessagesCount > 0) {
-                badge.innerText = unreadMessagesCount;
+                badge.innerText = unreadMessagesCount > 9 ? '9+' : unreadMessagesCount;
                 badge.classList.remove('hidden');
             } else {
                 badge.classList.add('hidden');
             }
         }
 
-        // --- Media Handling & Sync ---
+        // Media & Video Handling
         function submitModalMedia() {
             const url = document.getElementById('modal-media-url').value.trim();
             if (!url) return;
@@ -598,11 +663,12 @@
             list.innerHTML = playedHistory.map((item) => `
                 <button onclick="closeHistoryModal(); loadMediaSource('${escapeHtml(item.url)}', true);" class="flex items-center justify-between bg-slate-950 hover:bg-slate-800 border border-slate-800 p-2.5 rounded-xl transition text-left">
                     <span class="font-medium text-slate-200 truncate pr-2">${escapeHtml(item.name)}</span>
-                    <span class="text-[10px] text-indigo-400 shrink-0">▶ Play</span>
+                    <span class="text-[10px] text-indigo-400 font-semibold shrink-0">▶ Play</span>
                 </button>
             `).join('');
         }
 
+        // HTML5 Video Sync Listeners
         videoElement.addEventListener('play', () => {
             if (syncLock || currentMode !== 'html5') return;
             sendVideoAction('play', videoElement.currentTime);
