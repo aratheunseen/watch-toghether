@@ -56,13 +56,12 @@
   <style>
     /* Safe Area Insets for Mobile */
     .pb-safe { padding-bottom: max(0.75rem, env(safe-area-inset-bottom)); }
-    .pt-safe { padding-top: max(0.75rem, env(safe-area-inset-bottom)); }
+    .pt-safe { padding-top: max(0.75rem, env(safe-area-inset-top)); }
     
     /* Custom Scrollbars */
-    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar { width: 4px; height: 4px; }
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: rgba(99, 102, 241, 0.3); border-radius: 9999px; }
-    ::-webkit-scrollbar-thumb:hover { background: rgba(99, 102, 241, 0.6); }
 
     /* Floating Reaction Overlay directly inside Player */
     #reaction-stream-container {
@@ -85,7 +84,6 @@
   <!-- 1. HEADER (BRANDING & ROOM BAR)           -->
   <!-- ========================================== -->
   <header class="w-full bg-slate-900/80 backdrop-blur-md border-b border-slate-800/80 z-30 pt-safe px-4 py-2 flex items-center justify-between shadow-lg shrink-0">
-    <!-- Brand Logo & Title -->
     <div class="flex items-center gap-2.5">
       <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center text-xl shadow-md shadow-indigo-500/20">
         🍿
@@ -98,16 +96,14 @@
 
     <!-- Header Stats (Shown inside room) -->
     <div id="header-room-info" class="hidden items-center gap-2">
-      <!-- Active Viewers Pill (Numeric badge) -->
       <button onclick="toggleModal('viewers-modal')" class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700/60 text-xs font-semibold transition active:scale-95">
         <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
         <span id="viewer-count-text">1</span>
       </button>
 
-      <!-- Room Code Badge & Copy Link -->
       <div class="flex items-center bg-indigo-950/60 border border-indigo-500/30 rounded-full pl-3 pr-1 py-0.5 gap-1.5">
         <span id="header-room-code" class="font-mono text-xs font-bold text-indigo-300">-----</span>
-        <button onclick="copyRoomLink()" title="Copy Room Invite Link" class="p-1 text-indigo-300 hover:text-white rounded-full hover:bg-indigo-600/30 transition active:scale-90">
+        <button onclick="copyRoomLink()" title="Copy Invite Link" class="p-1 text-indigo-300 hover:text-white rounded-full hover:bg-indigo-600/30 transition active:scale-90">
           📋
         </button>
       </div>
@@ -117,7 +113,7 @@
   <!-- ========================================== -->
   <!-- 2. MAIN WORKSPACE                         -->
   <!-- ========================================== -->
-  <main class="flex-1 min-h-0 relative flex flex-col justify-center items-center w-full max-w-6xl mx-auto px-2 sm:px-4">
+  <main class="flex-1 min-h-0 relative flex flex-col items-center w-full max-w-5xl mx-auto px-2 sm:px-4 py-2">
 
     <!-- LOBBY CARD -->
     <div id="lobby-card" class="w-full max-w-md bg-slate-900/90 border border-slate-800 p-6 rounded-2xl shadow-2xl backdrop-blur-xl animate-pop-in my-auto">
@@ -143,6 +139,20 @@
           <input type="text" id="room-code-input" placeholder="e.g. PARTY99" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white font-mono uppercase focus:outline-none focus:border-indigo-500" />
         </div>
 
+        <!-- Optional Advanced Settings Dropdown -->
+        <details class="group text-xs bg-slate-950/60 border border-slate-800/80 rounded-xl p-3">
+          <summary class="cursor-pointer text-slate-300 font-medium list-none flex items-center justify-between select-none">
+            <span>🔒 Advanced Room Options (Optional)</span>
+            <span class="group-open:rotate-180 transition-transform">▼</span>
+          </summary>
+          <div class="pt-3 space-y-2">
+            <div>
+              <label class="block text-[11px] text-slate-400 mb-1">Room Password (Optional)</label>
+              <input type="password" id="room-password-input" placeholder="Leave empty for public" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500" />
+            </div>
+          </div>
+        </details>
+
         <div class="grid grid-cols-2 gap-3 pt-2">
           <button onclick="startParty(true)" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-2.5 rounded-xl text-sm transition shadow-lg shadow-indigo-600/20 active:scale-95">Host Party</button>
           <button onclick="startParty(false)" class="w-full bg-slate-800 hover:bg-slate-700 text-white font-semibold py-2.5 rounded-xl text-sm transition border border-slate-700 active:scale-95">Join Party</button>
@@ -150,41 +160,37 @@
       </div>
     </div>
 
-    <!-- ROOM MAIN VIEW -->
-    <div id="room-view" class="hidden w-full h-full flex flex-col justify-between overflow-hidden py-2 relative">
+    <!-- ROOM MAIN VIEW (Snapped Top Like YouTube) -->
+    <div id="room-view" class="hidden w-full h-full flex flex-col justify-start overflow-hidden relative">
       
       <!-- Video Player Frame with Internal Reaction Overlay -->
-      <div id="video-frame-container" class="relative w-full aspect-video bg-black rounded-2xl overflow-hidden shadow-2xl border border-slate-800/80 my-auto">
-        <!-- Floating Reaction Overlay (INSIDE PLAYER) -->
+      <div id="video-frame-container" class="relative w-full aspect-video bg-black rounded-2xl overflow-hidden shadow-2xl border border-slate-800/80 shrink-0 mt-1">
         <div id="reaction-stream-container"></div>
-
-        <!-- Video Player Element Wrapper -->
         <div id="player-container" class="w-full h-full flex items-center justify-center">
           <div class="text-center p-6">
             <div class="text-4xl mb-2">🎬</div>
             <p class="text-sm font-medium text-slate-300">No media loaded yet</p>
-            <p class="text-xs text-slate-500 mt-1">Tap 🎬 below to load a video</p>
+            <p class="text-xs text-slate-500 mt-1">Tap Change Video below to load a link</p>
           </div>
         </div>
       </div>
 
-      <!-- Action Bar (Streamlined Essentials) -->
-      <div class="w-full flex items-center justify-between gap-1.5 pt-2 pb-1 px-1 bg-slate-900/70 rounded-2xl border border-slate-800/60 backdrop-blur-md mt-2">
+      <!-- Action Bar (Change Video & History on left, Chat on right) -->
+      <div class="w-full flex items-center justify-between gap-1.5 pt-2 pb-1 px-1 bg-slate-900/70 rounded-2xl border border-slate-800/60 backdrop-blur-md mt-2 shrink-0">
         <div class="flex items-center gap-1 sm:gap-2">
-          <button onclick="toggleModal('video-modal')" title="Change Video" class="p-2 sm:px-3 sm:py-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-white text-sm transition active:scale-95 flex items-center gap-1.5">
+          <button onclick="toggleModal('video-modal')" class="p-2 sm:px-3 sm:py-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-white text-sm transition active:scale-95 flex items-center gap-1.5">
             <span>🎬</span>
-            <span class="hidden sm:inline text-xs">Video</span>
+            <span class="text-xs font-medium">Change Video</span>
           </button>
-          <button onclick="toggleModal('history-modal')" title="Media History" class="p-2 sm:px-3 sm:py-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-white text-sm transition active:scale-95 flex items-center gap-1.5">
+          <button onclick="toggleModal('history-modal')" class="p-2 sm:px-3 sm:py-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-white text-sm transition active:scale-95 flex items-center gap-1.5">
             <span>📜</span>
-            <span class="hidden sm:inline text-xs">History</span>
+            <span class="text-xs font-medium">History</span>
           </button>
         </div>
 
-        <!-- Chat Toggle (Far Right) -->
-        <button onclick="toggleModal('chat-modal')" title="Live Chat" class="relative p-2.5 sm:px-4 sm:py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-bold shadow-lg shadow-indigo-600/20 transition active:scale-95 flex items-center gap-1.5 shrink-0">
+        <button onclick="toggleModal('chat-modal')" class="relative p-2.5 sm:px-4 sm:py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-bold shadow-lg shadow-indigo-600/20 transition active:scale-95 flex items-center gap-1.5 shrink-0">
           <span>💬</span>
-          <span class="hidden sm:inline text-xs">Chat</span>
+          <span class="text-xs">Chat</span>
           <span id="chat-unread-badge" class="hidden absolute -top-1 -right-1 w-4 h-4 bg-rose-500 text-white text-[9px] font-bold rounded-full items-center justify-center">0</span>
         </button>
       </div>
@@ -208,7 +214,7 @@
   </footer>
 
   <!-- ========================================== -->
-  <!-- MODALS (VIEWERS, CHAT, HISTORY)           -->
+  <!-- MODALS                                    -->
   <!-- ========================================== -->
 
   <!-- VIEWERS MODAL -->
@@ -222,23 +228,26 @@
     </div>
   </div>
 
-  <!-- LIVE CHAT MODAL (SMOOTH MOBILE SHEET) -->
+  <!-- LIVE CHAT MODAL (Bottom-to-Top Flow & Emoji Send Button) -->
   <div id="chat-modal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex justify-end">
     <div class="w-full sm:max-w-md bg-slate-900 border-l border-slate-800 h-full flex flex-col justify-between shadow-2xl animate-slide-up">
-      <div class="p-4 border-b border-slate-800 flex justify-between items-center bg-slate-900/90">
+      <div class="p-3 border-b border-slate-800 flex justify-between items-center bg-slate-900/90 shrink-0">
         <div class="flex items-center gap-2">
           <span>💬</span>
           <h3 class="font-bold text-sm text-white">Party Chat</h3>
         </div>
-        <button onclick="toggleModal('chat-modal')" class="text-slate-400 hover:text-white text-lg p-1">✕</button>
+        <button onclick="toggleModal('chat-modal')" class="text-slate-400 hover:text-white text-base p-1">✕</button>
       </div>
 
-      <div id="chat-messages-container" class="flex-1 overflow-y-auto p-4 space-y-3 scroll-smooth"></div>
+      <!-- Messages container using flex-col-reverse so new messages stack from bottom upward -->
+      <div id="chat-messages-container" class="flex-1 overflow-y-auto p-4 flex flex-col-reverse gap-2.5"></div>
 
-      <div class="p-3 border-t border-slate-800 bg-slate-900/90 pb-safe">
-        <form onsubmit="handleSendChatMessage(event)" class="flex gap-2">
+      <div class="p-3 border-t border-slate-800 bg-slate-900/90 pb-safe shrink-0">
+        <form onsubmit="handleSendChatMessage(event)" class="flex gap-2 items-center">
           <input type="text" id="chat-input-field" placeholder="Type a message..." class="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-indigo-500" />
-          <button type="submit" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-4 py-2.5 rounded-xl text-xs transition active:scale-95">Send</button>
+          <button type="submit" class="bg-indigo-600 hover:bg-indigo-500 text-white p-2.5 rounded-xl text-lg transition active:scale-95 flex items-center justify-center shrink-0" title="Send Spark">
+            🚀
+          </button>
         </form>
       </div>
     </div>
@@ -286,7 +295,6 @@
     let unreadChatCount = 0;
     let isChatOpen = false;
 
-    // Toast Notification Function
     function showToast(message, icon = 'ℹ️') {
       const container = document.getElementById('toast-container');
       const toast = document.createElement('div');
@@ -319,7 +327,6 @@
           isChatOpen = true;
           unreadChatCount = 0;
           updateUnreadBadge();
-          scrollChatToBottom();
         }
       } else {
         modal.classList.add('hidden');
@@ -547,8 +554,8 @@
         </div>
       `;
 
-      container.appendChild(messageEl);
-      scrollChatToBottom();
+      // Prepend because flex-col-reverse places new items at the visual bottom
+      container.prepend(messageEl);
 
       if (!isChatOpen) {
         unreadChatCount++;
@@ -566,11 +573,6 @@
         badge.classList.add('hidden');
         badge.classList.remove('flex');
       }
-    }
-
-    function scrollChatToBottom() {
-      const container = document.getElementById('chat-messages-container');
-      container.scrollTop = container.scrollHeight;
     }
 
     function escapeHtml(str) {
