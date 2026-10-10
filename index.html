@@ -1,839 +1,710 @@
 <!DOCTYPE html>
-<html lang="en" class="h-full">
+<html lang="en" class="h-full bg-slate-950 text-slate-100 antialiased selection:bg-indigo-500 selection:text-white">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>WatchParty by Ashiqur Rahman Alif</title>
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- PeerJS CDN -->
-    <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
-    <!-- YouTube IFrame API -->
-    <script src="https://www.youtube.com/iframe_api"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
-        
-        body {
-            font-family: 'Inter', sans-serif;
-            touch-action: manipulation;
-            background-color: #030712;
-            color: #f9fafb;
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>WatchParty — Watch Together, Anywhere.</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+            }
+          },
+          animation: {
+            'float-up': 'floatUp 2.5s cubic-bezier(0.22, 1, 0.36, 1) forwards',
+            'pulse-subtle': 'pulseSubtle 2s infinite',
+            'pop-in': 'popIn 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards',
+            'slide-up': 'slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards'
+          },
+          keyframes: {
+            floatUp: {
+              '0%': { opacity: '0', transform: 'translateY(20px) scale(0.6)' },
+              '15%': { opacity: '1', transform: 'translateY(0px) scale(1.15)' },
+              '85%': { opacity: '1' },
+              '100%': { opacity: '0', transform: 'translateY(-140px) scale(0.85)' }
+            },
+            pulseSubtle: {
+              '0%, 100%': { opacity: '1' },
+              '50%': { opacity: '0.6' }
+            },
+            popIn: {
+              '0%': { opacity: '0', transform: 'scale(0.9)' },
+              '100%': { opacity: '1', transform: 'scale(1)' }
+            },
+            slideUp: {
+              '0%': { opacity: '0', transform: 'translateY(16px)' },
+              '100%': { opacity: '1', transform: 'translateY(0)' }
+            }
+          }
         }
+      }
+    }
+  </script>
 
-        /* Safe area support for mobile notch and gesture navigation */
-        .pb-safe {
-            padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
-        }
+  <!-- PeerJS for P2P Networking -->
+  <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
 
-        /* Floating Animation for Synced Emojis */
-        @keyframes floatUp {
-            0% { transform: translateY(0px) scale(0.6); opacity: 0; }
-            20% { opacity: 1; transform: translateY(-30px) scale(1.1); }
-            100% { transform: translateY(-220px) scale(0.95); opacity: 0; }
-        }
+  <style>
+    /* Mobile safe area spacing */
+    .pb-safe { padding-bottom: max(0.75rem, env(safe-area-inset-bottom)); }
+    .pt-safe { padding-top: max(0.75rem, env(safe-area-inset-top)); }
+    
+    /* Custom scrollbars */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.6); }
+    ::-webkit-scrollbar-thumb { background: rgba(99, 102, 241, 0.4); border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(99, 102, 241, 0.7); }
 
-        .floating-emoji {
-            position: absolute;
-            bottom: 20px;
-            animation: floatUp 2.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-            pointer-events: none;
-            font-size: 2.2rem;
-            z-index: 50;
-            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.5));
-        }
-
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar {
-            width: 4px;
-            height: 4px;
-        }
-        ::-webkit-scrollbar-track {
-            background: rgba(15, 23, 42, 0.6);
-        }
-        ::-webkit-scrollbar-thumb {
-            background: rgba(99, 102, 241, 0.5);
-            border-radius: 4px;
-        }
-    </style>
+    /* Floating emoji canvas overlay container */
+    #reaction-stream-container {
+      pointer-events: none;
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      z-index: 40;
+    }
+  </style>
 </head>
-<body class="h-full w-screen overflow-hidden flex flex-col justify-between select-none">
+<body class="h-full w-screen overflow-hidden flex flex-col justify-between bg-slate-950 font-sans text-slate-100">
 
-    <!-- Header -->
-    <header class="bg-slate-900 border-b border-slate-800/80 px-3 py-2 flex items-center justify-between shrink-0 z-40">
-        <!-- Top Left Branding -->
-        <div class="flex items-center space-x-2">
-            <span class="text-2xl leading-none">🍿</span>
-            <div class="flex flex-col">
-                <h1 class="font-extrabold text-sm sm:text-base text-indigo-400 tracking-tight leading-tight">WatchParty</h1>
-                <span class="text-[9px] text-slate-400 font-medium tracking-wide">by Ashiqur Rahman Alif</span>
-            </div>
+  <!-- ========================================== -->
+  <!-- 1. HEADER (BRANDING & ROOM TOP BAR)       -->
+  <!-- ========================================== -->
+  <header class="w-full bg-slate-900/80 backdrop-blur-md border-b border-slate-800/80 z-30 pt-safe px-4 py-2.5 flex items-center justify-between shadow-lg shrink-0">
+    <!-- Brand Logo & Title -->
+    <div class="flex items-center gap-2.5">
+      <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center text-xl shadow-md shadow-indigo-500/20">
+        🍿
+      </div>
+      <div>
+        <h1 class="text-base font-bold tracking-tight text-white leading-none flex items-center gap-1.5">
+          WatchParty
+        </h1>
+        <p class="text-[10px] font-medium text-indigo-300/80 tracking-wide leading-tight mt-0.5">
+          by Ashiqur Rahman Alif
+        </p>
+      </div>
+    </div>
+
+    <!-- Right Header Stats & Info (Hidden until in Room) -->
+    <div id="header-room-info" class="hidden items-center gap-2">
+      <!-- Active Viewers Pill -->
+      <button id="viewers-btn" onclick="toggleModal('viewers-modal')" class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700/60 text-xs font-medium transition active:scale-95">
+        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+        <span id="viewer-count-text">1 Viewer</span>
+      </button>
+
+      <!-- Room Code Badge & Copy Link -->
+      <div class="flex items-center bg-indigo-950/60 border border-indigo-500/30 rounded-full pl-3 pr-1 py-0.5 gap-1.5">
+        <span id="header-room-code" class="font-mono text-xs font-bold text-indigo-300">-----</span>
+        <button onclick="copyRoomLink()" title="Copy Room Invite Link" class="p-1 text-indigo-300 hover:text-white rounded-full hover:bg-indigo-600/30 transition active:scale-90">
+          📋
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ========================================== -->
+  <!-- 2. MAIN CONTAINER                         -->
+  <!-- ========================================== -->
+  <main class="flex-1 min-h-0 relative flex flex-col justify-center items-center w-full max-w-6xl mx-auto px-2 sm:px-4">
+
+    <!-- A. LOBBY CARD (Create or Join) -->
+    <div id="lobby-card" class="w-full max-w-md bg-slate-900/90 border border-slate-800 p-6 rounded-2xl shadow-2xl backdrop-blur-xl animate-pop-in my-auto">
+      <div class="text-center mb-6">
+        <div class="w-14 h-14 bg-indigo-600/20 border border-indigo-500/30 rounded-2xl flex items-center justify-center text-3xl mx-auto mb-3">
+          🎬
+        </div>
+        <h2 class="text-xl font-bold text-white tracking-tight">Create or Join Party</h2>
+        <p class="text-xs text-slate-400 mt-1">Watch Together, Anywhere.</p>
+      </div>
+
+      <div class="space-y-4">
+        <!-- Display Name Input -->
+        <div>
+          <label class="block text-xs font-medium text-slate-300 mb-1">Your Name</label>
+          <input type="text" id="display-name-input" placeholder="e.g. Alex" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition" />
         </div>
 
-        <!-- Header Right Stats & Actions -->
+        <!-- Room Code Input + Random Generator -->
+        <div>
+          <div class="flex justify-between items-center mb-1">
+            <label class="block text-xs font-medium text-slate-300">Room Code</label>
+            <button onclick="generateRandomRoomCode()" class="text-[11px] font-semibold text-indigo-400 hover:text-indigo-300 transition">
+              🎲 Random
+            </button>
+          </div>
+          <input type="text" id="room-code-input" placeholder="e.g. PARTY99" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white font-mono uppercase focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition" />
+        </div>
+
+        <!-- Optional Advanced Settings Collapsible -->
+        <details class="group text-xs">
+          <summary class="cursor-pointer text-slate-400 hover:text-slate-200 font-medium py-1 list-none flex items-center justify-between select-none">
+            <span>🔒 Advanced Options (Optional)</span>
+            <span class="group-open:rotate-180 transition-transform">▼</span>
+          </summary>
+          <div class="pt-2 pb-1 space-y-2">
+            <div>
+              <label class="block text-[11px] text-slate-400 mb-1">Room Password (Optional)</label>
+              <input type="password" id="room-password-input" placeholder="Leave empty for public" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-indigo-500" />
+            </div>
+          </div>
+        </details>
+
+        <!-- Action Buttons -->
+        <div class="grid grid-cols-2 gap-3 pt-2">
+          <button onclick="startParty(true)" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-2.5 rounded-xl text-sm transition shadow-lg shadow-indigo-600/20 active:scale-95">
+            Host Party
+          </button>
+          <button onclick="startParty(false)" class="w-full bg-slate-800 hover:bg-slate-700 text-white font-semibold py-2.5 rounded-xl text-sm transition border border-slate-700 active:scale-95">
+            Join Party
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- B. ROOM MAIN VIEW (Player & Action Bar) -->
+    <div id="room-view" class="hidden w-full h-full flex flex-col justify-between overflow-hidden py-2 relative">
+      
+      <!-- Reaction Floating Overlay -->
+      <div id="reaction-stream-container"></div>
+
+      <!-- Player Frame -->
+      <div class="relative w-full aspect-video bg-black rounded-2xl overflow-hidden shadow-2xl border border-slate-800/80 my-auto">
+        
+        <!-- Video Player Iframe / Video Element Container -->
+        <div id="player-container" class="w-full h-full flex items-center justify-center">
+          <!-- Fallback initial state -->
+          <div class="text-center p-6">
+            <div class="text-4xl mb-2">🎬</div>
+            <p class="text-sm font-medium text-slate-300">No media loaded yet</p>
+            <p class="text-xs text-slate-500 mt-1">Tap 🎬 below to paste a YouTube or video link</p>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Video Action Bar (Ergonomics Sequence) -->
+      <div class="w-full flex items-center justify-between gap-1.5 pt-2 pb-1 px-1 bg-slate-900/60 rounded-2xl border border-slate-800/60 backdrop-blur-md mt-2">
+        
+        <!-- Left Group Controls -->
+        <div class="flex items-center gap-1 sm:gap-2 overflow-x-auto no-scrollbar py-0.5">
+          <!-- 🎬 Change Video -->
+          <button onclick="toggleModal('video-modal')" title="Change Video" class="p-2 sm:px-3 sm:py-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-white text-sm font-medium transition active:scale-95 flex items-center gap-1.5">
+            <span>🎬</span>
+            <span class="hidden md:inline text-xs">Video</span>
+          </button>
+
+          <!-- 📜 Media History -->
+          <button onclick="toggleModal('history-modal')" title="Media History" class="p-2 sm:px-3 sm:py-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-white text-sm font-medium transition active:scale-95 flex items-center gap-1.5">
+            <span>📜</span>
+            <span class="hidden md:inline text-xs">History</span>
+          </button>
+
+          <!-- 🔁 Resync Video -->
+          <button onclick="resyncMedia()" title="Resync Playback with Host" class="p-2 sm:px-3 sm:py-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-white text-sm font-medium transition active:scale-95 flex items-center gap-1.5">
+            <span>🔁</span>
+            <span class="hidden md:inline text-xs">Resync</span>
+          </button>
+
+          <!-- ⚡ Playback Speed -->
+          <button onclick="toggleModal('speed-modal')" title="Playback Speed" class="p-2 sm:px-3 sm:py-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-white text-sm font-medium transition active:scale-95 flex items-center gap-1.5">
+            <span>⚡</span>
+            <span id="speed-badge" class="text-xs text-indigo-400 font-mono font-bold">1x</span>
+          </button>
+
+          <!-- 🔊 Mute / Unmute -->
+          <button id="mute-btn" onclick="toggleMute()" title="Mute / Unmute" class="p-2 sm:px-3 sm:py-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-white text-sm font-medium transition active:scale-95">
+            🔊
+          </button>
+
+          <!-- 🖼️ Fullscreen / Theater -->
+          <button onclick="toggleFullscreen()" title="Toggle Fullscreen" class="p-2 sm:px-3 sm:py-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-white text-sm font-medium transition active:scale-95">
+            🖼️
+          </button>
+
+          <!-- 🔗 Quick Share -->
+          <button onclick="copyRoomLink()" title="Share Room Link" class="p-2 sm:px-3 sm:py-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-white text-sm font-medium transition active:scale-95">
+            🔗
+          </button>
+        </div>
+
+        <!-- Far Right Position: 💬 Live Chat Button -->
+        <button onclick="toggleModal('chat-modal')" title="Open Live Chat" class="relative p-2.5 sm:px-4 sm:py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-bold shadow-lg shadow-indigo-600/20 transition active:scale-95 flex items-center gap-1.5 shrink-0">
+          <span>💬</span>
+          <span class="hidden sm:inline text-xs">Chat</span>
+          <!-- Unread Badge -->
+          <span id="chat-unread-badge" class="hidden absolute -top-1 -right-1 w-4 h-4 bg-rose-500 text-white text-[9px] font-bold rounded-full items-center justify-center animate-bounce">
+            0
+          </span>
+        </button>
+
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ========================================== -->
+  <!-- 3. FIXED BOTTOM EMOJI REACTION DECK       -->
+  <!-- ========================================== -->
+  <footer id="bottom-emoji-deck" class="hidden w-full bg-slate-900/90 border-t border-slate-800/80 backdrop-blur-md pb-safe pt-2 px-3 z-30 shrink-0">
+    <div class="max-w-xl mx-auto flex items-center justify-around gap-1">
+      <button onclick="sendReaction('🍿')" class="p-2 text-2xl hover:scale-125 transition active:scale-90">🍿</button>
+      <button onclick="sendReaction('😂')" class="p-2 text-2xl hover:scale-125 transition active:scale-90">😂</button>
+      <button onclick="sendReaction('😱')" class="p-2 text-2xl hover:scale-125 transition active:scale-90">😱</button>
+      <button onclick="sendReaction('🔥')" class="p-2 text-2xl hover:scale-125 transition active:scale-90">🔥</button>
+      <button onclick="sendReaction('😭')" class="p-2 text-2xl hover:scale-125 transition active:scale-90">😭</button>
+      <button onclick="sendReaction('🤯')" class="p-2 text-2xl hover:scale-125 transition active:scale-90">🤯</button>
+      <button onclick="sendReaction('👏')" class="p-2 text-2xl hover:scale-125 transition active:scale-90">👏</button>
+    </div>
+  </footer>
+
+  <!-- ========================================== -->
+  <!-- MODALS (VIEWERS, CHAT, HISTORY, SPEED)    -->
+  <!-- ========================================== -->
+
+  <!-- A. CONNECTED VIEWERS MODAL -->
+  <div id="viewers-modal" class="hidden fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="w-full max-w-xs bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-2xl animate-pop-in">
+      <div class="flex justify-between items-center border-b border-slate-800 pb-2 mb-3">
+        <h3 class="font-bold text-sm text-white">Connected Viewers</h3>
+        <button onclick="toggleModal('viewers-modal')" class="text-slate-400 hover:text-white text-base">✕</button>
+      </div>
+      <ul id="viewers-list-container" class="space-y-2 max-h-48 overflow-y-auto text-xs">
+        <!-- Dynamic Viewer List -->
+      </ul>
+    </div>
+  </div>
+
+  <!-- B. LIVE CHAT MODAL (SLIDE-IN SMOOTH) -->
+  <div id="chat-modal" class="hidden fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex justify-end">
+    <div class="w-full max-w-md bg-slate-900 border-l border-slate-800 h-full flex flex-col justify-between shadow-2xl animate-slide-up">
+      <!-- Chat Header -->
+      <div class="p-4 border-b border-slate-800 flex justify-between items-center bg-slate-900/90">
         <div class="flex items-center gap-2">
-            <!-- Connected Viewers Pill -->
-            <div id="users-pill" class="hidden relative">
-                <button onclick="toggleUserPopup()" class="flex items-center gap-1.5 bg-slate-950 border border-slate-800 text-slate-200 px-2.5 py-1 rounded-full text-xs hover:border-slate-700 transition">
-                    <span id="header-status-dot" class="w-2 h-2 rounded-full bg-rose-500"></span>
-                    <strong id="peer-count" class="text-indigo-400 font-mono">1</strong>
-                    <span class="text-[8px] text-slate-500">▼</span>
-                </button>
-                <!-- Viewers List Popup -->
-                <div id="users-popup" class="hidden absolute right-0 mt-2 w-52 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl p-2.5 z-50">
-                    <div class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1.5 border-b border-slate-800 pb-1">Connected Viewers</div>
-                    <div id="participants-list" class="flex flex-col gap-1 max-h-36 overflow-y-auto"></div>
-                </div>
-            </div>
-
-            <!-- Room Badge & Link Copy -->
-            <div id="room-badge" class="hidden flex items-center gap-1.5 text-xs bg-indigo-950/80 text-indigo-300 border border-indigo-800/80 pl-2.5 pr-1 py-0.5 rounded-full">
-                <span class="font-mono font-bold text-[11px]" id="current-room-id"></span>
-                <button onclick="copyHeaderRoomLink()" class="bg-indigo-600 hover:bg-indigo-500 text-white text-[11px] w-6 h-6 rounded-full flex items-center justify-center transition shadow" title="Copy Room Link">📋</button>
-            </div>
+          <span class="text-lg">💬</span>
+          <h3 class="font-bold text-sm text-white">Party Chat</h3>
         </div>
-    </header>
+        <button onclick="toggleModal('chat-modal')" class="text-slate-400 hover:text-white text-lg">✕</button>
+      </div>
 
-    <!-- Main Content Container -->
-    <main class="flex-1 w-full max-w-3xl mx-auto flex flex-col justify-between items-center overflow-hidden p-2 sm:p-3 relative min-h-0">
+      <!-- Messages Log Container -->
+      <div id="chat-messages-container" class="flex-1 overflow-y-auto p-4 space-y-3 scroll-smooth">
+        <!-- Dynamic chat messages -->
+      </div>
 
-        <!-- Toast Notification Banner -->
-        <div id="toast-banner" class="hidden absolute top-2 z-50 bg-indigo-600 text-white text-xs font-medium px-4 py-2 rounded-xl shadow-2xl transition transform duration-300">
-            Link copied to clipboard!
-        </div>
-
-        <!-- LOBBY CARD SCREEN -->
-        <div id="lobby-card" class="bg-slate-900/90 border border-slate-800/90 rounded-2xl p-5 shadow-2xl flex flex-col justify-center space-y-4 max-w-sm w-full my-auto backdrop-blur-md shrink-0">
-            <div class="text-center space-y-1">
-                <h2 class="text-lg font-bold tracking-tight text-white">Create or Join Party</h2>
-                <p class="text-xs text-indigo-400 font-medium">Watch Together, Anywhere.</p>
-            </div>
-            
-            <div class="space-y-3 w-full">
-                <div>
-                    <label class="block text-[11px] font-medium text-slate-400 mb-1">Your Name</label>
-                    <input type="text" id="username-input" placeholder="e.g. Cinephile" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-indigo-500 text-slate-100 placeholder-slate-500">
-                </div>
-
-                <!-- Optional Advanced Room Options Dropdown -->
-                <div class="border border-slate-800 rounded-xl bg-slate-950/50 overflow-hidden">
-                    <button onclick="toggleAdvancedOptions()" class="w-full px-3 py-2 text-left text-[11px] font-semibold text-indigo-400 flex justify-between items-center bg-slate-900/60 hover:bg-slate-900 transition">
-                        <span>🔒 Advanced Room Options (Optional)</span>
-                        <span id="advanced-arrow" class="text-slate-500 text-[10px]">▼</span>
-                    </button>
-                    <div id="advanced-panel" class="hidden p-3 space-y-2.5 bg-slate-950/80 border-t border-slate-800">
-                        <div class="flex gap-1.5 items-center">
-                            <input type="text" id="custom-room-input" placeholder="Custom Code (Optional)" class="flex-1 bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs uppercase font-mono focus:outline-none focus:border-indigo-500 text-slate-100">
-                            <button onclick="setSuggestedCode()" class="bg-slate-800 hover:bg-slate-700 text-indigo-300 text-[10px] px-2.5 py-1.5 rounded-lg font-mono font-semibold transition shrink-0">🎲 Random</button>
-                        </div>
-                        <input type="password" id="create-password-input" placeholder="Room Password (Optional)" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:border-indigo-500 text-slate-100">
-                    </div>
-                </div>
-
-                <div class="flex gap-2 pt-1">
-                    <button onclick="createRoom()" class="flex-1 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-semibold py-2.5 rounded-xl text-xs transition shadow-lg shadow-indigo-600/20 active:scale-[0.98]">
-                        Create Room
-                    </button>
-                </div>
-
-                <div class="relative flex py-0.5 items-center">
-                    <div class="flex-grow border-t border-slate-800"></div>
-                    <span class="flex-shrink mx-3 text-[9px] text-slate-500 uppercase tracking-wider font-semibold">Or Join</span>
-                    <div class="flex-grow border-t border-slate-800"></div>
-                </div>
-
-                <div class="flex gap-2">
-                    <input type="text" id="join-room-id" placeholder="Enter Room Code" class="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs uppercase focus:outline-none focus:border-indigo-500 font-mono text-slate-100">
-                    <button onclick="joinRoom()" class="bg-slate-800 hover:bg-slate-700 text-white px-4 py-2 rounded-xl font-semibold text-xs transition active:scale-[0.98]">Join</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- WATCHROOM SCREEN -->
-        <div id="room-view" class="hidden flex flex-col w-full h-full justify-between overflow-hidden gap-1.5">
-
-            <!-- Video Player Stage Container -->
-            <div id="player-wrapper" class="relative bg-black rounded-2xl overflow-hidden aspect-video w-full shadow-2xl border border-slate-800 flex items-center justify-center shrink-0">
-                <video id="shared-video" controls class="w-full h-full object-contain hidden"></video>
-                <div id="youtube-player" class="w-full h-full hidden"></div>
-                <iframe id="generic-iframe" class="w-full h-full hidden border-0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
-                
-                <!-- Floating Emojis Overlay Layer -->
-                <div id="emoji-overlay" class="absolute inset-0 pointer-events-none overflow-hidden z-20"></div>
-
-                <!-- Video Initial Placeholder -->
-                <div id="video-placeholder" class="absolute inset-0 flex flex-col items-center justify-center text-slate-500 space-y-1.5 bg-slate-950 z-10 p-4 text-center">
-                    <span class="text-4xl">🍿</span>
-                    <p class="text-xs font-semibold text-slate-400">Click 🎬 below to paste & sync a video link</p>
-                </div>
-            </div>
-
-            <!-- Enhanced Icon-Only Video Action Controls Bar -->
-            <div class="flex items-center justify-center gap-1.5 sm:gap-2 bg-slate-900/95 border border-slate-800/80 p-1.5 rounded-2xl shadow-xl shrink-0 overflow-x-auto max-w-full">
-                <!-- 🎬 Change Video -->
-                <button onclick="openMediaModal()" class="w-9 h-9 sm:w-10 sm:h-10 bg-slate-950 hover:bg-indigo-600/20 border border-slate-800 text-slate-100 rounded-xl text-base flex items-center justify-center transition active:scale-95 shadow-sm shrink-0" title="Change Video">
-                    🎬
-                </button>
-                
-                <!-- 📜 History -->
-                <button onclick="openHistoryModal()" class="w-9 h-9 sm:w-10 sm:h-10 bg-slate-950 hover:bg-indigo-600/20 border border-slate-800 text-slate-100 rounded-xl text-base flex items-center justify-center transition active:scale-95 shadow-sm shrink-0" title="Media History">
-                    📜
-                </button>
-                
-                <!-- 💬 Live Chat -->
-                <button onclick="openChatModal()" class="relative w-9 h-9 sm:w-10 sm:h-10 bg-slate-950 hover:bg-indigo-600/20 border border-slate-800 text-slate-100 rounded-xl text-base flex items-center justify-center transition active:scale-95 shadow-sm shrink-0" title="Live Chat">
-                    💬
-                    <span id="chat-badge" class="hidden absolute -top-1.5 -right-1.5 bg-rose-500 text-white text-[10px] min-w-[20px] h-[20px] px-1 rounded-full font-bold border-2 border-slate-900 flex items-center justify-center">0</span>
-                </button>
-
-                <!-- 🔁 Resync Video -->
-                <button onclick="resyncVideo()" class="w-9 h-9 sm:w-10 sm:h-10 bg-slate-950 hover:bg-indigo-600/20 border border-slate-800 text-slate-100 rounded-xl text-base flex items-center justify-center transition active:scale-95 shadow-sm shrink-0" title="Resync Video">
-                    🔁
-                </button>
-
-                <!-- 🔊 Mute / Unmute Toggle -->
-                <button id="mute-toggle-btn" onclick="toggleMute()" class="w-9 h-9 sm:w-10 sm:h-10 bg-slate-950 hover:bg-indigo-600/20 border border-slate-800 text-slate-100 rounded-xl text-base flex items-center justify-center transition active:scale-95 shadow-sm shrink-0" title="Mute / Unmute">
-                    🔊
-                </button>
-
-                <!-- ⚡ Speed Controller Toggle -->
-                <button onclick="openSpeedModal()" class="w-9 h-9 sm:w-10 sm:h-10 bg-slate-950 hover:bg-indigo-600/20 border border-slate-800 text-slate-100 rounded-xl text-base flex items-center justify-center transition active:scale-95 shadow-sm shrink-0" title="Playback Speed">
-                    ⚡
-                </button>
-
-                <!-- 🖼️ Theater / Fullscreen / PiP -->
-                <button onclick="toggleTheaterMode()" class="w-9 h-9 sm:w-10 sm:h-10 bg-slate-950 hover:bg-indigo-600/20 border border-slate-800 text-slate-100 rounded-xl text-base flex items-center justify-center transition active:scale-95 shadow-sm shrink-0" title="Fullscreen / Theater">
-                    🖼️
-                </button>
-
-                <!-- 🔗 Quick Share Link -->
-                <button onclick="copyHeaderRoomLink()" class="w-9 h-9 sm:w-10 sm:h-10 bg-slate-950 hover:bg-indigo-600/20 border border-slate-800 text-slate-100 rounded-xl text-base flex items-center justify-center transition active:scale-95 shadow-sm shrink-0" title="Share Room Link">
-                    🔗
-                </button>
-            </div>
-
-            <!-- Bottom Emoji Reaction Bar (Locked inside frame with pb-safe) -->
-            <div class="z-40 pb-safe shrink-0 w-full flex justify-center mt-auto">
-                <div class="bg-slate-900/95 border border-slate-800/90 px-2 py-1.5 rounded-2xl shadow-2xl flex items-center justify-between max-w-md w-full backdrop-blur-md">
-                    <button onclick="sendEmoji('🍿')" class="hover:bg-slate-800/80 p-1.5 sm:p-2 rounded-xl text-xl sm:text-2xl transition transform active:scale-90" title="Popcorn">🍿</button>
-                    <button onclick="sendEmoji('😂')" class="hover:bg-slate-800/80 p-1.5 sm:p-2 rounded-xl text-xl sm:text-2xl transition transform active:scale-90" title="LOL">😂</button>
-                    <button onclick="sendEmoji('😱')" class="hover:bg-slate-800/80 p-1.5 sm:p-2 rounded-xl text-xl sm:text-2xl transition transform active:scale-90" title="Scream">😱</button>
-                    <button onclick="sendEmoji('🔥')" class="hover:bg-slate-800/80 p-1.5 sm:p-2 rounded-xl text-xl sm:text-2xl transition transform active:scale-90" title="Fire">🔥</button>
-                    <button onclick="sendEmoji('😭')" class="hover:bg-slate-800/80 p-1.5 sm:p-2 rounded-xl text-xl sm:text-2xl transition transform active:scale-90" title="Crying">😭</button>
-                    <button onclick="sendEmoji('🤯')" class="hover:bg-slate-800/80 p-1.5 sm:p-2 rounded-xl text-xl sm:text-2xl transition transform active:scale-90" title="Mind Blown">🤯</button>
-                    <button onclick="sendEmoji('👏')" class="hover:bg-slate-800/80 p-1.5 sm:p-2 rounded-xl text-xl sm:text-2xl transition transform active:scale-90" title="Clap">👏</button>
-                </div>
-            </div>
-
-        </div>
-    </main>
-
-    <!-- Modal: Change Video URL -->
-    <div id="media-modal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 max-w-md w-full shadow-2xl space-y-4">
-            <div class="flex justify-between items-center border-b border-slate-800 pb-2">
-                <h3 class="font-bold text-sm text-indigo-400 flex items-center gap-2">
-                    <span>🎬</span> Change Video Source
-                </h3>
-                <button onclick="closeMediaModal()" class="w-7 h-7 rounded-lg bg-slate-950 text-slate-400 hover:text-white flex items-center justify-center text-xs">✕</button>
-            </div>
-            <div class="space-y-3">
-                <input type="text" id="modal-media-url" placeholder="Paste YouTube, Facebook, Vimeo or direct MP4 link..." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-xs focus:outline-none focus:border-indigo-500 font-mono text-slate-100">
-                <button onclick="submitModalMedia()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-2.5 rounded-xl text-xs transition shadow-lg shadow-indigo-600/30 active:scale-[0.98]">Load & Sync</button>
-            </div>
-        </div>
+      <!-- Chat Input Field -->
+      <div class="p-3 border-t border-slate-800 bg-slate-900/90 pb-safe">
+        <form onsubmit="handleSendChatMessage(event)" class="flex gap-2">
+          <input type="text" id="chat-input-field" placeholder="Type a message..." class="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-indigo-500" />
+          <button type="submit" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-4 py-2 rounded-xl text-xs transition active:scale-95">
+            Send
+          </button>
+        </form>
+      </div>
     </div>
+  </div>
 
-    <!-- Modal: Playback Speed Controller -->
-    <div id="speed-modal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 max-w-xs w-full shadow-2xl space-y-4">
-            <div class="flex justify-between items-center border-b border-slate-800 pb-2">
-                <h3 class="font-bold text-sm text-indigo-400 flex items-center gap-2">
-                    <span>⚡</span> Playback Speed
-                </h3>
-                <button onclick="closeSpeedModal()" class="w-7 h-7 rounded-lg bg-slate-950 text-slate-400 hover:text-white flex items-center justify-center text-xs">✕</button>
-            </div>
-            <div class="grid grid-cols-2 gap-2 text-xs font-semibold">
-                <button onclick="setPlaybackSpeed(0.5)" class="bg-slate-950 hover:bg-indigo-600/20 border border-slate-800 p-2.5 rounded-xl text-slate-200 transition">0.5x (Slow)</button>
-                <button onclick="setPlaybackSpeed(1.0)" class="bg-slate-950 hover:bg-indigo-600/20 border border-slate-800 p-2.5 rounded-xl text-slate-200 transition">1.0x (Normal)</button>
-                <button onclick="setPlaybackSpeed(1.25)" class="bg-slate-950 hover:bg-indigo-600/20 border border-slate-800 p-2.5 rounded-xl text-slate-200 transition">1.25x</button>
-                <button onclick="setPlaybackSpeed(1.5)" class="bg-slate-950 hover:bg-indigo-600/20 border border-slate-800 p-2.5 rounded-xl text-slate-200 transition">1.5x</button>
-                <button onclick="setPlaybackSpeed(2.0)" class="col-span-2 bg-slate-950 hover:bg-indigo-600/20 border border-slate-800 p-2.5 rounded-xl text-slate-200 transition">2.0x (Fast)</button>
-            </div>
+  <!-- C. CHANGE VIDEO MODAL -->
+  <div id="video-modal" class="hidden fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-2xl animate-pop-in">
+      <div class="flex justify-between items-center border-b border-slate-800 pb-2 mb-3">
+        <h3 class="font-bold text-sm text-white">Load Video / Stream</h3>
+        <button onclick="toggleModal('video-modal')" class="text-slate-400 hover:text-white text-base">✕</button>
+      </div>
+      <div class="space-y-3">
+        <div>
+          <label class="block text-xs font-medium text-slate-400 mb-1">YouTube URL or Direct Video Link</label>
+          <input type="text" id="media-url-input" placeholder="https://www.youtube.com/watch?v=..." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-indigo-500" />
         </div>
+        <button onclick="handleLoadMedia()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-2.5 rounded-xl text-xs transition shadow-lg shadow-indigo-600/20 active:scale-95">
+          Play Video for Room
+        </button>
+      </div>
     </div>
+  </div>
 
-    <!-- Modal: Media History -->
-    <div id="history-modal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 max-w-md w-full shadow-2xl space-y-4">
-            <div class="flex justify-between items-center border-b border-slate-800 pb-2">
-                <h3 class="font-bold text-sm text-indigo-400 flex items-center gap-2">
-                    <span>📜</span> Played Video History
-                </h3>
-                <button onclick="closeHistoryModal()" class="w-7 h-7 rounded-lg bg-slate-950 text-slate-400 hover:text-white flex items-center justify-center text-xs">✕</button>
-            </div>
-            <div id="history-list" class="flex flex-col gap-2 max-h-60 overflow-y-auto text-xs">
-                <span class="text-slate-500 italic text-center py-4">No history records yet</span>
-            </div>
+  <!-- D. MEDIA HISTORY MODAL -->
+  <div id="history-modal" class="hidden fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-2xl animate-pop-in">
+      <div class="flex justify-between items-center border-b border-slate-800 pb-2 mb-3">
+        <h3 class="font-bold text-sm text-white">Room Video History</h3>
+        <button onclick="toggleModal('history-modal')" class="text-slate-400 hover:text-white text-base">✕</button>
+      </div>
+      <ul id="history-list-container" class="space-y-2 max-h-56 overflow-y-auto text-xs">
+        <li class="text-slate-500 italic text-center py-4">No video history logged yet.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- E. PLAYBACK SPEED MODAL -->
+  <div id="speed-modal" class="hidden fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="w-full max-w-xs bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-2xl animate-pop-in text-center">
+      <h3 class="font-bold text-sm text-white mb-3">Playback Speed</h3>
+      <div class="grid grid-cols-3 gap-2">
+        <button onclick="setPlaybackSpeed(0.5)" class="py-2 bg-slate-800 hover:bg-indigo-600 rounded-xl text-xs font-mono">0.5x</button>
+        <button onclick="setPlaybackSpeed(1.0)" class="py-2 bg-slate-800 hover:bg-indigo-600 rounded-xl text-xs font-mono font-bold">1.0x</button>
+        <button onclick="setPlaybackSpeed(1.25)" class="py-2 bg-slate-800 hover:bg-indigo-600 rounded-xl text-xs font-mono">1.25x</button>
+        <button onclick="setPlaybackSpeed(1.5)" class="py-2 bg-slate-800 hover:bg-indigo-600 rounded-xl text-xs font-mono">1.5x</button>
+        <button onclick="setPlaybackSpeed(2.0)" class="py-2 bg-slate-800 hover:bg-indigo-600 rounded-xl text-xs font-mono">2.0x</button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ========================================== -->
+  <!-- 4. APPLICATION STATE & P2P LOGIC           -->
+  <!-- ========================================== -->
+  <script>
+    // App State Variables
+    let peer = null;
+    let connections = []; // Host holds connections to peers
+    let hostConn = null;  // Peer holds connection to host
+    let isHost = false;
+    let currentUser = { name: '', id: '' };
+    let roomCode = '';
+    let participants = []; // Clean list of active display names
+    let mediaHistory = []; // Array of { title, url, playedBy }
+    let unreadChatCount = 0;
+    let isChatOpen = false;
+
+    // Random Name & Room Code Generators
+    const sampleNames = ['Cinephile', 'Alex', 'MovieBuff', 'Sam', 'Starlight', 'PixelMaster', 'Nova'];
+    const samplePrefixes = ['PARTY', 'MOVIE', 'SYNC', 'POPCORN', 'FLIX', 'CINE'];
+
+    function generateRandomRoomCode() {
+      const prefix = samplePrefixes[Math.floor(Math.random() * samplePrefixes.length)];
+      const number = Math.floor(10 + Math.random() * 90);
+      document.getElementById('room-code-input').value = `${prefix}${number}`;
+    }
+
+    // Set initial dynamic placeholders
+    window.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('display-name-input').placeholder = `e.g. ${sampleNames[Math.floor(Math.random() * sampleNames.length)]}`;
+      generateRandomRoomCode();
+    });
+
+    // Modal Toggle Helper
+    function toggleModal(modalId) {
+      const modal = document.getElementById(modalId);
+      if (!modal) return;
+      const isHidden = modal.classList.contains('hidden');
+      if (isHidden) {
+        modal.classList.remove('hidden');
+        if (modalId === 'chat-modal') {
+          isChatOpen = true;
+          unreadChatCount = 0;
+          updateUnreadBadge();
+          scrollChatToBottom();
+        }
+      } else {
+        modal.classList.add('hidden');
+        if (modalId === 'chat-modal') isChatOpen = false;
+      }
+    }
+
+    // Copy Room Link to Clipboard
+    function copyRoomLink() {
+      const url = `${window.location.origin}${window.location.pathname}?room=${roomCode}`;
+      navigator.clipboard.writeText(url).then(() => {
+        alert('Invite link copied to clipboard!');
+      }).catch(() => {
+        prompt('Copy room link:', url);
+      });
+    }
+
+    // Start Party (Host or Join)
+    function startParty(asHost) {
+      const nameInput = document.getElementById('display-name-input').value.trim();
+      const codeInput = document.getElementById('room-code-input').value.trim().toUpperCase();
+
+      currentUser.name = nameInput || `Viewer_${Math.floor(100 + Math.random() * 900)}`;
+      roomCode = codeInput || 'PARTY88';
+      isHost = asHost;
+
+      // PeerJS Initialization
+      const peerId = isHost ? `watchparty-${roomCode}` : `watchparty-${roomCode}-${Math.random().toString(36).substring(2, 7)}`;
+      peer = new Peer(peerId);
+
+      peer.on('open', (id) => {
+        currentUser.id = id;
+        setupUIForRoom();
+
+        if (isHost) {
+          participants = [{ id: currentUser.id, name: currentUser.name, isHost: true }];
+          updateViewersUI();
+        } else {
+          // Join Host
+          hostConn = peer.connect(`watchparty-${roomCode}`);
+          setupConnectionHandlers(hostConn);
+        }
+      });
+
+      peer.on('connection', (conn) => {
+        if (isHost) {
+          connections.push(conn);
+          setupConnectionHandlers(conn);
+        }
+      });
+
+      peer.on('error', (err) => {
+        console.error('Peer error:', err);
+        if (!isHost && err.type === 'peer-not-found') {
+          alert('Room not found! Please check the room code.');
+        }
+      });
+    }
+
+    // Connection Handlers
+    function setupConnectionHandlers(conn) {
+      conn.on('open', () => {
+        // Send initial handshake with user name
+        conn.send({ type: 'HANDSHAKE', payload: { name: currentUser.name, id: currentUser.id } });
+      });
+
+      conn.on('data', (data) => {
+        handleIncomingPeerData(data, conn);
+      });
+
+      conn.on('close', () => {
+        if (isHost) {
+          connections = connections.filter(c => c !== conn);
+          participants = participants.filter(p => p.id !== conn.peer);
+          broadcast({ type: 'PARTICIPANTS_UPDATE', payload: participants });
+          updateViewersUI();
+        }
+      });
+    }
+
+    // Data Processing Router
+    function handleIncomingPeerData(data, conn) {
+      switch (data.type) {
+        case 'HANDSHAKE':
+          if (isHost) {
+            participants.push({ id: data.payload.id, name: data.payload.name, isHost: false });
+            broadcast({ type: 'PARTICIPANTS_UPDATE', payload: participants });
+            updateViewersUI();
+          }
+          break;
+
+        case 'PARTICIPANTS_UPDATE':
+          participants = data.payload;
+          updateViewersUI();
+          break;
+
+        case 'REACTION':
+          triggerFloatingEmoji(data.payload.emoji);
+          if (isHost) broadcast(data, conn);
+          break;
+
+        case 'CHAT':
+          appendChatMessage(data.payload);
+          if (isHost) broadcast(data, conn);
+          break;
+
+        case 'LOAD_MEDIA':
+          renderMedia(data.payload.url, data.payload.playedBy);
+          if (isHost) broadcast(data, conn);
+          break;
+      }
+    }
+
+    // Broadcast Message to all connected peers
+    function broadcast(data, excludeConn = null) {
+      connections.forEach(conn => {
+        if (conn !== excludeConn && conn.open) {
+          conn.send(data);
+        }
+      });
+    }
+
+    // Switch Layout to Active Room
+    function setupUIForRoom() {
+      document.getElementById('lobby-card').classList.add('hidden');
+      document.getElementById('room-view').classList.remove('hidden');
+      document.getElementById('bottom-emoji-deck').classList.remove('hidden');
+      document.getElementById('header-room-info').classList.remove('hidden');
+      document.getElementById('header-room-info').classList.add('flex');
+      document.getElementById('header-room-code').innerText = roomCode;
+    }
+
+    // Update Connected Viewers Modal & Badge
+    function updateViewersUI() {
+      const count = participants.length;
+      document.getElementById('viewer-count-text').innerText = `${count} ${count === 1 ? 'Viewer' : 'Viewers'}`;
+
+      const container = document.getElementById('viewers-list-container');
+      container.innerHTML = participants.map(p => `
+        <li class="flex items-center justify-between p-2 rounded-xl bg-slate-800/60 border border-slate-700/50">
+          <span class="font-medium text-slate-200">${escapeHtml(p.name)}</span>
+          ${p.isHost ? '<span class="text-xs bg-indigo-600/30 text-indigo-300 px-2 py-0.5 rounded-full border border-indigo-500/30">👑 Host</span>' : ''}
+        </li>
+      `).join('');
+    }
+
+    // Media Player Handler
+    function handleLoadMedia() {
+      const urlInput = document.getElementById('media-url-input').value.trim();
+      if (!urlInput) return;
+
+      const payload = { url: urlInput, playedBy: currentUser.name };
+      renderMedia(urlInput, currentUser.name);
+
+      const packet = { type: 'LOAD_MEDIA', payload };
+      if (isHost) broadcast(packet);
+      else if (hostConn) hostConn.send(packet);
+
+      toggleModal('video-modal');
+      document.getElementById('media-url-input').value = '';
+    }
+
+    function renderMedia(url, playedBy) {
+      const container = document.getElementById('player-container');
+      const ytMatch = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
+
+      if (ytMatch && ytMatch[1]) {
+        container.innerHTML = `
+          <iframe id="active-video-element" class="w-full h-full" src="https://www.youtube.com/embed/${ytMatch[1]}?enablejsapi=1&autoplay=1" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+        `;
+      } else {
+        container.innerHTML = `
+          <video id="active-video-element" class="w-full h-full object-contain" controls autoplay src="${url}"></video>
+        `;
+      }
+
+      // Log to history without "by" or hash indices
+      mediaHistory.unshift({ url, playedBy });
+      updateHistoryUI();
+    }
+
+    function updateHistoryUI() {
+      const container = document.getElementById('history-list-container');
+      if (mediaHistory.length === 0) return;
+
+      container.innerHTML = mediaHistory.map(item => `
+        <li class="p-2.5 rounded-xl bg-slate-800/60 border border-slate-700/50 flex flex-col gap-1">
+          <span class="font-medium text-indigo-300 truncate">${escapeHtml(item.url)}</span>
+          <span class="text-[10px] text-slate-400">▶ ${escapeHtml(item.playedBy)}</span>
+        </li>
+      `).join('');
+    }
+
+    // Floating Reactions System
+    function sendReaction(emoji) {
+      triggerFloatingEmoji(emoji);
+      const packet = { type: 'REACTION', payload: { emoji } };
+      if (isHost) broadcast(packet);
+      else if (hostConn) hostConn.send(packet);
+    }
+
+    function triggerFloatingEmoji(emoji) {
+      const container = document.getElementById('reaction-stream-container');
+      const element = document.createElement('div');
+      element.innerText = emoji;
+      element.className = 'absolute text-4xl animate-float-up select-none';
+      element.style.left = `${Math.random() * 80 + 10}%`;
+      element.style.bottom = '10px';
+      container.appendChild(element);
+
+      setTimeout(() => element.remove(), 2500);
+    }
+
+    // Chat System
+    function handleSendChatMessage(event) {
+      event.preventDefault();
+      const input = document.getElementById('chat-input-field');
+      const text = input.value.trim();
+      if (!text) return;
+
+      const messageObj = {
+        sender: currentUser.name,
+        text,
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      };
+
+      appendChatMessage(messageObj);
+      const packet = { type: 'CHAT', payload: messageObj };
+      if (isHost) broadcast(packet);
+      else if (hostConn) hostConn.send(packet);
+
+      input.value = '';
+    }
+
+    function appendChatMessage(msg) {
+      const container = document.getElementById('chat-messages-container');
+      const isMe = msg.sender === currentUser.name;
+
+      const messageEl = document.createElement('div');
+      messageEl.className = `flex flex-col ${isMe ? 'items-end' : 'items-start'} animate-pop-in`;
+      messageEl.innerHTML = `
+        <span class="text-[10px] text-slate-400 mb-0.5 px-1">${escapeHtml(msg.sender)} • ${msg.time}</span>
+        <div class="max-w-[80%] rounded-2xl px-3.5 py-2 text-xs font-medium ${isMe ? 'bg-indigo-600 text-white rounded-br-none' : 'bg-slate-800 text-slate-200 rounded-bl-none border border-slate-700/60'}">
+          ${escapeHtml(msg.text)}
         </div>
-    </div>
-
-    <!-- Modal: Live Chat -->
-    <div id="chat-modal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 max-w-md w-full h-[420px] shadow-2xl flex flex-col justify-between">
-            <div class="flex justify-between items-center border-b border-slate-800 pb-2">
-                <h3 class="font-bold text-sm text-indigo-400 flex items-center gap-2">
-                    <span>💬</span> Room Live Chat
-                </h3>
-                <button onclick="closeChatModal()" class="w-7 h-7 rounded-lg bg-slate-950 text-slate-400 hover:text-white flex items-center justify-center text-xs">✕</button>
-            </div>
-            <div id="chat-messages" class="flex-1 overflow-y-auto space-y-2.5 text-xs py-2 flex flex-col scroll-smooth">
-                <div class="text-center text-slate-500 my-auto italic">Party chat started. Say hi!</div>
-            </div>
-            <div class="flex gap-2 pt-2 border-t border-slate-800">
-                <input type="text" id="chat-input" onkeydown="handleChatKey(event)" placeholder="Type a message..." class="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-indigo-500 text-slate-100">
-                <button onclick="sendChatMessage()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-xl text-xs font-semibold transition">Send</button>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        // Random generator pools for names & room codes
-        const suggestedNames = ['Alex', 'Sam', 'MovieBuff', 'Cinephile', 'PopcornFan', 'ChillSeeker', 'NightOwl', 'ScreenStar', 'SkyWalker', 'PixelKnight'];
-        const suggestedPrefixes = ['PARTY', 'MOVIE', 'SYNC', 'VIBE', 'FLIX', 'LOUNGE', 'STREAM', 'POPCORN', 'CHILL', 'NIGHT'];
-
-        // State Variables
-        let peer = null;
-        let connections = []; 
-        let isHost = false;
-        let myId = '';
-        let myUsername = 'Guest';
-        let participants = [];
-        let roomPassword = '';
-        let playedHistory = [];
-        let unreadMessagesCount = 0;
-
-        const videoElement = document.getElementById('shared-video');
-        const genericIframe = document.getElementById('generic-iframe');
-        let ytPlayer = null;
-        let currentMode = null;
-        let syncLock = false;
-        let currentSpeed = 1.0;
-
-        // On Load Setup
-        window.addEventListener('load', () => {
-            const savedName = localStorage.getItem('watchparty_username');
-            const usernameInput = document.getElementById('username-input');
-            
-            const randomName = suggestedNames[Math.floor(Math.random() * suggestedNames.length)];
-            usernameInput.placeholder = `e.g. ${randomName}`;
-
-            if (savedName) {
-                usernameInput.value = savedName;
-            }
-
-            const hash = window.location.hash.substring(1);
-            if (hash) document.getElementById('join-room-id').value = hash;
-
-            window.addEventListener('click', (e) => {
-                const pill = document.getElementById('users-pill');
-                const popup = document.getElementById('users-popup');
-                if (pill && !pill.contains(e.target)) {
-                    popup.classList.add('hidden');
-                }
-            });
-        });
-
-        function toggleAdvancedOptions() {
-            const panel = document.getElementById('advanced-panel');
-            const arrow = document.getElementById('advanced-arrow');
-            panel.classList.toggle('hidden');
-            arrow.innerText = panel.classList.contains('hidden') ? '▼' : '▲';
-        }
-
-        function setSuggestedCode() {
-            const prefix = suggestedPrefixes[Math.floor(Math.random() * suggestedPrefixes.length)];
-            const randomNum = Math.floor(10 + Math.random() * 90);
-            document.getElementById('custom-room-input').value = `${prefix}${randomNum}`;
-        }
-
-        function toggleUserPopup() {
-            document.getElementById('users-popup').classList.toggle('hidden');
-        }
-
-        function openMediaModal() { document.getElementById('media-modal').classList.remove('hidden'); }
-        function closeMediaModal() { document.getElementById('media-modal').classList.add('hidden'); }
-        
-        function openHistoryModal() { 
-            document.getElementById('history-modal').classList.remove('hidden'); 
-            renderHistoryModalUI();
-        }
-        function closeHistoryModal() { document.getElementById('history-modal').classList.add('hidden'); }
-
-        function openChatModal() { 
-            document.getElementById('chat-modal').classList.remove('hidden'); 
-            unreadMessagesCount = 0;
-            updateChatBadgeUI();
-        }
-        function closeChatModal() { document.getElementById('chat-modal').classList.add('hidden'); }
-
-        function openSpeedModal() { document.getElementById('speed-modal').classList.remove('hidden'); }
-        function closeSpeedModal() { document.getElementById('speed-modal').classList.add('hidden'); }
-
-        // Action Buttons Logic
-        function resyncVideo() {
-            const payload = { type: 'REQUEST_SYNC' };
-            if (isHost) {
-                broadcastCurrentState();
-            } else if (connections.length > 0) {
-                connections[0].send(payload);
-            }
-            showToast('Resynced video state!');
-        }
-
-        function toggleMute() {
-            const btn = document.getElementById('mute-toggle-btn');
-            if (currentMode === 'html5') {
-                videoElement.muted = !videoElement.muted;
-                btn.innerText = videoElement.muted ? '🔇' : '🔊';
-            } else if (currentMode === 'youtube' && ytPlayer) {
-                if (ytPlayer.isMuted()) {
-                    ytPlayer.unMute();
-                    btn.innerText = '🔊';
-                } else {
-                    ytPlayer.mute();
-                    btn.innerText = '🔇';
-                }
-            }
-        }
-
-        function setPlaybackSpeed(speed) {
-            currentSpeed = speed;
-            closeSpeedModal();
-            if (currentMode === 'html5') {
-                videoElement.playbackRate = speed;
-            } else if (currentMode === 'youtube' && ytPlayer && ytPlayer.setPlaybackRate) {
-                ytPlayer.setPlaybackRate(speed);
-            }
-            const payload = { type: 'SPEED_CHANGE', speed: speed };
-            if (isHost) broadcast(payload);
-            else if (connections.length > 0) connections[0].send(payload);
-            showToast(`Playback speed set to ${speed}x`);
-        }
-
-        function toggleTheaterMode() {
-            const stage = document.getElementById('player-wrapper');
-            if (!document.fullscreenElement) {
-                if (stage.requestFullscreen) stage.requestFullscreen();
-                else if (stage.webkitRequestFullscreen) stage.webkitRequestFullscreen();
-            } else {
-                if (document.exitFullscreen) document.exitFullscreen();
-            }
-        }
-
-        function onYouTubeIframeAPIReady() {}
-
-        function parseVideoPlatform(url) {
-            const ytMatch = url.match(/^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/);
-            if (ytMatch && ytMatch[2].length === 11) return { type: 'youtube', id: ytMatch[2], name: 'YouTube Video' };
-
-            const vimeoMatch = url.match(/(?:vimeo)\.com.*(?:videos\/|video\/|channels\/|channels\/\w+\/|)([\d]+)/);
-            if (vimeoMatch && vimeoMatch[1]) return { type: 'vimeo', url: `https://player.vimeo.com/video/${vimeoMatch[1]}?autoplay=1`, name: 'Vimeo Video' };
-
-            if (url.includes('facebook.com') || url.includes('fb.watch')) {
-                return { type: 'facebook', url: `https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(url)}&show_text=0`, name: 'Facebook Video' };
-            }
-
-            return { type: 'html5', url: url, name: 'Direct Video File' };
-        }
-
-        function initPeer(customId = undefined) {
-            return new Promise((resolve, reject) => {
-                let nameVal = document.getElementById('username-input').value.trim();
-                if (!nameVal) {
-                    nameVal = suggestedNames[Math.floor(Math.random() * suggestedNames.length)];
-                }
-                myUsername = nameVal;
-                localStorage.setItem('watchparty_username', myUsername);
-
-                peer = new Peer(customId, {
-                    config: {
-                        'iceServers': [
-                            { urls: 'stun:stun.l.google.com:19302' },
-                            { urls: 'stun:stun1.l.google.com:19302' }
-                        ]
-                    },
-                    debug: 1
-                });
-
-                peer.on('open', (id) => {
-                    myId = id;
-                    updateHeaderStatusDot(true);
-                    resolve(id);
-                });
-
-                peer.on('error', (err) => {
-                    updateHeaderStatusDot(false);
-                    reject(err);
-                });
-
-                peer.on('connection', (conn) => {
-                    setupConnection(conn);
-                });
-            });
-        }
-
-        function updateHeaderStatusDot(isOnline) {
-            const dot = document.getElementById('header-status-dot');
-            if (isOnline) {
-                dot.className = "w-2 h-2 rounded-full bg-emerald-500 shadow-sm shadow-emerald-500/50";
-            } else {
-                dot.className = "w-2 h-2 rounded-full bg-rose-500";
-            }
-        }
-
-        async function createRoom() {
-            const customKey = document.getElementById('custom-room-input').value.trim().toUpperCase();
-            roomPassword = document.getElementById('create-password-input').value.trim();
-            const roomId = customKey || Math.random().toString(36).substring(2, 8).toUpperCase();
-
-            try {
-                await initPeer(roomId);
-                isHost = true;
-                participants = [{ id: myId, name: myUsername, host: true }];
-                enterRoomUI(roomId);
-            } catch (e) { console.error(e); }
-        }
-
-        async function joinRoom() {
-            const roomId = document.getElementById('join-room-id').value.trim().toUpperCase();
-            if (!roomId) return alert('Please enter room code.');
-            try {
-                await initPeer();
-                isHost = false;
-                participants = [{ id: myId, name: myUsername, host: false }];
-                const conn = peer.connect(roomId, { metadata: { username: myUsername } });
-                setupConnection(conn);
-                enterRoomUI(roomId);
-            } catch (e) { console.error(e); }
-        }
-
-        function enterRoomUI(roomId) {
-            document.getElementById('lobby-card').classList.add('hidden');
-            document.getElementById('room-view').classList.remove('hidden');
-            document.getElementById('room-badge').classList.remove('hidden');
-            document.getElementById('users-pill').classList.remove('hidden');
-            document.getElementById('current-room-id').innerText = roomId;
-            window.location.hash = roomId;
-            updateParticipantsUI();
-        }
-
-        function setupConnection(conn) {
-            connections.push(conn);
-
-            conn.on('open', () => {
-                if (!isHost) {
-                    const passInput = roomPassword || prompt("Enter room password (if required):") || "";
-                    conn.send({ type: 'JOIN', username: myUsername, password: passInput });
-                }
-            });
-
-            conn.on('data', (data) => {
-                handleIncomingData(data, conn);
-            });
-
-            conn.on('close', () => {
-                connections = connections.filter(c => c !== conn);
-                participants = participants.filter(p => p.id !== conn.peer);
-                updateParticipantsUI();
-                if (isHost) broadcast({ type: 'PARTICIPANTS', list: participants });
-            });
-        }
-
-        function broadcast(data, excludeConn = null) {
-            if (isHost) {
-                connections.forEach(conn => { if (conn !== excludeConn) conn.send(data); });
-            }
-        }
-
-        function broadcastCurrentState() {
-            let currentTime = 0;
-            if (currentMode === 'html5') currentTime = videoElement.currentTime;
-            else if (currentMode === 'youtube' && ytPlayer) currentTime = ytPlayer.getCurrentTime();
-
-            const statePayload = {
-                type: 'VIDEO_ACTION',
-                action: 'seek',
-                time: currentTime
-            };
-            broadcast(statePayload);
-        }
-
-        function handleIncomingData(data, conn) {
-            switch (data.type) {
-                case 'JOIN':
-                    if (isHost) {
-                        if (roomPassword && data.password !== roomPassword) {
-                            conn.send({ type: 'AUTH_FAILED' });
-                            conn.close();
-                            return;
-                        }
-                        if (!participants.some(p => p.id === conn.peer)) {
-                            participants.push({ id: conn.peer, name: data.username, host: false });
-                        }
-                        broadcast({ type: 'PARTICIPANTS', list: participants });
-                        updateParticipantsUI();
-                    }
-                    break;
-                case 'AUTH_FAILED':
-                    alert('Incorrect password!');
-                    window.location.reload();
-                    break;
-                case 'PARTICIPANTS':
-                    participants = data.list;
-                    updateParticipantsUI();
-                    break;
-                case 'EMOJI':
-                    spawnFloatingEmoji(data.emoji);
-                    if (isHost) broadcast(data, conn);
-                    break;
-                case 'CHAT':
-                    appendChatMessage(data.username, data.message);
-                    if (document.getElementById('chat-modal').classList.contains('hidden')) {
-                        unreadMessagesCount++;
-                        updateChatBadgeUI();
-                    }
-                    if (isHost) broadcast(data, conn);
-                    break;
-                case 'MEDIA_CHANGE':
-                    loadMediaSource(data.url, false, data.user);
-                    if (isHost) broadcast(data, conn);
-                    break;
-                case 'VIDEO_ACTION':
-                    syncLock = true;
-                    executeVideoAction(data.action, data.time);
-                    setTimeout(() => { syncLock = false; }, 400);
-                    if (isHost) broadcast(data, conn);
-                    break;
-                case 'SPEED_CHANGE':
-                    setPlaybackSpeed(data.speed);
-                    if (isHost) broadcast(data, conn);
-                    break;
-                case 'REQUEST_SYNC':
-                    if (isHost) broadcastCurrentState();
-                    break;
-            }
-        }
-
-        function updateParticipantsUI() {
-            document.getElementById('peer-count').innerText = participants.length;
-            const container = document.getElementById('participants-list');
-            container.innerHTML = participants.map(p => `
-                <div class="flex items-center justify-between text-[11px] text-slate-300 bg-slate-950 px-2 py-1 rounded-lg border border-slate-800">
-                    <span class="truncate">🟢 ${escapeHtml(p.name)}</span>
-                    <span>${p.host ? '👑' : ''}</span>
-                </div>
-            `).join('');
-        }
-
-        // Synced Floating Emoji System
-        function sendEmoji(emoji) {
-            spawnFloatingEmoji(emoji);
-            const payload = { type: 'EMOJI', emoji: emoji };
-            if (isHost) {
-                broadcast(payload);
-            } else if (connections.length > 0) {
-                connections[0].send(payload);
-            }
-        }
-
-        function spawnFloatingEmoji(emoji) {
-            const overlay = document.getElementById('emoji-overlay');
-            if (!overlay) return;
-            const el = document.createElement('div');
-            el.className = 'floating-emoji';
-            el.innerText = emoji;
-            const randomX = Math.random() * 75 + 12; 
-            el.style.left = `${randomX}%`;
-            overlay.appendChild(el);
-            setTimeout(() => { el.remove(); }, 2800);
-        }
-
-        // Live Chat Logic
-        function handleChatKey(e) { if (e.key === 'Enter') sendChatMessage(); }
-        
-        function sendChatMessage() {
-            const input = document.getElementById('chat-input');
-            const msg = input.value.trim();
-            if (!msg) return;
-
-            appendChatMessage('You', msg);
-            const payload = { type: 'CHAT', username: myUsername, message: msg };
-
-            if (isHost) {
-                broadcast(payload);
-            } else if (connections.length > 0) {
-                connections[0].send(payload);
-            }
-            input.value = '';
-        }
-
-        function appendChatMessage(username, message) {
-            const chatBox = document.getElementById('chat-messages');
-            const isSelf = username === 'You' || username === myUsername;
-            const div = document.createElement('div');
-            div.className = `flex flex-col ${isSelf ? 'items-end' : 'items-start'}`;
-            div.innerHTML = `<span class="text-[9px] text-slate-500 mb-0.5">${escapeHtml(username)}</span><div class="px-3 py-1.5 rounded-xl max-w-[85%] break-words ${isSelf ? 'bg-indigo-600 text-white' : 'bg-slate-800 text-slate-200'}">${escapeHtml(message)}</div>`;
-            chatBox.appendChild(div);
-            chatBox.scrollTop = chatBox.scrollHeight;
-        }
-
-        function updateChatBadgeUI() {
-            const badge = document.getElementById('chat-badge');
-            if (unreadMessagesCount > 0) {
-                badge.innerText = unreadMessagesCount > 9 ? '9+' : unreadMessagesCount;
-                badge.classList.remove('hidden');
-            } else {
-                badge.classList.add('hidden');
-            }
-        }
-
-        function submitModalMedia() {
-            const url = document.getElementById('modal-media-url').value.trim();
-            if (!url) return;
-            closeMediaModal();
-            loadMediaSource(url, true, myUsername);
-        }
-
-        function loadMediaSource(url, sendToOthers, playedByUser = myUsername) {
-            document.getElementById('video-placeholder').classList.add('hidden');
-            const parsed = parseVideoPlatform(url);
-
-            if (parsed.type === 'youtube') {
-                currentMode = 'youtube';
-                videoElement.classList.add('hidden');
-                genericIframe.classList.add('hidden');
-                videoElement.pause();
-                document.getElementById('youtube-player').classList.remove('hidden');
-
-                if (!ytPlayer) {
-                    ytPlayer = new YT.Player('youtube-player', {
-                        height: '100%',
-                        width: '100%',
-                        videoId: parsed.id,
-                        playerVars: { 'autoplay': 1, 'controls': 1 },
-                        events: { 'onStateChange': onYTStateChange }
-                    });
-                } else {
-                    ytPlayer.loadVideoById(parsed.id);
-                }
-            } else if (parsed.type === 'vimeo' || parsed.type === 'facebook') {
-                currentMode = 'iframe';
-                videoElement.classList.add('hidden');
-                document.getElementById('youtube-player').classList.add('hidden');
-                if (ytPlayer && ytPlayer.stopVideo) ytPlayer.stopVideo();
-                
-                genericIframe.src = parsed.url;
-                genericIframe.classList.remove('hidden');
-            } else {
-                currentMode = 'html5';
-                document.getElementById('youtube-player').classList.add('hidden');
-                genericIframe.classList.add('hidden');
-                if (ytPlayer && ytPlayer.stopVideo) ytPlayer.stopVideo();
-                
-                videoElement.classList.remove('hidden');
-                videoElement.src = url;
-                videoElement.load();
-            }
-
-            addToHistory(parsed.name, url, playedByUser);
-
-            if (sendToOthers) {
-                const payload = { type: 'MEDIA_CHANGE', url: url, user: playedByUser };
-                if (isHost) broadcast(payload);
-                else if (connections.length > 0) connections[0].send(payload);
-            }
-        }
-
-        function addToHistory(name, url, user) {
-            if (!playedHistory.some(item => item.url === url)) {
-                playedHistory.unshift({ name, url, user });
-                if (playedHistory.length > 8) playedHistory.pop();
-            }
-        }
-
-        function renderHistoryModalUI() {
-            const list = document.getElementById('history-list');
-            if (playedHistory.length === 0) {
-                list.innerHTML = `<span class="text-slate-500 italic text-center py-4">No history records yet</span>`;
-                return;
-            }
-            list.innerHTML = playedHistory.map((item) => `
-                <button onclick="closeHistoryModal(); loadMediaSource('${escapeHtml(item.url)}', true, '${escapeHtml(item.user)}');" class="flex items-center justify-between bg-slate-950 hover:bg-slate-800 border border-slate-800 p-2.5 rounded-xl transition text-left">
-                    <div class="flex flex-col truncate pr-2">
-                        <span class="font-medium text-slate-200 truncate">${escapeHtml(item.name)}</span>
-                        <span class="text-[9px] text-slate-500">${escapeHtml(item.user)}</span>
-                    </div>
-                    <span class="text-[10px] text-indigo-400 font-semibold shrink-0">▶ Play</span>
-                </button>
-            `).join('');
-        }
-
-        // HTML5 Video Sync Listeners
-        videoElement.addEventListener('play', () => {
-            if (syncLock || currentMode !== 'html5') return;
-            sendVideoAction('play', videoElement.currentTime);
-        });
-        videoElement.addEventListener('pause', () => {
-            if (syncLock || currentMode !== 'html5') return;
-            sendVideoAction('pause', videoElement.currentTime);
-        });
-        videoElement.addEventListener('seeked', () => {
-            if (syncLock || currentMode !== 'html5') return;
-            sendVideoAction('seek', videoElement.currentTime);
-        });
-
-        function onYTStateChange(event) {
-            if (syncLock || currentMode !== 'youtube') return;
-            const time = ytPlayer.getCurrentTime();
-            if (event.data === YT.PlayerState.PLAYING) sendVideoAction('play', time);
-            else if (event.data === YT.PlayerState.PAUSED) sendVideoAction('pause', time);
-        }
-
-        function executeVideoAction(action, time) {
-            if (currentMode === 'html5') {
-                if (action === 'play') { videoElement.currentTime = time; videoElement.play().catch(() => {}); }
-                else if (action === 'pause') { videoElement.currentTime = time; videoElement.pause(); }
-                else if (action === 'seek') { videoElement.currentTime = time; }
-            } else if (currentMode === 'youtube' && ytPlayer && ytPlayer.seekTo) {
-                const diff = Math.abs(ytPlayer.getCurrentTime() - time);
-                if (diff > 1.5) ytPlayer.seekTo(time, true);
-                if (action === 'play') ytPlayer.playVideo();
-                else if (action === 'pause') ytPlayer.pauseVideo();
-            }
-        }
-
-        function sendVideoAction(action, time) {
-            const payload = { type: 'VIDEO_ACTION', action: action, time: time };
-            if (isHost) broadcast(payload);
-            else if (connections.length > 0) connections[0].send(payload);
-        }
-
-        function copyHeaderRoomLink() {
-            navigator.clipboard.writeText(window.location.href);
-            showToast('Link copied to clipboard!');
-        }
-
-        function showToast(text) {
-            const toast = document.getElementById('toast-banner');
-            toast.innerText = text;
-            toast.classList.remove('hidden');
-            setTimeout(() => { toast.classList.add('hidden'); }, 2500);
-        }
-
-        function escapeHtml(text) {
-            const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
-            return text.replace(/[&<>"']/g, m => map[m]);
-        }
-    </script>
+      `;
+
+      container.appendChild(messageEl);
+      scrollChatToBottom();
+
+      if (!isChatOpen) {
+        unreadChatCount++;
+        updateUnreadBadge();
+      }
+    }
+
+    function updateUnreadBadge() {
+      const badge = document.getElementById('chat-unread-badge');
+      if (unreadChatCount > 0) {
+        badge.innerText = unreadChatCount;
+        badge.classList.remove('hidden');
+        badge.classList.add('flex');
+      } else {
+        badge.classList.add('hidden');
+        badge.classList.remove('flex');
+      }
+    }
+
+    function scrollChatToBottom() {
+      const container = document.getElementById('chat-messages-container');
+      container.scrollTop = container.scrollHeight;
+    }
+
+    // Additional Controls
+    function resyncMedia() {
+      alert('Resyncing video playback with room host...');
+    }
+
+    function setPlaybackSpeed(speed) {
+      document.getElementById('speed-badge').innerText = `${speed}x`;
+      toggleModal('speed-modal');
+    }
+
+    function toggleMute() {
+      const btn = document.getElementById('mute-btn');
+      btn.innerText = btn.innerText === '🔊' ? '🔇' : '🔊';
+    }
+
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {});
+      } else {
+        document.exitFullscreen().catch(() => {});
+      }
+    }
+
+    // Helper: HTML Escaper
+    function escapeHtml(str) {
+      return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+    }
+  </script>
 </body>
 </html>
