@@ -56,7 +56,7 @@
   <style>
     /* Safe Area Insets for Mobile */
     .pb-safe { padding-bottom: max(0.75rem, env(safe-area-inset-bottom)); }
-    .pt-safe { padding-top: max(0.75rem, env(safe-area-inset-top)); }
+    .pt-safe { padding-top: max(0.75rem, env(safe-area-inset-bottom)); }
     
     /* Custom Scrollbars */
     ::-webkit-scrollbar { width: 5px; height: 5px; }
@@ -98,7 +98,7 @@
 
     <!-- Header Stats (Shown inside room) -->
     <div id="header-room-info" class="hidden items-center gap-2">
-      <!-- Active Viewers Pill (Clean numeric badge) -->
+      <!-- Active Viewers Pill (Numeric badge) -->
       <button onclick="toggleModal('viewers-modal')" class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700/60 text-xs font-semibold transition active:scale-95">
         <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
         <span id="viewer-count-text">1</span>
@@ -168,19 +168,17 @@
         </div>
       </div>
 
-      <!-- Action Bar (Ergonomic Sequence) -->
+      <!-- Action Bar (Streamlined Essentials) -->
       <div class="w-full flex items-center justify-between gap-1.5 pt-2 pb-1 px-1 bg-slate-900/70 rounded-2xl border border-slate-800/60 backdrop-blur-md mt-2">
-        <div class="flex items-center gap-1 sm:gap-2 overflow-x-auto no-scrollbar py-0.5">
-          <button onclick="toggleModal('video-modal')" title="Change Video" class="p-2 sm:px-3 sm:py-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-white text-sm transition active:scale-95">🎬</button>
-          <button onclick="toggleModal('history-modal')" title="Media History" class="p-2 sm:px-3 sm:py-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-white text-sm transition active:scale-95">📜</button>
-          <button onclick="resyncMedia()" title="Resync Playback" class="p-2 sm:px-3 sm:py-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-white text-sm transition active:scale-95">🔁</button>
-          <button onclick="toggleModal('speed-modal')" title="Playback Speed" class="p-2 sm:px-3 sm:py-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-white text-sm transition active:scale-95 flex items-center gap-1">
-            <span>⚡</span>
-            <span id="speed-badge" class="text-xs text-indigo-400 font-mono font-bold">1x</span>
+        <div class="flex items-center gap-1 sm:gap-2">
+          <button onclick="toggleModal('video-modal')" title="Change Video" class="p-2 sm:px-3 sm:py-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-white text-sm transition active:scale-95 flex items-center gap-1.5">
+            <span>🎬</span>
+            <span class="hidden sm:inline text-xs">Video</span>
           </button>
-          <button id="mute-btn" onclick="toggleMute()" title="Mute / Unmute" class="p-2 sm:px-3 sm:py-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-white text-sm transition active:scale-95">🔊</button>
-          <button onclick="toggleFullscreen()" title="Fullscreen" class="p-2 sm:px-3 sm:py-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-white text-sm transition active:scale-95">🖼️</button>
-          <button onclick="copyRoomLink()" title="Share Link" class="p-2 sm:px-3 sm:py-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-white text-sm transition active:scale-95">🔗</button>
+          <button onclick="toggleModal('history-modal')" title="Media History" class="p-2 sm:px-3 sm:py-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-white text-sm transition active:scale-95 flex items-center gap-1.5">
+            <span>📜</span>
+            <span class="hidden sm:inline text-xs">History</span>
+          </button>
         </div>
 
         <!-- Chat Toggle (Far Right) -->
@@ -210,7 +208,7 @@
   </footer>
 
   <!-- ========================================== -->
-  <!-- MODALS (VIEWERS, CHAT, HISTORY, SPEED)    -->
+  <!-- MODALS (VIEWERS, CHAT, HISTORY)           -->
   <!-- ========================================== -->
 
   <!-- VIEWERS MODAL -->
@@ -270,20 +268,6 @@
       <ul id="history-list-container" class="space-y-2 max-h-56 overflow-y-auto text-xs">
         <li class="text-slate-500 italic text-center py-4">No video history logged yet.</li>
       </ul>
-    </div>
-  </div>
-
-  <!-- SPEED MODAL -->
-  <div id="speed-modal" class="hidden fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-    <div class="w-full max-w-xs bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-2xl animate-pop-in text-center">
-      <h3 class="font-bold text-sm text-white mb-3">Playback Speed</h3>
-      <div class="grid grid-cols-3 gap-2">
-        <button onclick="setPlaybackSpeed(0.5)" class="py-2 bg-slate-800 hover:bg-indigo-600 rounded-xl text-xs font-mono">0.5x</button>
-        <button onclick="setPlaybackSpeed(1.0)" class="py-2 bg-slate-800 hover:bg-indigo-600 rounded-xl text-xs font-mono font-bold">1.0x</button>
-        <button onclick="setPlaybackSpeed(1.25)" class="py-2 bg-slate-800 hover:bg-indigo-600 rounded-xl text-xs font-mono">1.25x</button>
-        <button onclick="setPlaybackSpeed(1.5)" class="py-2 bg-slate-800 hover:bg-indigo-600 rounded-xl text-xs font-mono">1.5x</button>
-        <button onclick="setPlaybackSpeed(2.0)" class="py-2 bg-slate-800 hover:bg-indigo-600 rounded-xl text-xs font-mono">2.0x</button>
-      </div>
     </div>
   </div>
 
@@ -505,7 +489,7 @@
       container.innerHTML = mediaHistory.map(item => `
         <li class="p-2.5 rounded-xl bg-slate-800/60 border border-slate-700/50 flex flex-col gap-1">
           <span class="font-medium text-indigo-300 truncate">${escapeHtml(item.url)}</span>
-          <span class="text-[10px] text-slate-400">▶ ${escapeHtml(item.playedBy)}</span>
+          <span class="text-[10px] text-slate-400">${escapeHtml(item.playedBy)}</span>
         </li>
       `).join('');
     }
@@ -587,32 +571,6 @@
     function scrollChatToBottom() {
       const container = document.getElementById('chat-messages-container');
       container.scrollTop = container.scrollHeight;
-    }
-
-    function resyncMedia() {
-      showToast('Resynced video stream with host', '🔁');
-    }
-
-    function setPlaybackSpeed(speed) {
-      document.getElementById('speed-badge').innerText = `${speed}x`;
-      toggleModal('speed-modal');
-      showToast(`Playback speed set to ${speed}x`, '⚡');
-    }
-
-    function toggleMute() {
-      const btn = document.getElementById('mute-btn');
-      const isMuted = btn.innerText === '🔊';
-      btn.innerText = isMuted ? '🔇' : '🔊';
-      showToast(isMuted ? 'Audio muted' : 'Audio unmuted', isMuted ? '🔇' : '🔊');
-    }
-
-    function toggleFullscreen() {
-      const target = document.getElementById('video-frame-container');
-      if (!document.fullscreenElement) {
-        if (target.requestFullscreen) target.requestFullscreen();
-      } else {
-        if (document.exitFullscreen) document.exitFullscreen();
-      }
     }
 
     function escapeHtml(str) {
