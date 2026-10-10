@@ -55,7 +55,7 @@
 
   <style>
     .pb-safe { padding-bottom: max(1.25rem, env(safe-area-inset-bottom)); }
-    .pt-safe { padding-top: max(0.75rem, env(safe-area-inset-top)); }
+    .pt-safe { padding-top: max(0.75rem, env(safe-area-inset-bottom)); }
     
     ::-webkit-scrollbar { width: 4px; height: 4px; }
     ::-webkit-scrollbar-track { background: transparent; }
@@ -77,7 +77,7 @@
   <div id="toast-container" class="fixed top-14 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center gap-2 pointer-events-none w-full max-w-xs px-4"></div>
 
   <!-- HEADER BAR -->
-  <header class="w-full bg-slate-900/80 backdrop-blur-md border-b border-slate-800/80 z-30 pt-safe px-4 py-2 flex items-center justify-between shadow-lg shrink-0">
+  <header class="w-full bg-slate-900/80 backdrop-blur-md border-b border-slate-800/80 z-30 pt-safe px-4 py-2.5 flex items-center justify-between shadow-lg shrink-0">
     <div class="flex items-center gap-2.5">
       <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center text-xl shadow-md shadow-indigo-500/20">
         🍿
@@ -104,66 +104,99 @@
   </header>
 
   <!-- MAIN APP CONTAINER -->
-  <main class="flex-1 min-h-0 relative flex flex-col items-center w-full max-w-5xl mx-auto px-2 sm:px-4 py-2">
+  <main class="flex-1 min-h-0 relative flex flex-col items-center justify-center w-full max-w-4xl mx-auto px-4 py-3 overflow-y-auto">
 
-    <!-- LOBBY CARD -->
-    <div id="lobby-card" class="w-full max-w-md bg-slate-900/90 border border-slate-800 p-6 rounded-2xl shadow-2xl backdrop-blur-xl animate-pop-in my-auto">
-      <div class="text-center mb-6">
-        <div class="w-14 h-14 bg-indigo-600/20 border border-indigo-500/30 rounded-2xl flex items-center justify-center text-3xl mx-auto mb-3">
+    <!-- USER-FRIENDLY REDESIGNED LOBBY CARD -->
+    <div id="lobby-card" class="w-full max-w-lg bg-slate-900/95 border border-slate-800/80 p-6 sm:p-8 rounded-3xl shadow-2xl backdrop-blur-2xl animate-pop-in my-auto space-y-6">
+      
+      <!-- Brand & Welcome Header -->
+      <div class="text-center space-y-1.5">
+        <div class="inline-flex w-16 h-16 bg-gradient-to-tr from-indigo-600/20 to-violet-500/20 border border-indigo-500/30 rounded-2xl items-center justify-center text-3xl shadow-inner mb-1">
           🎬
         </div>
-        <h2 class="text-xl font-bold text-white tracking-tight">Create or Join Party</h2>
-        <p class="text-xs text-slate-400 mt-1">Watch Together, Anywhere.</p>
+        <h2 class="text-2xl font-black text-white tracking-tight">Watch Together, Anywhere</h2>
+        <p class="text-xs text-slate-400">Sync YouTube & videos instantly with friends in a minimalist private room.</p>
       </div>
 
+      <!-- Main Form Container -->
       <div class="space-y-4">
-        <div>
-          <label class="block text-xs font-medium text-slate-300 mb-1">Your Name</label>
-          <input type="text" id="display-name-input" placeholder="e.g. Alex" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500" />
+        
+        <!-- Step 1: Profile Name Input -->
+        <div class="space-y-1.5">
+          <label class="block text-xs font-semibold text-indigo-300/90 tracking-wide uppercase">1. Your Name</label>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400 text-sm">👤</span>
+            <input type="text" id="display-name-input" placeholder="e.g. Alex" class="w-full bg-slate-950/90 border border-slate-800 rounded-2xl pl-10 pr-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition shadow-inner" />
+          </div>
         </div>
 
-        <div class="space-y-2">
-          <details class="group text-xs bg-slate-950/60 border border-slate-800/80 rounded-xl p-3">
-            <summary class="cursor-pointer text-slate-300 font-medium list-none flex items-center justify-between select-none">
-              <span>⚡ Advanced Host Settings (Room Code & Password)</span>
-              <span class="group-open:rotate-180 transition-transform">▼</span>
-            </summary>
-            <div class="pt-3 space-y-3">
-              <div>
-                <div class="flex justify-between items-center mb-1">
-                  <label class="block text-[11px] text-slate-400">Custom Room Code</label>
-                  <button onclick="generateRandomHostCode()" class="text-[11px] font-semibold text-indigo-400 hover:text-indigo-300 transition">🎲 Random</button>
-                </div>
-                <input type="text" id="host-code-input" placeholder="e.g. PARTY99 (Leave blank for auto)" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white font-mono uppercase focus:outline-none focus:border-indigo-500" />
+        <!-- Room Action Tabs / Section Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
+          
+          <!-- CREATE / HOST CARD -->
+          <div class="bg-slate-950/50 border border-slate-800/80 rounded-2xl p-4 flex flex-col justify-between space-y-3 hover:border-indigo-500/40 transition group">
+            <div class="space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-indigo-400 uppercase tracking-wider">Host Party</span>
+                <span class="text-lg">👑</span>
               </div>
-              <div>
-                <label class="block text-[11px] text-slate-400 mb-1">Room Password (Optional)</label>
-                <input type="password" id="host-password-input" placeholder="Leave empty for public" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500" />
+              <p class="text-[11px] text-slate-400 leading-relaxed">Start a new synced session and invite friends.</p>
+
+              <!-- Collapsible Advanced Host Options -->
+              <details class="group/sub pt-1">
+                <summary class="cursor-pointer text-[11px] font-medium text-slate-300 hover:text-indigo-300 list-none flex items-center justify-between py-1 px-2 rounded-lg bg-slate-900/60 border border-slate-800 transition">
+                  <span>Advanced Settings</span>
+                  <span class="group-open/sub:rotate-180 transition-transform text-[9px]">▼</span>
+                </summary>
+                <div class="pt-2.5 space-y-2.5">
+                  <div>
+                    <div class="flex justify-between items-center mb-1">
+                      <label class="block text-[10px] text-slate-400">Custom Code</label>
+                      <button onclick="generateRandomHostCode()" class="text-[10px] font-semibold text-indigo-400 hover:text-indigo-300">🎲 Random</button>
+                    </div>
+                    <input type="text" id="host-code-input" placeholder="e.g. PARTY99" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white font-mono uppercase focus:outline-none focus:border-indigo-500" />
+                  </div>
+                  <div>
+                    <label class="block text-[10px] text-slate-400 mb-1">Password (Optional)</label>
+                    <input type="password" id="host-password-input" placeholder="Room password" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500" />
+                  </div>
+                </div>
+              </details>
+            </div>
+
+            <button onclick="startParty(true)" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-2.5 rounded-xl text-xs transition shadow-lg shadow-indigo-600/20 active:scale-95 flex items-center justify-center gap-1.5 mt-2">
+              <span>🚀</span> Host New Room
+            </button>
+          </div>
+
+          <!-- JOIN CARD -->
+          <div class="bg-slate-950/50 border border-slate-800/80 rounded-2xl p-4 flex flex-col justify-between space-y-3 hover:border-indigo-500/40 transition group">
+            <div class="space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-slate-300 uppercase tracking-wider">Join Party</span>
+                <span class="text-lg">🎟️</span>
+              </div>
+              <p class="text-[11px] text-slate-400 leading-relaxed">Enter an existing room code to join friends.</p>
+
+              <div class="space-y-2 pt-1">
+                <div>
+                  <label class="block text-[10px] text-slate-400 mb-1">Room Code *</label>
+                  <input type="text" id="join-code-input" placeholder="e.g. PARTY99" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white font-mono uppercase focus:outline-none focus:border-indigo-500" />
+                </div>
+                <div>
+                  <label class="block text-[10px] text-slate-400 mb-1">Password (If private)</label>
+                  <input type="password" id="join-password-input" placeholder="Password" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500" />
+                </div>
               </div>
             </div>
-          </details>
 
-          <button onclick="startParty(true)" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-2.5 rounded-xl text-sm transition shadow-lg shadow-indigo-600/20 active:scale-95">
-            Host Party
-          </button>
-        </div>
-
-        <hr class="border-slate-800/80 my-2" />
-
-        <div class="space-y-3">
-          <div>
-            <label class="block text-xs font-medium text-slate-300 mb-1">Room Code to Join</label>
-            <input type="text" id="join-code-input" placeholder="e.g. PARTY99" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white font-mono uppercase focus:outline-none focus:border-indigo-500" />
-          </div>
-          <div>
-            <label class="block text-xs font-medium text-slate-300 mb-1">Room Password (If required)</label>
-            <input type="password" id="join-password-input" placeholder="Enter password if private" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500" />
+            <button onclick="startParty(false)" class="w-full bg-slate-800 hover:bg-slate-700 text-white font-semibold py-2.5 rounded-xl text-xs transition border border-slate-700 active:scale-95 flex items-center justify-center gap-1.5 mt-2">
+              <span>✨</span> Join Room
+            </button>
           </div>
 
-          <button onclick="startParty(false)" class="w-full bg-slate-800 hover:bg-slate-700 text-white font-semibold py-2.5 rounded-xl text-sm transition border border-slate-700 active:scale-95">
-            Join Party
-          </button>
         </div>
+
       </div>
     </div>
 
@@ -239,7 +272,6 @@
 
       <div id="chat-messages-container" class="flex-1 overflow-y-auto p-4 flex flex-col-reverse gap-2 min-h-0"></div>
 
-      <!-- Enhanced Comfortable Touch Send Input Bar with Extra Bottom Padding -->
       <div class="p-4 pb-safe border-t border-slate-800 bg-slate-900/95 shrink-0">
         <form onsubmit="handleSendChatMessage(event)" class="flex gap-2.5 items-center">
           <input type="text" id="chat-input-field" placeholder="Aa" class="flex-1 bg-slate-950 border border-slate-800 rounded-full px-4 py-3 text-sm text-white focus:outline-none focus:border-indigo-500 shadow-inner" />
