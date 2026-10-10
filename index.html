@@ -55,7 +55,7 @@
 
   <style>
     .pb-safe { padding-bottom: max(1.25rem, env(safe-area-inset-bottom)); }
-    .pt-safe { padding-top: max(0.75rem, env(safe-area-inset-top)); }
+    .pt-safe { padding-top: max(0.75rem, env(safe-area-inset-bottom)); }
     
     ::-webkit-scrollbar { width: 4px; height: 4px; }
     ::-webkit-scrollbar-track { background: transparent; }
@@ -106,64 +106,69 @@
   <!-- MAIN APP CONTAINER -->
   <main class="flex-1 min-h-0 relative flex flex-col items-center justify-center w-full max-w-4xl mx-auto px-4 py-3 overflow-y-auto">
 
-    <!-- SIMPLIFIED ULTRA-CLEAN LOBBY CARD -->
-    <div id="lobby-card" class="w-full max-w-md bg-slate-900/90 border border-slate-800/80 p-6 sm:p-7 rounded-3xl shadow-2xl backdrop-blur-2xl animate-pop-in my-auto space-y-5">
+    <!-- SIMPLIFIED HOMEPAGE LOBBY CARD -->
+    <div id="lobby-card" class="w-full max-w-md bg-slate-900/95 border border-slate-800/80 p-6 sm:p-8 rounded-3xl shadow-2xl backdrop-blur-2xl animate-pop-in my-auto space-y-6">
       
-      <!-- Brand Title -->
-      <div class="text-center space-y-1">
-        <div class="inline-flex w-14 h-14 bg-indigo-600/20 border border-indigo-500/30 rounded-2xl items-center justify-center text-3xl shadow-inner mb-1">
-          🍿
+      <!-- Brand & Welcome Header -->
+      <div class="text-center space-y-1.5">
+        <div class="inline-flex w-16 h-16 bg-gradient-to-tr from-indigo-600/20 to-violet-500/20 border border-indigo-500/30 rounded-2xl items-center justify-center text-3xl shadow-inner mb-1">
+          🎬
         </div>
-        <h2 class="text-xl font-extrabold text-white tracking-tight">Watch Together</h2>
-        <p class="text-xs text-slate-400">Sync videos seamlessly with your friends.</p>
+        <h2 class="text-2xl font-black text-white tracking-tight">Watch Together, Anywhere</h2>
+        <p class="text-xs text-slate-400">Sync YouTube & videos instantly with friends.</p>
       </div>
 
-      <!-- Main Input Flow -->
-      <div class="space-y-3.5">
+      <!-- Main Form Container -->
+      <div class="space-y-4">
         
-        <!-- Name Input -->
-        <div>
-          <label class="block text-xs font-semibold text-slate-300 mb-1">Your Name</label>
-          <input type="text" id="display-name-input" placeholder="e.g. Alex" class="w-full bg-slate-950/90 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition" />
+        <!-- Step 1: Profile Name Input -->
+        <div class="space-y-1">
+          <label class="block text-xs font-semibold text-slate-300">Your Name</label>
+          <input type="text" id="display-name-input" placeholder="e.g. Alex" class="w-full bg-slate-950/90 border border-slate-800 rounded-2xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition shadow-inner" />
         </div>
 
-        <!-- Optional Advanced Room & Password Settings Dropdown -->
-        <details class="group/adv text-xs bg-slate-950/40 border border-slate-800/80 rounded-xl p-3">
-          <summary class="cursor-pointer text-slate-400 hover:text-slate-200 font-medium list-none flex items-center justify-between select-none">
-            <span class="flex items-center gap-1.5">⚙️ Advanced Host Options</span>
-            <span class="group-open/adv:rotate-180 transition-transform text-[10px]">▼</span>
+        <!-- Optional Advanced Host Settings Dropdown -->
+        <details class="group text-xs bg-slate-950/60 border border-slate-800/80 rounded-2xl p-3.5">
+          <summary class="cursor-pointer text-slate-300 font-medium list-none flex items-center justify-between select-none">
+            <span>⚡ Advanced Host Settings (Optional)</span>
+            <span class="group-open:rotate-180 transition-transform text-[10px]">▼</span>
           </summary>
-          <div class="pt-3 space-y-2.5">
+          <div class="pt-3 space-y-3">
             <div>
               <div class="flex justify-between items-center mb-1">
                 <label class="block text-[11px] text-slate-400">Custom Room Code</label>
                 <button onclick="generateRandomHostCode()" class="text-[11px] font-semibold text-indigo-400 hover:text-indigo-300">🎲 Random</button>
               </div>
-              <input type="text" id="host-code-input" placeholder="e.g. PARTY99 (Auto if blank)" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white font-mono uppercase focus:outline-none focus:border-indigo-500" />
+              <input type="text" id="host-code-input" placeholder="e.g. PARTY99" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white font-mono uppercase focus:outline-none focus:border-indigo-500" />
             </div>
             <div>
-              <label class="block text-[11px] text-slate-400 mb-1">Set Password (Optional)</label>
-              <input type="password" id="host-password-input" placeholder="Leave empty for public" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500" />
+              <label class="block text-[11px] text-slate-400 mb-1">Room Password (Optional)</label>
+              <input type="password" id="host-password-input" placeholder="Password for private room" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-indigo-500" />
             </div>
           </div>
         </details>
 
         <!-- Host Action Button -->
-        <button onclick="startParty(true)" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-2.5 rounded-xl text-sm transition shadow-lg shadow-indigo-600/25 active:scale-95 flex items-center justify-center gap-2">
-          <span>👑</span> Create Room
+        <button onclick="startParty(true)" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-3 rounded-2xl text-sm transition shadow-lg shadow-indigo-600/20 active:scale-95">
+          🚀 Host Party
         </button>
 
-        <div class="relative flex py-1 items-center">
+        <!-- Divider -->
+        <div class="relative flex py-2 items-center">
           <div class="flex-grow border-t border-slate-800"></div>
-          <span class="flex-shrink mx-3 text-[11px] text-slate-500 font-medium uppercase tracking-wider">or join room</span>
+          <span class="flex-shrink mx-3 text-[11px] text-slate-500 uppercase tracking-widest font-semibold">or join room</span>
           <div class="flex-grow border-t border-slate-800"></div>
         </div>
 
-        <!-- Join Room Input & Submit Button -->
-        <div class="flex gap-2">
-          <input type="text" id="join-code-input" placeholder="Enter Room Code" class="flex-1 bg-slate-950/90 border border-slate-800 rounded-xl px-3.5 py-2 text-sm text-white font-mono uppercase focus:outline-none focus:border-indigo-500" />
-          <button onclick="startParty(false)" class="bg-slate-800 hover:bg-slate-700 text-white font-semibold px-4 py-2 rounded-xl text-sm transition border border-slate-700 active:scale-95 shrink-0">
-            Join
+        <!-- Join Room Section -->
+        <div class="space-y-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Room Code</label>
+            <input type="text" id="join-code-input" placeholder="e.g. PARTY99" class="w-full bg-slate-950/90 border border-slate-800 rounded-2xl px-4 py-3 text-sm text-white font-mono uppercase focus:outline-none focus:border-indigo-500 transition shadow-inner" />
+          </div>
+
+          <button onclick="submitJoinParty()" class="w-full bg-slate-800 hover:bg-slate-700 text-white font-semibold py-3 rounded-2xl text-sm transition border border-slate-700 active:scale-95">
+            ✨ Join Room
           </button>
         </div>
 
@@ -218,25 +223,26 @@
     </div>
   </footer>
 
-  <!-- MODALS -->
-  <!-- Dynamic Room Password Prompt Modal -->
-  <div id="password-modal" onclick="handleOutsideClick(event, 'password-modal')" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
-    <div class="w-full max-w-xs bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-2xl animate-pop-in space-y-4">
+  <!-- PASSWORD PROMPT MODAL -->
+  <div id="password-prompt-modal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+    <div class="w-full max-w-sm bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl animate-pop-in space-y-4">
       <div class="text-center space-y-1">
-        <div class="w-10 h-10 bg-indigo-600/20 text-indigo-400 rounded-xl flex items-center justify-center mx-auto text-xl">🔒</div>
-        <h3 class="font-bold text-sm text-white">Private Room</h3>
-        <p class="text-[11px] text-slate-400">Please enter the password to enter.</p>
+        <div class="text-3xl mb-1">🔒</div>
+        <h3 class="font-bold text-base text-white">Password Required</h3>
+        <p class="text-xs text-slate-400">This room is protected by a password.</p>
       </div>
       <div>
-        <input type="password" id="modal-password-input" placeholder="Enter room password" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-indigo-500" />
+        <label class="block text-xs font-semibold text-slate-300 mb-1">Enter Room Password</label>
+        <input type="password" id="modal-password-input" placeholder="Password" class="w-full bg-slate-950 border border-slate-800 rounded-2xl px-4 py-3 text-sm text-white focus:outline-none focus:border-indigo-500" />
       </div>
-      <div class="flex gap-2">
-        <button onclick="toggleModal('password-modal')" class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium py-2 rounded-xl text-xs transition">Cancel</button>
-        <button onclick="submitRoomPassword()" class="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-2 rounded-xl text-xs transition">Join</button>
+      <div class="grid grid-cols-2 gap-2 pt-1">
+        <button onclick="closePasswordPrompt()" class="w-full bg-slate-800 hover:bg-slate-700 text-white font-semibold py-2.5 rounded-xl text-xs transition">Cancel</button>
+        <button onclick="confirmPasswordAndJoin()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-2.5 rounded-xl text-xs transition shadow-lg shadow-indigo-600/20">Join</button>
       </div>
     </div>
   </div>
 
+  <!-- MODALS -->
   <div id="viewers-modal" onclick="handleOutsideClick(event, 'viewers-modal')" class="hidden fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
     <div class="w-full max-w-xs bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-2xl animate-pop-in">
       <div class="flex justify-between items-center border-b border-slate-800 pb-2 mb-3">
@@ -247,7 +253,6 @@
     </div>
   </div>
 
-  <!-- RESIZABLE & SCREEN-BOUND CHAT SHEET -->
   <div id="chat-modal" onclick="handleOutsideClick(event, 'chat-modal')" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex justify-end">
     <div class="w-full sm:max-w-md bg-slate-900 border-l border-slate-800 h-full max-h-screen flex flex-col justify-between shadow-2xl animate-slide-up relative overflow-hidden">
       <div class="p-3 border-b border-slate-800/80 flex justify-between items-center bg-slate-900/90 shrink-0">
@@ -339,6 +344,17 @@
       const sampleNames = ['Alex', 'Cinephile', 'Sam', 'Nova', 'Pixel'];
       document.getElementById('display-name-input').placeholder = `e.g. ${sampleNames[Math.floor(Math.random() * sampleNames.length)]}`;
       generateRandomHostCode();
+
+      // Check URL search params for invite link (?room=XYZ&pass=XYZ)
+      const urlParams = new URLSearchParams(window.location.search);
+      const inviteRoom = urlParams.get('room');
+      const invitePass = urlParams.get('pass');
+      if (inviteRoom) {
+        document.getElementById('join-code-input').value = inviteRoom.toUpperCase();
+        if (invitePass) {
+          roomPassword = invitePass;
+        }
+      }
     });
 
     function toggleModal(modalId) {
@@ -359,12 +375,47 @@
     }
 
     function copyRoomLink() {
-      const url = `${window.location.origin}${window.location.pathname}?room=${roomCode}`;
+      let url = `${window.location.origin}${window.location.pathname}?room=${roomCode}`;
+      if (roomPassword) {
+        url += `&pass=${encodeURIComponent(roomPassword)}`;
+      }
       navigator.clipboard.writeText(url).then(() => {
         showToast('Invite link copied to clipboard!', '📋');
       }).catch(() => {
         showToast('Failed to copy link', '⚠️');
       });
+    }
+
+    function submitJoinParty() {
+      const joinCode = document.getElementById('join-code-input').value.trim().toUpperCase();
+      if (!joinCode) {
+        showToast('Please enter a room code to join!', '⚠️');
+        return;
+      }
+      roomCode = joinCode;
+
+      // If we don't have a password yet from invite link, try connecting first. If host requests auth, we pop up the modal.
+      startParty(false);
+    }
+
+    function closePasswordPrompt() {
+      document.getElementById('password-prompt-modal').classList.add('hidden');
+      if (peer) {
+        peer.destroy();
+        peer = null;
+      }
+    }
+
+    function confirmPasswordAndJoin() {
+      const passInput = document.getElementById('modal-password-input').value.trim();
+      roomPassword = passInput;
+      document.getElementById('password-prompt-modal').classList.add('hidden');
+      
+      // Re-trigger connection with password
+      if (peer) {
+        peer.destroy();
+      }
+      connectToHostRoom();
     }
 
     function startParty(asHost) {
@@ -376,7 +427,6 @@
         roomCode = customCode || `PARTY${Math.floor(10 + Math.random() * 90)}`;
         roomPassword = document.getElementById('host-password-input').value.trim();
         isHost = true;
-        initPeerSession();
       } else {
         const joinCode = document.getElementById('join-code-input').value.trim().toUpperCase();
         if (!joinCode) {
@@ -385,11 +435,8 @@
         }
         roomCode = joinCode;
         isHost = false;
-        initPeerSession();
       }
-    }
 
-    function initPeerSession() {
       const peerId = isHost ? `watchparty-${roomCode}` : `watchparty-${roomCode}-${Math.random().toString(36).substring(2, 7)}`;
       peer = new Peer(peerId);
 
@@ -401,8 +448,7 @@
           updateViewersUI();
           showToast(`Hosting room: ${roomCode}`, '👑');
         } else {
-          hostConn = peer.connect(`watchparty-${roomCode}`);
-          setupConnectionHandlers(hostConn);
+          connectToHostRoom();
         }
       });
 
@@ -418,11 +464,17 @@
       });
     }
 
+    function connectToHostRoom() {
+      hostConn = peer.connect(`watchparty-${roomCode}`);
+      setupConnectionHandlers(hostConn);
+    }
+
     function setupPeerConnectionHandlers(conn) {
       conn.on('data', (data) => {
         if (isHost && data.type === 'AUTH_REQUEST') {
           if (roomPassword && data.payload.password !== roomPassword) {
-            conn.send({ type: 'AUTH_RESPONSE', payload: { success: false, requirePassword: true, message: 'Incorrect or missing room password!' } });
+            conn.send({ type: 'AUTH_RESPONSE', payload: { success: false, message: 'Incorrect room password!' } });
+            setTimeout(() => conn.close(), 500);
             return;
           }
           conn.send({ type: 'AUTH_RESPONSE', payload: { success: true } });
@@ -447,17 +499,15 @@
       conn.on('data', (data) => {
         if (data.type === 'AUTH_RESPONSE') {
           if (!data.payload.success) {
-            if (data.payload.requirePassword) {
-              toggleModal('password-modal');
-            } else {
-              showToast(data.payload.message, '⚠️');
+            if (!roomPassword || roomPassword !== document.getElementById('modal-password-input')?.value) {
+              // Prompt user for password if missing or incorrect
+              toggleModal('password-prompt-modal');
+              return;
             }
+            showToast(data.payload.message, '⚠️');
+            peer.destroy();
             return;
           }
-          // Successful auth
-          const pwdModal = document.getElementById('password-modal');
-          if (!pwdModal.classList.contains('hidden')) toggleModal('password-modal');
-
           setupUIForRoom();
           showToast(`Joined room: ${roomCode}`, '🍿');
           conn.send({ type: 'HANDSHAKE', payload: { name: currentUser.name, id: currentUser.id } });
@@ -469,14 +519,6 @@
       conn.on('close', () => {
         showToast('Disconnected from party.', '⚠️');
       });
-    }
-
-    function submitRoomPassword() {
-      const input = document.getElementById('modal-password-input');
-      roomPassword = input.value.trim();
-      if (hostConn && hostConn.open) {
-        hostConn.send({ type: 'AUTH_REQUEST', payload: { password: roomPassword } });
-      }
     }
 
     function handleIncomingPeerData(data, conn) {
