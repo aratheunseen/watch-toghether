@@ -123,16 +123,25 @@
           <input type="text" id="display-name-input" placeholder="e.g. Alex" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500" />
         </div>
 
-        <!-- Host Section with Advanced Options Dropdown -->
+        <!-- Host Section with Advanced Options Dropdown (Room Code & Password) -->
         <div class="space-y-2">
           <details class="group text-xs bg-slate-950/60 border border-slate-800/80 rounded-xl p-3">
             <summary class="cursor-pointer text-slate-300 font-medium list-none flex items-center justify-between select-none">
-              <span>⚡ Host Settings (Optional Password)</span>
+              <span>⚡ Advanced Host Settings (Room Code & Password)</span>
               <span class="group-open:rotate-180 transition-transform">▼</span>
             </summary>
-            <div class="pt-3">
-              <label class="block text-[11px] text-slate-400 mb-1">Room Password (Optional)</label>
-              <input type="password" id="host-password-input" placeholder="Leave empty for public" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500" />
+            <div class="pt-3 space-y-3">
+              <div>
+                <div class="flex justify-between items-center mb-1">
+                  <label class="block text-[11px] text-slate-400">Custom Room Code</label>
+                  <button onclick="generateRandomHostCode()" class="text-[11px] font-semibold text-indigo-400 hover:text-indigo-300 transition">🎲 Random</button>
+                </div>
+                <input type="text" id="host-code-input" placeholder="e.g. PARTY99 (Leave empty for auto)" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white font-mono uppercase focus:outline-none focus:border-indigo-500" />
+              </div>
+              <div>
+                <label class="block text-[11px] text-slate-400 mb-1">Room Password (Optional)</label>
+                <input type="password" id="host-password-input" placeholder="Leave empty for public" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500" />
+              </div>
             </div>
           </details>
 
@@ -146,10 +155,7 @@
         <!-- Join Section with Dedicated Code Input -->
         <div class="space-y-2">
           <div>
-            <div class="flex justify-between items-center mb-1">
-              <label class="block text-xs font-medium text-slate-300">Room Code to Join</label>
-              <button onclick="generateRandomRoomCode()" class="text-[11px] font-semibold text-indigo-400 hover:text-indigo-300 transition">🎲 Random</button>
-            </div>
+            <label class="block text-xs font-medium text-slate-300 mb-1">Room Code to Join</label>
             <input type="text" id="join-code-input" placeholder="e.g. PARTY99" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white font-mono uppercase focus:outline-none focus:border-indigo-500" />
           </div>
 
@@ -219,7 +225,7 @@
     </div>
   </div>
 
-  <!-- COMPACT MODAL CHAT PAGE (Shrunk with absolute layout to preserve header frame) -->
+  <!-- COMPACT MODAL CHAT PAGE -->
   <div id="chat-modal" onclick="handleOutsideClick(event, 'chat-modal')" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex justify-end">
     <div class="w-full sm:max-w-md bg-slate-900 border-l border-slate-800 h-full flex flex-col justify-between shadow-2xl animate-slide-up relative overflow-hidden">
       <div class="p-3 border-b border-slate-800/80 flex justify-between items-center bg-slate-900/90 shrink-0">
@@ -232,7 +238,6 @@
 
       <div id="chat-messages-container" class="flex-1 overflow-y-auto p-4 flex flex-col-reverse gap-2"></div>
 
-      <!-- Enhanced Comfortable Touch Send Input Bar -->
       <div class="p-3 border-t border-slate-800 bg-slate-900/95 pb-safe shrink-0">
         <form onsubmit="handleSendChatMessage(event)" class="flex gap-2.5 items-center">
           <input type="text" id="chat-input-field" placeholder="Aa" class="flex-1 bg-slate-950 border border-slate-800 rounded-full px-4 py-3 text-sm text-white focus:outline-none focus:border-indigo-500 shadow-inner" />
@@ -281,6 +286,7 @@
     let mediaHistory = [];
     let unreadChatCount = 0;
     let isChatOpen = false;
+    let syncInterval = null;
 
     function showToast(message, icon = 'ℹ️') {
       const container = document.getElementById('toast-container');
@@ -297,17 +303,17 @@
       }
     }
 
-    function generateRandomRoomCode() {
+    function generateRandomHostCode() {
       const prefixes = ['PARTY', 'MOVIE', 'SYNC', 'FLIX', 'CINE'];
       const prefix = prefixes[Math.floor(Math.random() * prefixes.length)];
       const number = Math.floor(10 + Math.random() * 90);
-      document.getElementById('join-code-input').value = `${prefix}${number}`;
+      document.getElementById('host-code-input').value = `${prefix}${number}`;
     }
 
     window.addEventListener('DOMContentLoaded', () => {
       const sampleNames = ['Alex', 'Cinephile', 'Sam', 'Nova', 'Pixel'];
       document.getElementById('display-name-input').placeholder = `e.g. ${sampleNames[Math.floor(Math.random() * sampleNames.length)]}`;
-      generateRandomRoomCode();
+      generateRandomHostCode();
     });
 
     function toggleModal(modalId) {
@@ -338,11 +344,21 @@
 
     function startParty(asHost) {
       const nameInput = document.getElementById('display-name-input').value.trim();
-      const codeInput = document.getElementById('join-code-input').value.trim().toUpperCase();
-
       currentUser.name = nameInput || `Viewer_${Math.floor(100 + Math.random() * 900)}`;
-      roomCode = asHost ? `PARTY${Math.floor(10 + Math.random() * 90)}` : (codeInput || 'PARTY88');
-      isHost = asHost;
+
+      if (asHost) {
+        const customCode = document.getElementById('host-code-input').value.trim().toUpperCase();
+        roomCode = customCode || `PARTY${Math.floor(10 + Math.random() * 90)}`;
+        isHost = true;
+      } else {
+        const joinCode = document.getElementById('join-code-input').value.trim().toUpperCase();
+        if (!joinCode) {
+          showToast('Please enter a room code to join!', '⚠️');
+          return;
+        }
+        roomCode = joinCode;
+        isHost = false;
+      }
 
       const peerId = isHost ? `watchparty-${roomCode}` : `watchparty-${roomCode}-${Math.random().toString(36).substring(2, 7)}`;
       peer = new Peer(peerId);
@@ -478,6 +494,8 @@
       const container = document.getElementById('player-container');
       const ytMatch = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
 
+      if (syncInterval) clearInterval(syncInterval);
+
       if (ytMatch && ytMatch[1]) {
         container.innerHTML = `<iframe id="active-video-element" class="w-full h-full" src="https://www.youtube.com/embed/${ytMatch[1]}?enablejsapi=1&autoplay=1" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
       } else {
@@ -500,17 +518,26 @@
           broadcast({ type: 'SYNC_STATE', payload });
         });
       });
+
+      if (isHost) {
+        syncInterval = setInterval(() => {
+          if (!video.paused) {
+            broadcast({ type: 'SYNC_STATE', payload: { event: 'progress', currentTime: video.currentTime } });
+          }
+        }, 3000);
+      }
     }
 
     function applyVideoSync(data) {
+      if (isHost) return; // Host dictates playback
       const video = document.getElementById('active-video-element');
       if (!video || video.tagName !== 'VIDEO') return;
 
-      if (Math.abs(video.currentTime - data.currentTime) > 0.5) {
+      if (Math.abs(video.currentTime - data.currentTime) > 0.8) {
         video.currentTime = data.currentTime;
       }
 
-      if (data.event === 'play' && video.paused) video.play();
+      if (data.event === 'play' && video.paused) video.play().catch(() => {});
       if (data.event === 'pause' && !video.paused) video.pause();
     }
 
