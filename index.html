@@ -345,7 +345,6 @@
       document.getElementById('display-name-input').placeholder = `e.g. ${sampleNames[Math.floor(Math.random() * sampleNames.length)]}`;
       generateRandomHostCode();
 
-      // Check URL search params for invite link (?room=XYZ&pass=XYZ)
       const urlParams = new URLSearchParams(window.location.search);
       const inviteRoom = urlParams.get('room');
       const invitePass = urlParams.get('pass');
@@ -387,15 +386,30 @@
     }
 
     function submitJoinParty() {
+      const nameInput = document.getElementById('display-name-input').value.trim();
+      currentUser.name = nameInput || `Viewer_${Math.floor(100 + Math.random() * 900)}`;
+
       const joinCode = document.getElementById('join-code-input').value.trim().toUpperCase();
       if (!joinCode) {
         showToast('Please enter a room code to join!', '⚠️');
         return;
       }
       roomCode = joinCode;
+      isHost = false;
 
-      // If we don't have a password yet from invite link, try connecting first. If host requests auth, we pop up the modal.
-      startParty(false);
+      const peerId = `watchparty-${roomCode}-${Math.random().toString(36).substring(2, 7)}`;
+      peer = new Peer(peerId);
+
+      peer.on('open', (id) => {
+        currentUser.id = id;
+        connectToHostRoom();
+      });
+
+      peer.on('error', (err) => {
+        if (err.type === 'peer-not-found') {
+          showToast('Room not found! Check your code.', '⚠️');
+        }
+      });
     }
 
     function closePasswordPrompt() {
@@ -411,11 +425,17 @@
       roomPassword = passInput;
       document.getElementById('password-prompt-modal').classList.add('hidden');
       
-      // Re-trigger connection with password
       if (peer) {
         peer.destroy();
+        peer = null;
       }
-      connectToHostRoom();
+      
+      const peerId = `watchparty-${roomCode}-${Math.random().toString(36).substring(2, 7)}`;
+      peer = new Peer(peerId);
+      peer.on('open', (id) => {
+        currentUser.id = id;
+        connectToHostRoom();
+      });
     }
 
     function startParty(asHost) {
@@ -427,14 +447,6 @@
         roomCode = customCode || `PARTY${Math.floor(10 + Math.random() * 90)}`;
         roomPassword = document.getElementById('host-password-input').value.trim();
         isHost = true;
-      } else {
-        const joinCode = document.getElementById('join-code-input').value.trim().toUpperCase();
-        if (!joinCode) {
-          showToast('Please enter a room code to join!', '⚠️');
-          return;
-        }
-        roomCode = joinCode;
-        isHost = false;
       }
 
       const peerId = isHost ? `watchparty-${roomCode}` : `watchparty-${roomCode}-${Math.random().toString(36).substring(2, 7)}`;
@@ -500,7 +512,6 @@
         if (data.type === 'AUTH_RESPONSE') {
           if (!data.payload.success) {
             if (!roomPassword || roomPassword !== document.getElementById('modal-password-input')?.value) {
-              // Prompt user for password if missing or incorrect
               toggleModal('password-prompt-modal');
               return;
             }
