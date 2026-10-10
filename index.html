@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SyncParty - Distraction-Free Watch Together</title>
+    <title>watchParty - Distraction-Free Watch Together</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
     <script src="https://www.youtube.com/iframe_api"></script>
@@ -30,11 +30,29 @@
 
     <!-- Header -->
     <header class="bg-slate-900/80 backdrop-blur border-b border-slate-800/80 px-4 py-3 flex items-center justify-between z-30">
-        <div class="flex items-center space-x-2">
-            <span class="text-2xl">🍿</span>
-            <h1 class="font-bold text-lg text-indigo-400 tracking-tight">SyncParty</h1>
+        <div class="flex flex-col">
+            <div class="flex items-center space-x-2">
+                <span class="text-2xl">🍿</span>
+                <h1 class="font-bold text-lg text-indigo-400 tracking-tight">watchParty</h1>
+            </div>
+            <span class="text-[10px] text-slate-400 ml-8 -mt-1 font-medium">by Ashiqur Rahman Alif</span>
         </div>
         <div class="flex items-center gap-2">
+            <!-- Connected Users Pill with Popup Toggle -->
+            <div id="users-pill" class="hidden relative">
+                <button onclick="toggleUserPopup()" class="flex items-center gap-1.5 text-xs bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-200 px-3 py-1.5 rounded-full transition shadow-sm">
+                    <span>🟢</span>
+                    <span class="font-semibold" id="peer-count">1</span> Users
+                </button>
+                <!-- Popup Users List -->
+                <div id="users-popup" class="hidden absolute right-0 mt-2 w-48 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl p-3 z-50">
+                    <div class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-2 border-b border-slate-800 pb-1">In Room</div>
+                    <div id="participants-list" class="flex flex-col gap-1.5 max-h-40 overflow-y-auto">
+                        <!-- Dynamic items -->
+                    </div>
+                </div>
+            </div>
+
             <span id="connection-status" class="text-[10px] bg-amber-950 text-amber-300 border border-amber-800 px-2.5 py-1 rounded-full">Connecting...</span>
             <div id="room-badge" class="hidden text-xs bg-indigo-950 text-indigo-300 border border-indigo-800 px-2.5 py-1 rounded-full">
                 Room: <span id="current-room-id" class="font-mono font-semibold"></span>
@@ -126,6 +144,7 @@
         let isHost = false;
         let myId = '';
         let myUsername = 'Viewer_' + Math.floor(Math.random() * 1000);
+        let participants = [];
         
         const videoElement = document.getElementById('shared-video');
         let ytPlayer = null;
@@ -137,7 +156,21 @@
             if (savedName) document.getElementById('username-input').value = savedName;
             const hash = window.location.hash.substring(1);
             if (hash) document.getElementById('join-room-id').value = hash;
+
+            // Close popup when clicking outside
+            window.addEventListener('click', (e) => {
+                const pill = document.getElementById('users-pill');
+                const popup = document.getElementById('users-popup');
+                if (pill && !pill.contains(e.target)) {
+                    popup.classList.add('hidden');
+                }
+            });
         });
+
+        function toggleUserPopup() {
+            const popup = document.getElementById('users-popup');
+            popup.classList.toggle('hidden');
+        }
 
         function onYouTubeIframeAPIReady() {}
 
@@ -194,6 +227,7 @@
                 const roomId = Math.random().toString(36).substring(2, 8).toUpperCase();
                 await initPeer(roomId);
                 isHost = true;
+                participants = [{ id: myId, name: myUsername, host: true }];
                 enterRoomUI(roomId);
             } catch (e) { console.error(e); }
         }
@@ -204,6 +238,7 @@
             try {
                 await initPeer();
                 isHost = false;
+                participants = [{ id: myId, name: myUsername, host: false }];
                 const conn = peer.connect(roomId, { metadata: { username: myUsername } });
                 setupConnection(conn);
                 enterRoomUI(roomId);
@@ -214,20 +249,33 @@
             document.getElementById('lobby-card').classList.add('hidden');
             document.getElementById('room-view').classList.remove('hidden');
             document.getElementById('room-badge').classList.remove('hidden');
+            document.getElementById('users-pill').classList.remove('hidden');
             document.getElementById('current-room-id').innerText = roomId;
             
             const shareUrl = window.location.origin + window.location.pathname + '#' + roomId;
             document.getElementById('share-link').innerText = shareUrl;
             window.location.hash = roomId;
+            updateParticipantsUI();
         }
 
         function setupConnection(conn) {
             connections.push(conn);
+
+            conn.on('open', () => {
+                if (!isHost) {
+                    conn.send({ type: 'JOIN', username: myUsername });
+                }
+            });
+
             conn.on('data', (data) => {
                 handleIncomingData(data, conn);
             });
+
             conn.on('close', () => {
                 connections = connections.filter(c => c !== conn);
+                participants = participants.filter(p => p.id !== conn.peer);
+                updateParticipantsUI();
+                if (isHost) broadcast({ type: 'PARTICIPANTS', list: participants });
             });
         }
 
@@ -239,6 +287,19 @@
 
         function handleIncomingData(data, conn) {
             switch (data.type) {
+                case 'JOIN':
+                    if (isHost) {
+                        if (!participants.some(p => p.id === conn.peer)) {
+                            participants.push({ id: conn.peer, name: data.username, host: false });
+                        }
+                        broadcast({ type: 'PARTICIPANTS', list: participants });
+                        updateParticipantsUI();
+                    }
+                    break;
+                case 'PARTICIPANTS':
+                    participants = data.list;
+                    updateParticipantsUI();
+                    break;
                 case 'EMOJI':
                     spawnFloatingEmoji(data.emoji);
                     if (isHost) broadcast(data, conn);
@@ -254,6 +315,17 @@
                     if (isHost) broadcast(data, conn);
                     break;
             }
+        }
+
+        function updateParticipantsUI() {
+            document.getElementById('peer-count').innerText = participants.length;
+            const container = document.getElementById('participants-list');
+            container.innerHTML = participants.map(p => `
+                <div class="flex items-center justify-between text-xs text-slate-300 bg-slate-950 px-2 py-1.5 rounded-lg border border-slate-800">
+                    <span class="truncate">🟢 ${escapeHtml(p.name)}</span>
+                    <span>${p.host ? '👑' : ''}</span>
+                </div>
+            `).join('');
         }
 
         // --- Emoji Reactions Flow ---
@@ -272,7 +344,6 @@
             const el = document.createElement('div');
             el.className = 'floating-emoji';
             el.innerText = emoji;
-            // Random horizontal offset position across the video width
             const randomX = Math.random() * 80 + 10; 
             el.style.left = `${randomX}%`;
             overlay.appendChild(el);
@@ -371,6 +442,11 @@
         function copyShareLink() {
             navigator.clipboard.writeText(document.getElementById('share-link').innerText);
             alert('Room link copied to clipboard!');
+        }
+
+        function escapeHtml(text) {
+            const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+            return text.replace(/[&<>"']/g, m => map[m]);
         }
     </script>
 </body>
