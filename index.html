@@ -163,8 +163,8 @@
         <!-- Join Room Section -->
         <div class="space-y-3">
           <div>
-            <label class="block text-xs font-semibold text-slate-300 mb-1">Room Code</label>
-            <input type="text" id="join-code-input" placeholder="e.g. PARTY99" class="w-full bg-slate-950/90 border border-slate-800 rounded-2xl px-4 py-3 text-sm text-white font-mono uppercase focus:outline-none focus:border-indigo-500 transition shadow-inner" />
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Room Code / Host Peer ID</label>
+            <input type="text" id="join-code-input" placeholder="Paste Room Code or Peer ID" class="w-full bg-slate-950/90 border border-slate-800 rounded-2xl px-4 py-3 text-sm text-white font-mono focus:outline-none focus:border-indigo-500 transition shadow-inner" />
           </div>
 
           <button onclick="submitJoinParty()" class="w-full bg-slate-800 hover:bg-slate-700 text-white font-semibold py-3 rounded-2xl text-sm transition border border-slate-700 active:scale-95">
@@ -308,7 +308,7 @@
     let hostConn = null;
     let isHost = false;
     let currentUser = { name: '', id: '' };
-    let roomCode = '';
+    let hostPeerId = '';
     let roomPassword = '';
     let participants = [];
     let mediaHistory = [];
@@ -346,10 +346,10 @@
       generateRandomHostCode();
 
       const urlParams = new URLSearchParams(window.location.search);
-      const inviteRoom = urlParams.get('room');
+      const inviteHost = urlParams.get('host');
       const invitePass = urlParams.get('pass');
-      if (inviteRoom) {
-        document.getElementById('join-code-input').value = inviteRoom.toUpperCase();
+      if (inviteHost) {
+        document.getElementById('join-code-input').value = inviteHost;
         if (invitePass) {
           roomPassword = invitePass;
         }
@@ -374,14 +374,55 @@
     }
 
     function copyRoomLink() {
-      let url = `${window.location.origin}${window.location.pathname}?room=${roomCode}`;
+      let url = `${window.location.origin}${window.location.pathname}?host=${encodeURIComponent(hostPeerId)}`;
       if (roomPassword) {
         url += `&pass=${encodeURIComponent(roomPassword)}`;
       }
       navigator.clipboard.writeText(url).then(() => {
-        showToast('Invite link copied to clipboard!', '📋');
+        showToast('Invite link copied! Send this exact link to friends.', '📋');
       }).catch(() => {
         showToast('Failed to copy link', '⚠️');
+      });
+    }
+
+    function startParty(asHost) {
+      const nameInput = document.getElementById('display-name-input').value.trim();
+      currentUser.name = nameInput || `Viewer_${Math.floor(100 + Math.random() * 900)}`;
+
+      if (asHost) {
+        roomPassword = document.getElementById('host-password-input').value.trim();
+        isHost = true;
+      }
+
+      if (peer) {
+        try { peer.destroy(); } catch(e) {}
+      }
+
+      // Let PeerJS generate a unique secure broker ID automatically
+      peer = new Peer();
+
+      peer.on('open', (id) => {
+        currentUser.id = id;
+        if (asHost) {
+          hostPeerId = id;
+          setupUIForRoom();
+          participants = [{ id: currentUser.id, name: currentUser.name, isHost: true }];
+          updateViewersUI();
+          loadLocalChatHistory();
+          showToast(`Hosting room successfully!`, '👑');
+          
+          // Display the exact Host Peer ID so users can copy or share it easily
+          document.getElementById('header-room-code').innerText = id.substring(0, 8) + '...';
+        }
+      });
+
+      peer.on('connection', (conn) => {
+        connections.push(conn);
+        setupPeerConnectionHandlers(conn);
+      });
+
+      peer.on('error', (err) => {
+        showToast(`Peer error: ${err.type}`, '⚠️');
       });
     }
 
@@ -389,22 +430,21 @@
       const nameInput = document.getElementById('display-name-input').value.trim();
       currentUser.name = nameInput || `Viewer_${Math.floor(100 + Math.random() * 900)}`;
 
-      const joinCode = document.getElementById('join-code-input').value.trim().toUpperCase();
-      if (!joinCode) {
-        showToast('Please enter a room code to join!', '⚠️');
+      const targetHostId = document.getElementById('join-code-input').value.trim();
+      if (!targetHostId) {
+        showToast('Please enter the Host Peer ID or use an invite link!', '⚠️');
         return;
       }
-      roomCode = joinCode;
+      hostPeerId = targetHostId;
       isHost = false;
 
-      showToast(`Connecting to room ${roomCode}...`, '⏳');
+      showToast(`Connecting to host...`, '⏳');
 
       if (peer) {
         try { peer.destroy(); } catch(e) {}
       }
 
-      const peerId = `watchparty-${roomCode}-${Math.random().toString(36).substring(2, 7)}`;
-      peer = new Peer(peerId);
+      peer = new Peer();
 
       peer.on('open', (id) => {
         currentUser.id = id;
@@ -435,69 +475,15 @@
       }
       
       showToast(`Connecting with password...`, '⏳');
-      const peerId = `watchparty-${roomCode}-${Math.random().toString(36).substring(2, 7)}`;
-      peer = new Peer(peerId);
+      peer = new Peer();
       peer.on('open', (id) => {
         currentUser.id = id;
         connectToHostRoom();
       });
     }
 
-    function startParty(asHost) {
-      const nameInput = document.getElementById('display-name-input').value.trim();
-      currentUser.name = nameInput || `Viewer_${Math.floor(100 + Math.random() * 900)}`;
-
-      if (asHost) {
-        const customCode = document.getElementById('host-code-input').value.trim().toUpperCase();
-        roomCode = customCode || `PARTY${Math.floor(10 + Math.random() * 90)}`;
-        roomPassword = document.getElementById('host-password-input').value.trim();
-        isHost = true;
-      }
-
-      if (peer) {
-        try { peer.destroy(); } catch(e) {}
-      }
-
-      const peerId = isHost ? `watchparty-${roomCode}` : `watchparty-${roomCode}-${Math.random().toString(36).substring(2, 7)}`;
-      peer = new Peer(peerId);
-
-      peer.on('open', (id) => {
-        currentUser.id = id;
-        if (isHost) {
-          setupUIForRoom();
-          participants = [{ id: currentUser.id, name: currentUser.name, isHost: true }];
-          updateViewersUI();
-          loadLocalChatHistory();
-          showToast(`Hosting room: ${roomCode}`, '👑');
-        } else {
-          connectToHostRoom();
-        }
-      });
-
-      peer.on('connection', (conn) => {
-        connections.push(conn);
-        setupPeerConnectionHandlers(conn);
-      });
-
-      peer.on('error', (err) => {
-        showToast(`Peer error: ${err.type}`, '⚠️');
-      });
-    }
-
     function connectToHostRoom() {
-      hostConn = peer.connect(`watchparty-${roomCode}`);
-      
-      // Safety timeout in case host is offline so it doesn't stay frozen
-      const connectionTimeout = setTimeout(() => {
-        if (!hostConn || !hostConn.open) {
-          showToast('Could not connect to host. Room might be offline.', '⚠️');
-        }
-      }, 5000);
-
-      const originalOpen = hostConn.on('open', () => {
-        clearTimeout(connectionTimeout);
-      });
-
+      hostConn = peer.connect(hostPeerId, { reliable: true });
       setupConnectionHandlers(hostConn);
     }
 
@@ -541,7 +527,7 @@
           }
           setupUIForRoom();
           loadLocalChatHistory();
-          showToast(`Joined room: ${roomCode}`, '🍿');
+          showToast(`Connected to Party!`, '🍿');
           conn.send({ type: 'HANDSHAKE', payload: { name: currentUser.name, id: currentUser.id } });
           return;
         }
@@ -610,7 +596,7 @@
       document.getElementById('bottom-emoji-deck').classList.add('flex');
       document.getElementById('header-room-info').classList.remove('hidden');
       document.getElementById('header-room-info').classList.add('flex');
-      document.getElementById('header-room-code').innerText = roomCode;
+      document.getElementById('header-room-code').innerText = hostPeerId.substring(0, 8) + '...';
     }
 
     function updateViewersUI() {
@@ -808,9 +794,9 @@
     }
 
     function saveMessageToLocalStorage(msg) {
-      if (!roomCode) return;
+      if (!hostPeerId) return;
       try {
-        const key = `watchparty_chat_${roomCode}`;
+        const key = `watchparty_chat_${hostPeerId}`;
         const history = JSON.parse(localStorage.getItem(key) || '[]');
         history.push(msg);
         if (history.length > 100) history.shift();
@@ -819,11 +805,11 @@
     }
 
     function loadLocalChatHistory() {
-      if (!roomCode) return;
+      if (!hostPeerId) return;
       const container = document.getElementById('chat-messages-container');
       container.innerHTML = '';
       try {
-        const key = `watchparty_chat_${roomCode}`;
+        const key = `watchparty_chat_${hostPeerId}`;
         const history = JSON.parse(localStorage.getItem(key) || '[]');
         history.forEach(msg => renderChatMessageElement(msg, false));
       } catch(e) {}
