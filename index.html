@@ -301,7 +301,7 @@
     </div>
   </div>
 
-  <!-- CLEAN SCRIPT LOGIC -->
+  <!-- SCRIPT LOGIC -->
   <script>
     let peer = null;
     let connections = [];
@@ -412,11 +412,7 @@
       });
 
       peer.on('error', (err) => {
-        if (err.type === 'peer-not-found' || err.type === 'unavailable-id') {
-          showToast('Room not found! Check your code.', '⚠️');
-        } else {
-          showToast(`Connection error: ${err.type}`, '⚠️');
-        }
+        showToast(`Connection error: ${err.type}`, '⚠️');
       });
     }
 
@@ -484,14 +480,24 @@
       });
 
       peer.on('error', (err) => {
-        if (!isHost && (err.type === 'peer-not-found' || err.type === 'unavailable-id')) {
-          showToast('Room not found! Check your code.', '⚠️');
-        }
+        showToast(`Peer error: ${err.type}`, '⚠️');
       });
     }
 
     function connectToHostRoom() {
       hostConn = peer.connect(`watchparty-${roomCode}`);
+      
+      // Safety timeout in case host is offline so it doesn't stay frozen
+      const connectionTimeout = setTimeout(() => {
+        if (!hostConn || !hostConn.open) {
+          showToast('Could not connect to host. Room might be offline.', '⚠️');
+        }
+      }, 5000);
+
+      const originalOpen = hostConn.on('open', () => {
+        clearTimeout(connectionTimeout);
+      });
+
       setupConnectionHandlers(hostConn);
     }
 
