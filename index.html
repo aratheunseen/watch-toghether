@@ -301,7 +301,7 @@
     </div>
   </div>
 
-  <!-- ULTRA-STABLE SCRIPT LOGIC -->
+  <!-- ULTRA-STABLE FIXED SCRIPT -->
   <script>
     let peer = null;
     let connections = [];
@@ -386,7 +386,6 @@
       });
     }
 
-    // Bulletproof Peer Instance Creator with Persistent Signaling Reconnect Loop & STUN
     function createPeerInstance(customId = null) {
       if (peer) {
         try { peer.destroy(); } catch(e) {}
@@ -405,7 +404,6 @@
         debug: 1
       });
 
-      // Continuous Signaling Server Reconnection Loop
       peer.on('disconnected', () => {
         showToast('Signaling connection lost. Reconnecting...', '⚠️');
         
@@ -511,7 +509,6 @@
       setupConnectionHandlers(hostConn);
     }
 
-    // NAT Keep-Alive Heartbeat (prevents router timeouts during pauses/low activity)
     function setupKeepAlive(conn) {
       if (heartbeatIntervals.has(conn.peer)) {
         clearInterval(heartbeatIntervals.get(conn.peer));
@@ -875,7 +872,6 @@
       input.focus();
     }
 
-    // Local Storage Chat Persistence Helpers
     function saveMessageToLocalStorage(msg) {
       if (!roomCode) return;
       try {
