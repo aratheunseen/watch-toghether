@@ -230,7 +230,7 @@
     </div>
   </div>
 
-  <!-- CLEAN SCRIPT LOGIC -->
+  <!-- SCRIPT LOGIC WITH MULTI-SERVER ICE FALLBACKS -->
   <script>
     let peer = null;
     let connections = [];
@@ -243,6 +243,20 @@
     let ytPlayer = null;
     let syncInterval = null;
     let isSyncingFromPeer = false;
+
+    // Configured STUN/TURN ICE Servers to bridge firewalls & mobile data
+    const PEER_CONFIG = {
+      config: {
+        iceServers: [
+          { urls: 'stun:stun.l.google.com:19302' },
+          { urls: 'stun:stun1.l.google.com:19302' },
+          { urls: 'stun:stun2.l.google.com:19302' },
+          { urls: 'stun:stun3.l.google.com:19302' },
+          { urls: 'stun:stun4.l.google.com:19302' },
+          { urls: 'stun:global.stun.twilio.com:3478' }
+        ]
+      }
+    };
 
     function showToast(message, icon = 'ℹ️') {
       const container = document.getElementById('toast-container');
@@ -297,7 +311,7 @@
       }
 
       const peerId = `wp-${roomCode}`;
-      peer = new Peer(peerId);
+      peer = new Peer(peerId, PEER_CONFIG);
 
       peer.on('open', (id) => {
         currentUser.id = id;
@@ -336,7 +350,7 @@
       }
 
       const peerId = `wp-${Math.random().toString(36).substring(2, 7)}`;
-      peer = new Peer(peerId);
+      peer = new Peer(peerId, PEER_CONFIG);
 
       peer.on('open', (id) => {
         currentUser.id = id;
@@ -349,7 +363,19 @@
     }
 
     function connectToHostRoom() {
-      hostConn = peer.connect(`wp-${roomCode}`);
+      hostConn = peer.connect(`wp-${roomCode}`, { reliable: true });
+
+      // Handle connection timeout cleanly
+      const connectTimeout = setTimeout(() => {
+        if (!hostConn || !hostConn.open) {
+          showToast('Failed to connect. Host might be offline or blocked by firewall.', '⚠️');
+        }
+      }, 7000);
+
+      hostConn.on('open', () => {
+        clearTimeout(connectTimeout);
+      });
+
       setupConnectionHandlers(hostConn);
     }
 
