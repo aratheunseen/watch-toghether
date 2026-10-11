@@ -191,7 +191,7 @@
 
   </main>
 
-  <!-- BOTTOM CONTROL BAR & OPTIMIZED MOBILE REACTION DECK -->
+  <!-- BOTTOM CONTROL BAR & CLEAN REACTION DECK -->
   <footer id="bottom-emoji-deck" class="hidden w-full bg-slate-900/90 border-t border-slate-800/80 backdrop-blur-md pb-safe pt-2 px-3 z-30 shrink-0 flex-col gap-2">
     <div class="max-w-xl mx-auto flex items-center justify-around gap-1 w-full">
       <button onclick="sendReaction('🍿')" class="p-2 text-2xl hover:scale-125 transition active:scale-90">🍿</button>
@@ -301,7 +301,7 @@
     </div>
   </div>
 
-  <!-- ULTRA-STABLE SCRIPT LOGIC WITH RACE CONDITION FIX -->
+  <!-- CLEAN SCRIPT LOGIC -->
   <script>
     let peer = null;
     let connections = [];
@@ -317,7 +317,6 @@
     let ytPlayer = null;
     let syncInterval = null;
     let isSyncingFromPeer = false;
-    let heartbeatIntervals = new Map();
 
     function showToast(message, icon = 'ℹ️') {
       const container = document.getElementById('toast-container');
@@ -386,58 +385,6 @@
       });
     }
 
-    // Bulletproof Peer Instance Creator with Built-in Open Callback & Signaling Reconnection
-    function createPeerInstance(customId = null, onOpenCallback = null) {
-      if (peer) {
-        try { peer.destroy(); } catch(e) {}
-      }
-
-      const peerId = customId || `watchparty-${roomCode}-${Math.random().toString(36).substring(2, 7)}`;
-      
-      peer = new Peer(peerId, {
-        config: {
-          iceServers: [
-            { urls: 'stun:stun.l.google.com:19302' },
-            { urls: 'stun:stun1.l.google.com:19302' },
-            { urls: 'stun:stun2.l.google.com:19302' }
-          ]
-        },
-        debug: 1
-      });
-
-      if (onOpenCallback) {
-        peer.on('open', (id) => {
-          currentUser.id = id;
-          onOpenCallback(id);
-        });
-      }
-
-      peer.on('disconnected', () => {
-        showToast('Signaling connection lost. Reconnecting...', '⚠️');
-        
-        const reconnectInterval = setInterval(() => {
-          if (peer && peer.disconnected && !peer.destroyed) {
-            peer.reconnect();
-          } else {
-            clearInterval(reconnectInterval);
-            if (peer && !peer.destroyed && !peer.disconnected) {
-              showToast('Signaling reconnected successfully!', '✨');
-            }
-          }
-        }, 3000);
-      });
-
-      peer.on('error', (err) => {
-        if (err.type === 'peer-not-found' || err.type === 'unavailable-id') {
-          showToast('Room not found or host offline. Try again.', '⚠️');
-        } else if (err.type === 'network') {
-          showToast('Network error. Check your connection.', '⚠️');
-        }
-      });
-
-      return peer;
-    }
-
     function submitJoinParty() {
       const nameInput = document.getElementById('display-name-input').value.trim();
       currentUser.name = nameInput || `Viewer_${Math.floor(100 + Math.random() * 900)}`;
@@ -451,8 +398,25 @@
       isHost = false;
 
       showToast(`Connecting to room ${roomCode}...`, '⏳');
-      createPeerInstance(null, (id) => {
+
+      if (peer) {
+        try { peer.destroy(); } catch(e) {}
+      }
+
+      const peerId = `watchparty-${roomCode}-${Math.random().toString(36).substring(2, 7)}`;
+      peer = new Peer(peerId);
+
+      peer.on('open', (id) => {
+        currentUser.id = id;
         connectToHostRoom();
+      });
+
+      peer.on('error', (err) => {
+        if (err.type === 'peer-not-found' || err.type === 'unavailable-id') {
+          showToast('Room not found! Check your code.', '⚠️');
+        } else {
+          showToast(`Connection error: ${err.type}`, '⚠️');
+        }
       });
     }
 
@@ -469,8 +433,16 @@
       roomPassword = passInput;
       document.getElementById('password-prompt-modal').classList.add('hidden');
       
+      if (peer) {
+        try { peer.destroy(); } catch(e) {}
+        peer = null;
+      }
+      
       showToast(`Connecting with password...`, '⏳');
-      createPeerInstance(null, (id) => {
+      const peerId = `watchparty-${roomCode}-${Math.random().toString(36).substring(2, 7)}`;
+      peer = new Peer(peerId);
+      peer.on('open', (id) => {
+        currentUser.id = id;
         connectToHostRoom();
       });
     }
@@ -486,14 +458,23 @@
         isHost = true;
       }
 
-      const fixedHostId = `watchparty-${roomCode}`;
-      createPeerInstance(fixedHostId, (id) => {
+      if (peer) {
+        try { peer.destroy(); } catch(e) {}
+      }
+
+      const peerId = isHost ? `watchparty-${roomCode}` : `watchparty-${roomCode}-${Math.random().toString(36).substring(2, 7)}`;
+      peer = new Peer(peerId);
+
+      peer.on('open', (id) => {
+        currentUser.id = id;
         if (isHost) {
           setupUIForRoom();
           participants = [{ id: currentUser.id, name: currentUser.name, isHost: true }];
           updateViewersUI();
           loadLocalChatHistory();
           showToast(`Hosting room: ${roomCode}`, '👑');
+        } else {
+          connectToHostRoom();
         }
       });
 
@@ -501,50 +482,21 @@
         connections.push(conn);
         setupPeerConnectionHandlers(conn);
       });
+
+      peer.on('error', (err) => {
+        if (!isHost && (err.type === 'peer-not-found' || err.type === 'unavailable-id')) {
+          showToast('Room not found! Check your code.', '⚠️');
+        }
+      });
     }
 
     function connectToHostRoom() {
-      hostConn = peer.connect(`watchparty-${roomCode}`, { reliable: true });
+      hostConn = peer.connect(`watchparty-${roomCode}`);
       setupConnectionHandlers(hostConn);
     }
 
-    function setupKeepAlive(conn) {
-      if (heartbeatIntervals.has(conn.peer)) {
-        clearInterval(heartbeatIntervals.get(conn.peer));
-      }
-
-      const timer = setInterval(() => {
-        if (conn && conn.open) {
-          conn.send({ type: 'HEARTBEAT_PING' });
-        } else {
-          clearInterval(timer);
-          heartbeatIntervals.delete(conn.peer);
-        }
-      }, 15000);
-
-      heartbeatIntervals.set(conn.peer, timer);
-    }
-
     function setupPeerConnectionHandlers(conn) {
-      setupKeepAlive(conn);
-
-      if (conn.peerConnection) {
-        conn.peerConnection.oniceconnectionstatechange = () => {
-          const state = conn.peerConnection.iceConnectionState;
-          if (state === 'disconnected') {
-            showToast('Connection unstable, attempting recovery...', '⚠️');
-            if (typeof conn.peerConnection.restartIce === 'function') {
-              conn.peerConnection.restartIce();
-            }
-          }
-        };
-      }
-
       conn.on('data', (data) => {
-        if (data.type === 'HEARTBEAT_PING') {
-          conn.send({ type: 'HEARTBEAT_PONG' });
-          return;
-        }
         if (isHost && data.type === 'AUTH_REQUEST') {
           if (roomPassword && data.payload.password !== roomPassword) {
             conn.send({ type: 'AUTH_RESPONSE', payload: { success: false, message: 'Incorrect room password!' } });
@@ -558,10 +510,6 @@
       });
 
       conn.on('close', () => {
-        if (heartbeatIntervals.has(conn.peer)) {
-          clearInterval(heartbeatIntervals.get(conn.peer));
-          heartbeatIntervals.delete(conn.peer);
-        }
         connections = connections.filter(c => c !== conn);
         participants = participants.filter(p => p.id !== conn.peer);
         broadcast({ type: 'PARTICIPANTS_UPDATE', payload: participants });
@@ -570,29 +518,11 @@
     }
 
     function setupConnectionHandlers(conn) {
-      setupKeepAlive(conn);
-
-      if (conn.peerConnection) {
-        conn.peerConnection.oniceconnectionstatechange = () => {
-          const state = conn.peerConnection.iceConnectionState;
-          if (state === 'disconnected') {
-            showToast('Network unstable, recovering connection...', '⚠️');
-            if (typeof conn.peerConnection.restartIce === 'function') {
-              conn.peerConnection.restartIce();
-            }
-          }
-        };
-      }
-
       conn.on('open', () => {
         conn.send({ type: 'AUTH_REQUEST', payload: { password: roomPassword } });
       });
 
       conn.on('data', (data) => {
-        if (data.type === 'HEARTBEAT_PING') {
-          conn.send({ type: 'HEARTBEAT_PONG' });
-          return;
-        }
         if (data.type === 'AUTH_RESPONSE') {
           if (!data.payload.success) {
             if (!roomPassword || roomPassword !== document.getElementById('modal-password-input')?.value) {
