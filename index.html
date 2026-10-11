@@ -127,6 +127,18 @@
           <input type="text" id="display-name-input" placeholder="e.g. Alex" class="w-full bg-slate-950/90 border border-slate-800 rounded-2xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition shadow-inner" />
         </div>
 
+        <!-- Optional Host Password Settings Dropdown -->
+        <details class="group text-xs bg-slate-950/60 border border-slate-800/80 rounded-2xl p-3.5">
+          <summary class="cursor-pointer text-slate-300 font-medium list-none flex items-center justify-between select-none">
+            <span>🔒 Advanced Host Settings (Optional)</span>
+            <span class="group-open:rotate-180 transition-transform text-[10px]">▼</span>
+          </summary>
+          <div class="pt-3 space-y-2">
+            <label class="block text-[11px] text-slate-400">Room Password (Optional)</label>
+            <input type="password" id="host-password-input" placeholder="Set a room password" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-indigo-500" />
+          </div>
+        </details>
+
         <!-- Host Action Button -->
         <button onclick="startParty()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-3 rounded-2xl text-sm transition shadow-lg shadow-indigo-600/20 active:scale-95">
           🚀 Host Party
@@ -194,6 +206,25 @@
     </div>
   </footer>
 
+  <!-- PASSWORD PROMPT MODAL -->
+  <div id="password-prompt-modal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+    <div class="w-full max-w-sm bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl animate-pop-in space-y-4">
+      <div class="text-center space-y-1">
+        <div class="text-3xl mb-1">🔒</div>
+        <h3 class="font-bold text-base text-white">Password Required</h3>
+        <p class="text-xs text-slate-400">This room is protected by a password.</p>
+      </div>
+      <div>
+        <label class="block text-xs font-semibold text-slate-300 mb-1">Enter Room Password</label>
+        <input type="password" id="modal-password-input" placeholder="Password" class="w-full bg-slate-950 border border-slate-800 rounded-2xl px-4 py-3 text-sm text-white focus:outline-none focus:border-indigo-500" />
+      </div>
+      <div class="grid grid-cols-2 gap-2 pt-1">
+        <button onclick="closePasswordPrompt()" class="w-full bg-slate-800 hover:bg-slate-700 text-white font-semibold py-2.5 rounded-xl text-xs transition">Cancel</button>
+        <button onclick="confirmPasswordAndJoin()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-2.5 rounded-xl text-xs transition shadow-lg shadow-indigo-600/20">Join</button>
+      </div>
+    </div>
+  </div>
+
   <!-- MODALS -->
   <div id="viewers-modal" onclick="handleOutsideClick(event, 'viewers-modal')" class="hidden fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
     <div class="w-full max-w-xs bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-2xl animate-pop-in">
@@ -238,6 +269,7 @@
     let isHost = false;
     let currentUser = { name: '', id: '' };
     let roomCode = '';
+    let roomPassword = '';
     let participants = [];
     let mediaHistory = [];
     let ytPlayer = null;
@@ -279,8 +311,12 @@
 
       const urlParams = new URLSearchParams(window.location.search);
       const inviteRoom = urlParams.get('room');
+      const invitePass = urlParams.get('pass');
       if (inviteRoom) {
         document.getElementById('join-code-input').value = inviteRoom.toUpperCase();
+        if (invitePass) {
+          roomPassword = invitePass;
+        }
       }
     });
 
@@ -291,7 +327,10 @@
     }
 
     function copyRoomLink() {
-      const url = `${window.location.origin}${window.location.pathname}?room=${roomCode}`;
+      let url = `${window.location.origin}${window.location.pathname}?room=${roomCode}`;
+      if (roomPassword) {
+        url += `&pass=${encodeURIComponent(roomPassword)}`;
+      }
       navigator.clipboard.writeText(url).then(() => {
         showToast('Invite link copied to clipboard!', '📋');
       }).catch(() => {
@@ -309,6 +348,7 @@
       currentUser.name = nameInput;
 
       roomCode = Math.floor(100000 + Math.random() * 900000).toString();
+      roomPassword = document.getElementById('host-password-input').value.trim();
       isHost = true;
 
       if (peer) {
@@ -372,6 +412,33 @@
       });
     }
 
+    function closePasswordPrompt() {
+      document.getElementById('password-prompt-modal').classList.add('hidden');
+      if (peer) {
+        try { peer.destroy(); } catch(e) {}
+        peer = null;
+      }
+    }
+
+    function confirmPasswordAndJoin() {
+      const passInput = document.getElementById('modal-password-input').value.trim();
+      roomPassword = passInput;
+      document.getElementById('password-prompt-modal').classList.add('hidden');
+      
+      if (peer) {
+        try { peer.destroy(); } catch(e) {}
+        peer = null;
+      }
+      
+      showToast(`Connecting with password...`, '⏳');
+      const peerId = `wp-${Math.random().toString(36).substring(2, 7)}`;
+      peer = new Peer(peerId, RENDER_PEER_OPTIONS);
+      peer.on('open', (id) => {
+        currentUser.id = id;
+        connectToHostRoom();
+      });
+    }
+
     function connectToHostRoom() {
       hostConn = peer.connect(`wp-${roomCode}`, { reliable: true });
 
@@ -390,6 +457,15 @@
 
     function setupPeerConnectionHandlers(conn) {
       conn.on('data', (data) => {
+        if (isHost && data.type === 'AUTH_REQUEST') {
+          if (roomPassword && data.payload.password !== roomPassword) {
+            conn.send({ type: 'AUTH_RESPONSE', payload: { success: false, message: 'Incorrect room password!' } });
+            setTimeout(() => conn.close(), 500);
+            return;
+          }
+          conn.send({ type: 'AUTH_RESPONSE', payload: { success: true } });
+          return;
+        }
         handleIncomingPeerData(data, conn);
       });
 
@@ -403,12 +479,25 @@
 
     function setupConnectionHandlers(conn) {
       conn.on('open', () => {
-        setupUIForRoom();
-        showToast(`Connected to room: ${roomCode}`, '🍿');
-        conn.send({ type: 'HANDSHAKE', payload: { name: currentUser.name, id: currentUser.id } });
+        conn.send({ type: 'AUTH_REQUEST', payload: { password: roomPassword } });
       });
 
       conn.on('data', (data) => {
+        if (data.type === 'AUTH_RESPONSE') {
+          if (!data.payload.success) {
+            if (!roomPassword || roomPassword !== document.getElementById('modal-password-input')?.value) {
+              toggleModal('password-prompt-modal');
+              return;
+            }
+            showToast(data.payload.message, '⚠️');
+            try { peer.destroy(); } catch(e) {}
+            return;
+          }
+          setupUIForRoom();
+          showToast(`Connected to room: ${roomCode}`, '🍿');
+          conn.send({ type: 'HANDSHAKE', payload: { name: currentUser.name, id: currentUser.id } });
+          return;
+        }
         handleIncomingPeerData(data, conn);
       });
 
