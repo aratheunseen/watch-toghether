@@ -194,14 +194,24 @@
       <button onclick="sendReaction('👏')" class="p-2 text-2xl hover:scale-125 transition active:scale-90">👏</button>
     </div>
 
-    <div class="w-full max-w-xl mx-auto flex items-center justify-center gap-3 border-t border-slate-800/60 pt-2 pb-1">
-      <button onclick="toggleModal('video-modal')" class="px-4 py-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-white text-xs font-semibold transition active:scale-95 flex items-center gap-1.5">
+    <div class="w-full max-w-xl mx-auto flex items-center justify-center gap-2 border-t border-slate-800/60 pt-2 pb-1 flex-wrap">
+      <button onclick="toggleModal('video-modal')" class="px-3.5 py-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-white text-xs font-semibold transition active:scale-95 flex items-center gap-1.5">
         <span>🎬</span>
         <span>Change Video</span>
       </button>
-      <button onclick="toggleModal('history-modal')" class="px-4 py-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-white text-xs font-semibold transition active:scale-95 flex items-center gap-1.5">
+      <button onclick="toggleModal('history-modal')" class="px-3.5 py-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-white text-xs font-semibold transition active:scale-95 flex items-center gap-1.5">
         <span>📜</span>
         <span>History</span>
+      </button>
+
+      <!-- LIGHTWEIGHT UTILITY CONTROLS -->
+      <button onclick="toggleMuteVideo()" id="mute-btn" class="px-3.5 py-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-white text-xs font-semibold transition active:scale-95 flex items-center gap-1.5">
+        <span>🔊</span>
+        <span id="mute-btn-text">Mute</span>
+      </button>
+      <button onclick="toggleFullscreen()" class="px-3.5 py-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-white text-xs font-semibold transition active:scale-95 flex items-center gap-1.5">
+        <span>⛶</span>
+        <span>Fullscreen</span>
       </button>
     </div>
   </footer>
@@ -285,7 +295,8 @@
         iceServers: [
           { urls: 'stun:stun.l.google.com:19302' },
           { urls: 'stun:stun1.l.google.com:19302' },
-          { urls: 'stun:stun2.l.google.com:19302' }
+          { urls: 'stun:stun2.l.google.com:19302' },
+          { urls: 'stun:global.stun.twilio.com:3478' }
         ]
       }
     };
@@ -305,9 +316,12 @@
       }
     }
 
+    // Auto-ping Render server on page load to eliminate sleep delay
     window.addEventListener('DOMContentLoaded', () => {
       const sampleNames = ['Alex', 'Cinephile', 'Sam', 'Nova', 'Pixel'];
       document.getElementById('display-name-input').placeholder = `e.g. ${sampleNames[Math.floor(Math.random() * sampleNames.length)]}`;
+
+      fetch('https://watchparty-hdbe.onrender.com/myapp', { mode: 'no-cors' }).catch(() => {});
 
       const urlParams = new URLSearchParams(window.location.search);
       const inviteRoom = urlParams.get('room');
@@ -336,6 +350,33 @@
       }).catch(() => {
         showToast('Failed to copy link', '⚠️');
       });
+    }
+
+    function toggleMuteVideo() {
+      const video = document.getElementById('active-video-element');
+      const textSpan = document.getElementById('mute-btn-text');
+      if (video && video.tagName === 'VIDEO') {
+        video.muted = !video.muted;
+        textSpan.innerText = video.muted ? 'Unmute' : 'Mute';
+      } else if (ytPlayer && typeof ytPlayer.isMuted === 'function') {
+        if (ytPlayer.isMuted()) {
+          ytPlayer.unMute();
+          textSpan.innerText = 'Mute';
+        } else {
+          ytPlayer.mute();
+          textSpan.innerText = 'Unmute';
+        }
+      }
+    }
+
+    function toggleFullscreen() {
+      const frame = document.getElementById('video-frame-container');
+      if (!document.fullscreenElement) {
+        if (frame.requestFullscreen) frame.requestFullscreen();
+        else if (frame.webkitRequestFullscreen) frame.webkitRequestFullscreen();
+      } else {
+        if (document.exitFullscreen) document.exitFullscreen();
+      }
     }
 
     function startParty() {
