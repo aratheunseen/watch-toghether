@@ -301,7 +301,7 @@
     </div>
   </div>
 
-  <!-- ULTRA-STABLE SCRIPT LOGIC -->
+  <!-- ULTRA-STABLE SCRIPT LOGIC WITH RACE CONDITION FIX -->
   <script>
     let peer = null;
     let connections = [];
@@ -386,7 +386,8 @@
       });
     }
 
-    function createPeerInstance(customId = null) {
+    // Bulletproof Peer Instance Creator with Built-in Open Callback & Signaling Reconnection
+    function createPeerInstance(customId = null, onOpenCallback = null) {
       if (peer) {
         try { peer.destroy(); } catch(e) {}
       }
@@ -403,6 +404,13 @@
         },
         debug: 1
       });
+
+      if (onOpenCallback) {
+        peer.on('open', (id) => {
+          currentUser.id = id;
+          onOpenCallback(id);
+        });
+      }
 
       peer.on('disconnected', () => {
         showToast('Signaling connection lost. Reconnecting...', '⚠️');
@@ -443,10 +451,7 @@
       isHost = false;
 
       showToast(`Connecting to room ${roomCode}...`, '⏳');
-      createPeerInstance();
-
-      peer.on('open', (id) => {
-        currentUser.id = id;
+      createPeerInstance(null, (id) => {
         connectToHostRoom();
       });
     }
@@ -465,10 +470,7 @@
       document.getElementById('password-prompt-modal').classList.add('hidden');
       
       showToast(`Connecting with password...`, '⏳');
-      createPeerInstance();
-      
-      peer.on('open', (id) => {
-        currentUser.id = id;
+      createPeerInstance(null, (id) => {
         connectToHostRoom();
       });
     }
@@ -485,10 +487,7 @@
       }
 
       const fixedHostId = `watchparty-${roomCode}`;
-      createPeerInstance(fixedHostId);
-
-      peer.on('open', (id) => {
-        currentUser.id = id;
+      createPeerInstance(fixedHostId, (id) => {
         if (isHost) {
           setupUIForRoom();
           participants = [{ id: currentUser.id, name: currentUser.name, isHost: true }];
@@ -604,7 +603,7 @@
             try { peer.destroy(); } catch(e) {}
             return;
           }
-          setupUIForRoom(); // Properly jump to streaming view upon joining
+          setupUIForRoom();
           loadLocalChatHistory();
           showToast(`Joined room: ${roomCode}`, '🍿');
           conn.send({ type: 'HANDSHAKE', payload: { name: currentUser.name, id: currentUser.id } });
