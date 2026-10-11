@@ -95,7 +95,7 @@
       </button>
 
       <div class="flex items-center bg-indigo-950/60 border border-indigo-500/30 rounded-full pl-3 pr-1 py-0.5 gap-1.5">
-        <span id="header-room-code" class="font-mono text-xs font-bold text-indigo-300">------</span>
+        <span id="header-room-code" class="font-mono text-xs font-bold text-indigo-300">Connected</span>
         <button onclick="copyRoomLink()" title="Copy Invite Link" class="p-1 text-indigo-300 hover:text-white rounded-full hover:bg-indigo-600/30 transition active:scale-90">
           📋
         </button>
@@ -154,8 +154,8 @@
         <!-- Join Room Section -->
         <div class="space-y-3">
           <div>
-            <label class="block text-xs font-semibold text-slate-300 mb-1">6-Digit Room Code</label>
-            <input type="text" id="join-code-input" placeholder="e.g. 482910" maxlength="6" class="w-full bg-slate-950/90 border border-slate-800 rounded-2xl px-4 py-3 text-sm text-white font-mono tracking-widest uppercase focus:outline-none focus:border-indigo-500 transition shadow-inner text-center text-lg" />
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Paste Invite Link or Host Peer ID</label>
+            <input type="text" id="join-code-input" placeholder="Paste full link or Peer ID" class="w-full bg-slate-950/90 border border-slate-800 rounded-2xl px-4 py-3 text-sm text-white font-mono focus:outline-none focus:border-indigo-500 transition shadow-inner" />
           </div>
 
           <button onclick="submitJoinParty()" class="w-full bg-slate-800 hover:bg-slate-700 text-white font-semibold py-3 rounded-2xl text-sm transition border border-slate-700 active:scale-95">
@@ -203,8 +203,6 @@
         <span>📜</span>
         <span>History</span>
       </button>
-
-      <!-- LIGHTWEIGHT UTILITY CONTROLS -->
       <button onclick="toggleMuteVideo()" id="mute-btn" class="px-3.5 py-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-white text-xs font-semibold transition active:scale-95 flex items-center gap-1.5">
         <span>🔊</span>
         <span id="mute-btn-text">Mute</span>
@@ -278,7 +276,7 @@
     let hostConn = null;
     let isHost = false;
     let currentUser = { name: '', id: '' };
-    let roomCode = '';
+    let hostPeerId = '';
     let roomPassword = '';
     let participants = [];
     let mediaHistory = [];
@@ -316,7 +314,6 @@
       }
     }
 
-    // Auto-ping Render server on page load to eliminate sleep delay
     window.addEventListener('DOMContentLoaded', () => {
       const sampleNames = ['Alex', 'Cinephile', 'Sam', 'Nova', 'Pixel'];
       document.getElementById('display-name-input').placeholder = `e.g. ${sampleNames[Math.floor(Math.random() * sampleNames.length)]}`;
@@ -324,10 +321,10 @@
       fetch('https://watchparty-hdbe.onrender.com/myapp', { mode: 'no-cors' }).catch(() => {});
 
       const urlParams = new URLSearchParams(window.location.search);
-      const inviteRoom = urlParams.get('room');
+      const inviteHost = urlParams.get('host');
       const invitePass = urlParams.get('pass');
-      if (inviteRoom) {
-        document.getElementById('join-code-input').value = inviteRoom.toUpperCase();
+      if (inviteHost) {
+        document.getElementById('join-code-input').value = inviteHost;
         if (invitePass) {
           roomPassword = invitePass;
         }
@@ -341,12 +338,12 @@
     }
 
     function copyRoomLink() {
-      let url = `${window.location.origin}${window.location.pathname}?room=${roomCode}`;
+      let url = `${window.location.origin}${window.location.pathname}?host=${encodeURIComponent(hostPeerId)}`;
       if (roomPassword) {
         url += `&pass=${encodeURIComponent(roomPassword)}`;
       }
       navigator.clipboard.writeText(url).then(() => {
-        showToast('Invite link copied to clipboard!', '📋');
+        showToast('Invite link copied! Send this to your friend.', '📋');
       }).catch(() => {
         showToast('Failed to copy link', '⚠️');
       });
@@ -387,8 +384,6 @@
         return;
       }
       currentUser.name = nameInput;
-
-      roomCode = Math.floor(100000 + Math.random() * 900000).toString();
       roomPassword = document.getElementById('host-password-input').value.trim();
       isHost = true;
 
@@ -396,15 +391,16 @@
         try { peer.destroy(); } catch(e) {}
       }
 
-      const peerId = `wp-${roomCode}`;
-      peer = new Peer(peerId, RENDER_PEER_OPTIONS);
+      // Let PeerJS generate a clean random UUID for reliable connection routing
+      peer = new Peer(RENDER_PEER_OPTIONS);
 
       peer.on('open', (id) => {
         currentUser.id = id;
+        hostPeerId = id;
         setupUIForRoom();
         participants = [{ id: currentUser.id, name: currentUser.name, isHost: true }];
         updateViewersUI();
-        showToast(`Hosting room: ${roomCode}`, '👑');
+        showToast(`Hosting room successfully!`, '👑');
       });
 
       peer.on('connection', (conn) => {
@@ -426,22 +422,32 @@
       }
       currentUser.name = nameInput;
 
-      const joinCode = document.getElementById('join-code-input').value.trim().toUpperCase();
-      if (!joinCode || joinCode.length !== 6) {
-        showToast('Please enter a valid 6-digit room code!', '⚠️');
+      let targetInput = document.getElementById('join-code-input').value.trim();
+      if (!targetInput) {
+        showToast('Please paste the invite link or Host ID!', '⚠️');
         return;
       }
-      roomCode = joinCode;
+
+      // If user pasted a full URL link, extract the 'host' parameter automatically
+      if (targetInput.includes('?host=')) {
+        try {
+          const urlObj = new URL(targetInput);
+          targetInput = urlObj.searchParams.get('host');
+          const passParam = urlObj.searchParams.get('pass');
+          if (passParam) roomPassword = passParam;
+        } catch(e) {}
+      }
+
+      hostPeerId = targetInput;
       isHost = false;
 
-      showToast(`Connecting to room ${roomCode}...`, '⏳');
+      showToast(`Connecting to host...`, '⏳');
 
       if (peer) {
         try { peer.destroy(); } catch(e) {}
       }
 
-      const peerId = `wp-${Math.random().toString(36).substring(2, 7)}`;
-      peer = new Peer(peerId, RENDER_PEER_OPTIONS);
+      peer = new Peer(RENDER_PEER_OPTIONS);
 
       peer.on('open', (id) => {
         currentUser.id = id;
@@ -472,8 +478,7 @@
       }
       
       showToast(`Connecting with password...`, '⏳');
-      const peerId = `wp-${Math.random().toString(36).substring(2, 7)}`;
-      peer = new Peer(peerId, RENDER_PEER_OPTIONS);
+      peer = new Peer(RENDER_PEER_OPTIONS);
       peer.on('open', (id) => {
         currentUser.id = id;
         connectToHostRoom();
@@ -481,7 +486,7 @@
     }
 
     function connectToHostRoom() {
-      hostConn = peer.connect(`wp-${roomCode}`, { reliable: true });
+      hostConn = peer.connect(hostPeerId, { reliable: true });
 
       const connectTimeout = setTimeout(() => {
         if (!hostConn || !hostConn.open) {
@@ -535,7 +540,7 @@
             return;
           }
           setupUIForRoom();
-          showToast(`Connected to room: ${roomCode}`, '🍿');
+          showToast(`Connected to Party!`, '🍿');
           conn.send({ type: 'HANDSHAKE', payload: { name: currentUser.name, id: currentUser.id } });
           return;
         }
@@ -599,7 +604,7 @@
       document.getElementById('bottom-emoji-deck').classList.add('flex');
       document.getElementById('header-room-info').classList.remove('hidden');
       document.getElementById('header-room-info').classList.add('flex');
-      document.getElementById('header-room-code').innerText = roomCode;
+      document.getElementById('header-room-code').innerText = hostPeerId.substring(0, 6) + '...';
     }
 
     function updateViewersUI() {
