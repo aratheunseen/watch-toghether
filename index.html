@@ -230,7 +230,7 @@
     </div>
   </div>
 
-  <!-- SCRIPT LOGIC USING YOUR RENDER SIGNALING SERVER -->
+  <!-- SCRIPT LOGIC -->
   <script>
     let peer = null;
     let connections = [];
@@ -244,10 +244,11 @@
     let syncInterval = null;
     let isSyncingFromPeer = false;
 
-    // Dedicated PeerJS options pointing to your Render server
+    // Pointing to your custom Render signaling server with secure WebSocket settings
     const RENDER_PEER_OPTIONS = {
       host: 'watchparty-hdbe.onrender.com',
       port: 443,
+      path: '/myapp',
       secure: true,
       config: {
         iceServers: [
