@@ -301,7 +301,7 @@
     </div>
   </div>
 
-  <!-- SCRIPT LOGIC WITH STABILITY PATCHES -->
+  <!-- STABLE SCRIPT LOGIC -->
   <script>
     let peer = null;
     let connections = [];
@@ -318,17 +318,6 @@
     let syncInterval = null;
     let isSyncingFromPeer = false;
     let heartbeatIntervals = new Map();
-
-    // Robust PeerJS configuration including reliable public STUN servers
-    const peerConfig = {
-      config: {
-        iceServers: [
-          { urls: 'stun:stun.l.google.com:19302' },
-          { urls: 'stun:stun1.l.google.com:19302' },
-          { urls: 'stun:stun2.l.google.com:19302' }
-        ]
-      }
-    };
 
     function showToast(message, icon = 'ℹ️') {
       const container = document.getElementById('toast-container');
@@ -397,6 +386,46 @@
       });
     }
 
+    // Bulletproof Peer Instance Creator with Signaling Reconnection & STUN
+    function createPeerInstance(customId = null) {
+      if (peer) {
+        try { peer.destroy(); } catch(e) {}
+      }
+
+      const peerId = customId || `watchparty-${roomCode}-${Math.random().toString(36).substring(2, 7)}`;
+      
+      peer = new Peer(peerId, {
+        config: {
+          iceServers: [
+            { urls: 'stun:stun.l.google.com:19302' },
+            { urls: 'stun:stun1.l.google.com:19302' },
+            { urls: 'stun:stun2.l.google.com:19302' }
+          ]
+        },
+        debug: 1
+      });
+
+      // Auto-reconnect if signaling server drops connection
+      peer.on('disconnected', () => {
+        showToast('Signaling connection lost. Reconnecting...', '⚠️');
+        setTimeout(() => {
+          if (peer && !peer.destroyed) {
+            peer.reconnect();
+          }
+        }, 2000);
+      });
+
+      peer.on('error', (err) => {
+        if (err.type === 'peer-not-found' || err.type === 'unavailable-id') {
+          showToast('Room not found or host offline. Try again.', '⚠️');
+        } else if (err.type === 'network') {
+          showToast('Network error. Check your connection.', '⚠️');
+        }
+      });
+
+      return peer;
+    }
+
     function submitJoinParty() {
       const nameInput = document.getElementById('display-name-input').value.trim();
       currentUser.name = nameInput || `Viewer_${Math.floor(100 + Math.random() * 900)}`;
@@ -410,25 +439,11 @@
       isHost = false;
 
       showToast(`Connecting to room ${roomCode}...`, '⏳');
-
-      if (peer) {
-        try { peer.destroy(); } catch(e) {}
-      }
-
-      const peerId = `watchparty-${roomCode}-${Math.random().toString(36).substring(2, 7)}`;
-      peer = new Peer(peerId, peerConfig);
+      createPeerInstance();
 
       peer.on('open', (id) => {
         currentUser.id = id;
         connectToHostRoom();
-      });
-
-      peer.on('error', (err) => {
-        if (err.type === 'peer-not-found' || err.type === 'unavailable-id') {
-          showToast('Room not found! Check your code.', '⚠️');
-        } else {
-          showToast(`Connection error: ${err.type}`, '⚠️');
-        }
       });
     }
 
@@ -445,14 +460,9 @@
       roomPassword = passInput;
       document.getElementById('password-prompt-modal').classList.add('hidden');
       
-      if (peer) {
-        try { peer.destroy(); } catch(e) {}
-        peer = null;
-      }
-      
       showToast(`Connecting with password...`, '⏳');
-      const peerId = `watchparty-${roomCode}-${Math.random().toString(36).substring(2, 7)}`;
-      peer = new Peer(peerId, peerConfig);
+      createPeerInstance();
+      
       peer.on('open', (id) => {
         currentUser.id = id;
         connectToHostRoom();
@@ -470,12 +480,8 @@
         isHost = true;
       }
 
-      if (peer) {
-        try { peer.destroy(); } catch(e) {}
-      }
-
-      const peerId = isHost ? `watchparty-${roomCode}` : `watchparty-${roomCode}-${Math.random().toString(36).substring(2, 7)}`;
-      peer = new Peer(peerId, peerConfig);
+      const fixedHostId = `watchparty-${roomCode}`;
+      createPeerInstance(fixedHostId);
 
       peer.on('open', (id) => {
         currentUser.id = id;
@@ -484,20 +490,12 @@
           participants = [{ id: currentUser.id, name: currentUser.name, isHost: true }];
           updateViewersUI();
           showToast(`Hosting room: ${roomCode}`, '👑');
-        } else {
-          connectToHostRoom();
         }
       });
 
       peer.on('connection', (conn) => {
         connections.push(conn);
         setupPeerConnectionHandlers(conn);
-      });
-
-      peer.on('error', (err) => {
-        if (!isHost && (err.type === 'peer-not-found' || err.type === 'unavailable-id')) {
-          showToast('Room not found! Check your code.', '⚠️');
-        }
       });
     }
 
@@ -506,7 +504,7 @@
       setupConnectionHandlers(hostConn);
     }
 
-    // Stability Addition: Setup NAT Heartbeat / Keep-Alive loops
+    // NAT Keep-Alive Ping Loop (prevents router dropouts)
     function setupKeepAlive(conn) {
       if (heartbeatIntervals.has(conn.peer)) {
         clearInterval(heartbeatIntervals.get(conn.peer));
@@ -519,7 +517,7 @@
           clearInterval(timer);
           heartbeatIntervals.delete(conn.peer);
         }
-      }, 15000); // Send heartbeat every 15 seconds to keep NAT mapping alive
+      }, 15000);
 
       heartbeatIntervals.set(conn.peer, timer);
     }
@@ -527,7 +525,6 @@
     function setupPeerConnectionHandlers(conn) {
       setupKeepAlive(conn);
 
-      // Monitor underlying peer connection state for drops or ICE resets
       if (conn.peerConnection) {
         conn.peerConnection.oniceconnectionstatechange = () => {
           const state = conn.peerConnection.iceConnectionState;
@@ -536,8 +533,6 @@
             if (typeof conn.peerConnection.restartIce === 'function') {
               conn.peerConnection.restartIce();
             }
-          } else if (state === 'failed') {
-            showToast('P2P connection lost.', '⚠️');
           }
         };
       }
