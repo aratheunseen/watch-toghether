@@ -301,7 +301,7 @@
     </div>
   </div>
 
-  <!-- STABLE SCRIPT LOGIC -->
+  <!-- ULTRA-STABLE SCRIPT LOGIC -->
   <script>
     let peer = null;
     let connections = [];
@@ -386,7 +386,7 @@
       });
     }
 
-    // Bulletproof Peer Instance Creator with Signaling Reconnection & STUN
+    // Bulletproof Peer Instance Creator with Persistent Signaling Reconnect Loop & STUN
     function createPeerInstance(customId = null) {
       if (peer) {
         try { peer.destroy(); } catch(e) {}
@@ -405,14 +405,20 @@
         debug: 1
       });
 
-      // Auto-reconnect if signaling server drops connection
+      // Continuous Signaling Server Reconnection Loop
       peer.on('disconnected', () => {
         showToast('Signaling connection lost. Reconnecting...', '⚠️');
-        setTimeout(() => {
-          if (peer && !peer.destroyed) {
+        
+        const reconnectInterval = setInterval(() => {
+          if (peer && peer.disconnected && !peer.destroyed) {
             peer.reconnect();
+          } else {
+            clearInterval(reconnectInterval);
+            if (peer && !peer.destroyed && !peer.disconnected) {
+              showToast('Signaling reconnected successfully!', '✨');
+            }
           }
-        }, 2000);
+        }, 3000);
       });
 
       peer.on('error', (err) => {
@@ -489,6 +495,7 @@
           setupUIForRoom();
           participants = [{ id: currentUser.id, name: currentUser.name, isHost: true }];
           updateViewersUI();
+          loadLocalChatHistory();
           showToast(`Hosting room: ${roomCode}`, '👑');
         }
       });
@@ -504,7 +511,7 @@
       setupConnectionHandlers(hostConn);
     }
 
-    // NAT Keep-Alive Ping Loop (prevents router dropouts)
+    // NAT Keep-Alive Heartbeat (prevents router timeouts during pauses/low activity)
     function setupKeepAlive(conn) {
       if (heartbeatIntervals.has(conn.peer)) {
         clearInterval(heartbeatIntervals.get(conn.peer));
@@ -601,6 +608,7 @@
             return;
           }
           setupUIForRoom();
+          loadLocalChatHistory();
           showToast(`Joined room: ${roomCode}`, '🍿');
           conn.send({ type: 'HANDSHAKE', payload: { name: currentUser.name, id: currentUser.id } });
           return;
@@ -639,7 +647,7 @@
           break;
 
         case 'CHAT':
-          appendChatMessage(data.payload);
+          appendChatMessage(data.payload, false);
           broadcast(data, conn);
           break;
 
@@ -859,7 +867,7 @@
         time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       };
 
-      appendChatMessage(messageObj);
+      appendChatMessage(messageObj, true);
       const packet = { type: 'CHAT', payload: messageObj };
       broadcast(packet);
 
@@ -867,7 +875,42 @@
       input.focus();
     }
 
-    function appendChatMessage(msg) {
+    // Local Storage Chat Persistence Helpers
+    function saveMessageToLocalStorage(msg) {
+      if (!roomCode) return;
+      try {
+        const key = `watchparty_chat_${roomCode}`;
+        const history = JSON.parse(localStorage.getItem(key) || '[]');
+        history.push(msg);
+        if (history.length > 100) history.shift();
+        localStorage.setItem(key, JSON.stringify(history));
+      } catch(e) {}
+    }
+
+    function loadLocalChatHistory() {
+      if (!roomCode) return;
+      const container = document.getElementById('chat-messages-container');
+      container.innerHTML = '';
+      try {
+        const key = `watchparty_chat_${roomCode}`;
+        const history = JSON.parse(localStorage.getItem(key) || '[]');
+        history.forEach(msg => renderChatMessageElement(msg, false));
+      } catch(e) {}
+    }
+
+    function appendChatMessage(msg, saveLocally = true) {
+      if (saveLocally) {
+        saveMessageToLocalStorage(msg);
+      }
+      renderChatMessageElement(msg, true);
+
+      if (!isChatOpen) {
+        unreadChatCount++;
+        updateUnreadBadge();
+      }
+    }
+
+    function renderChatMessageElement(msg, prepend = true) {
       const container = document.getElementById('chat-messages-container');
       const isMe = msg.sender === currentUser.name;
 
@@ -880,11 +923,10 @@
         </div>
       `;
 
-      container.prepend(messageEl);
-
-      if (!isChatOpen) {
-        unreadChatCount++;
-        updateUnreadBadge();
+      if (prepend) {
+        container.prepend(messageEl);
+      } else {
+        container.appendChild(messageEl);
       }
     }
 
