@@ -244,7 +244,7 @@
     let syncInterval = null;
     let isSyncingFromPeer = false;
 
-    // Pointing to your custom Render signaling server with secure WebSocket settings
+    // Render Signaling Server Configuration
     const RENDER_PEER_OPTIONS = {
       host: 'watchparty-hdbe.onrender.com',
       port: 443,
@@ -294,7 +294,7 @@
     function copyRoomLink() {
       const url = `${window.location.origin}${window.location.pathname}?room=${roomCode}`;
       navigator.clipboard.writeText(url).then(() => {
-        showToast('Invite link copied to clipboard!', '📋');
+        showToast('Invite link copied! Send this to your friend.', '📋');
       }).catch(() => {
         showToast('Failed to copy link', '⚠️');
       });
