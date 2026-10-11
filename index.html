@@ -230,7 +230,7 @@
     </div>
   </div>
 
-  <!-- SCRIPT LOGIC WITH MULTI-SERVER ICE FALLBACKS -->
+  <!-- SCRIPT LOGIC USING YOUR RENDER SIGNALING SERVER -->
   <script>
     let peer = null;
     let connections = [];
@@ -244,16 +244,16 @@
     let syncInterval = null;
     let isSyncingFromPeer = false;
 
-    // Configured STUN/TURN ICE Servers to bridge firewalls & mobile data
-    const PEER_CONFIG = {
+    // Dedicated PeerJS options pointing to your Render server
+    const RENDER_PEER_OPTIONS = {
+      host: 'watchparty-hdbe.onrender.com',
+      port: 443,
+      secure: true,
       config: {
         iceServers: [
           { urls: 'stun:stun.l.google.com:19302' },
           { urls: 'stun:stun1.l.google.com:19302' },
-          { urls: 'stun:stun2.l.google.com:19302' },
-          { urls: 'stun:stun3.l.google.com:19302' },
-          { urls: 'stun:stun4.l.google.com:19302' },
-          { urls: 'stun:global.stun.twilio.com:3478' }
+          { urls: 'stun:stun2.l.google.com:19302' }
         ]
       }
     };
@@ -311,7 +311,7 @@
       }
 
       const peerId = `wp-${roomCode}`;
-      peer = new Peer(peerId, PEER_CONFIG);
+      peer = new Peer(peerId, RENDER_PEER_OPTIONS);
 
       peer.on('open', (id) => {
         currentUser.id = id;
@@ -350,7 +350,7 @@
       }
 
       const peerId = `wp-${Math.random().toString(36).substring(2, 7)}`;
-      peer = new Peer(peerId, PEER_CONFIG);
+      peer = new Peer(peerId, RENDER_PEER_OPTIONS);
 
       peer.on('open', (id) => {
         currentUser.id = id;
@@ -365,10 +365,9 @@
     function connectToHostRoom() {
       hostConn = peer.connect(`wp-${roomCode}`, { reliable: true });
 
-      // Handle connection timeout cleanly
       const connectTimeout = setTimeout(() => {
         if (!hostConn || !hostConn.open) {
-          showToast('Failed to connect. Host might be offline or blocked by firewall.', '⚠️');
+          showToast('Failed to connect. Host might be offline.', '⚠️');
         }
       }, 7000);
 
