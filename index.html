@@ -87,7 +87,7 @@
       </div>
       <div>
         <h1 class="text-base font-bold tracking-tight text-white leading-none">WatchParty</h1>
-        <p class="text-[10px] font-medium text-indigo-300/80 tracking-wide leading-tight mt-0.5">by Ashiqur Rahman Alif</p>
+        <p class="text-[10px] font-medium text-indigo-300/80 tracking-wide leading-tight mt-0.5">by Ashiqur Rahman Alif[cite: 1]</p>
       </div>
     </div>
 
@@ -128,31 +128,14 @@
           <input type="text" id="display-name-input" placeholder="e.g. Alex" class="w-full bg-slate-950/90 border border-slate-800 rounded-2xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition shadow-inner" />
         </div>
 
-        <!-- Status Badge Selection -->
-        <div class="space-y-1">
-          <label class="block text-xs font-semibold text-slate-300">Status</label>
-          <select id="user-status-select" class="w-full bg-slate-950/90 border border-slate-800 rounded-2xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-indigo-500">
-            <option value="🟢 Active">🟢 Active</option>
-            <option value="🍿 Snack Break">🍿 Snack Break</option>
-            <option value="💤 AFK">💤 AFK</option>
-          </select>
-        </div>
-
-        <!-- Advanced Host Settings -->
+        <!-- Optional Host Password -->
         <details class="group text-xs bg-slate-950/60 border border-slate-800/80 rounded-2xl p-3.5">
           <summary class="cursor-pointer text-slate-300 font-medium list-none flex items-center justify-between select-none">
-            <span>🔒 Advanced Host Settings</span>
+            <span>🔒 Optional Host Password</span>
             <span class="group-open:rotate-180 transition-transform text-[10px]">▼</span>
           </summary>
-          <div class="pt-3 space-y-3">
-            <div>
-              <label class="block text-[11px] text-slate-400 mb-1">Room Password (Optional)</label>
-              <input type="password" id="host-password-input" placeholder="Set room password" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500" />
-            </div>
-            <label class="flex items-center gap-2 cursor-pointer pt-1">
-              <input type="checkbox" id="host-lock-toggle" class="rounded bg-slate-900 border-slate-700 text-indigo-600 focus:ring-0" />
-              <span class="text-[11px] text-slate-300">Lock controls & queue to Host only</span>
-            </label>
+          <div class="pt-3 space-y-2">
+            <input type="password" id="host-password-input" placeholder="Set room password" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-indigo-500" />
           </div>
         </details>
 
@@ -232,12 +215,13 @@
     </div>
 
     <div class="w-full max-w-xl mx-auto flex items-center justify-center gap-2 border-t border-slate-800/60 pt-2 pb-1 flex-wrap">
-      <button onclick="toggleModal('video-modal')" class="px-3 py-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-white text-xs font-semibold transition active:scale-95 flex items-center gap-1">🎬 Video</button>
-      <button onclick="toggleModal('queue-modal')" class="px-3 py-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-white text-xs font-semibold transition active:scale-95 flex items-center gap-1">📃 Queue (<span id="queue-count-badge">0</span>)</button>
-      <button onclick="toggleModal('history-modal')" class="px-3 py-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-white text-xs font-semibold transition active:scale-95 flex items-center gap-1">📜 History</button>
-      <button onclick="toggleModal('bingo-modal')" class="px-3 py-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-white text-xs font-semibold transition active:scale-95 flex items-center gap-1">🎲 Bingo</button>
-      <button onclick="toggleVoiceChat()" id="mic-btn" class="px-3 py-1.5 rounded-xl bg-rose-600/90 hover:bg-rose-500 text-white text-xs font-semibold transition active:scale-95 flex items-center gap-1 shadow">🎙️ <span id="mic-btn-text">Mic Off</span></button>
-      <button onclick="toggleMuteVideo()" id="mute-btn" class="px-3 py-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-white text-xs font-semibold transition active:scale-95 flex items-center gap-1">🔊 <span id="mute-btn-text">Mute</span></button>
+      <button onclick="toggleModal('video-modal')" class="px-3 py-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-white text-xs font-semibold transition active:scale-95">🎬 Video</button>
+      <button onclick="toggleModal('queue-modal')" class="px-3 py-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-white text-xs font-semibold transition active:scale-95">📃 Queue (<span id="queue-count-badge">0</span>)</button>
+      <button onclick="toggleModal('history-modal')" class="px-3 py-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-white text-xs font-semibold transition active:scale-95">📜 History</button>
+      <button onclick="toggleModal('bingo-modal')" class="px-3 py-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-white text-xs font-semibold transition active:scale-95">🎲 Bingo</button>
+      <button onclick="toggleVoiceChat()" id="mic-btn" class="px-3 py-1.5 rounded-xl bg-rose-600/95 hover:bg-rose-500 text-white text-xs font-semibold transition active:scale-95 shadow">🎙️ <span id="mic-btn-text">Mic Off</span></button>
+      <button onmousedown="startPTT()" onmouseup="endPTT()" ontouchstart="startPTT()" ontouchend="endPTT()" id="ptt-btn" class="px-3 py-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-indigo-300 text-xs font-semibold transition active:scale-95 select-none">ptt (hold)</button>
+      <button onclick="toggleMuteVideo()" id="mute-btn" class="px-3 py-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-white text-xs font-semibold transition active:scale-95">🔊 <span id="mute-btn-text">Mute</span></button>
     </div>
   </footer>
 
@@ -260,14 +244,33 @@
     </div>
   </div>
 
-  <!-- VIEWERS & DIRECT MESSAGE MODAL -->
+  <!-- VIEWERS & STATUS / HOST CONTROL PANEL MODAL -->
   <div id="viewers-modal" onclick="handleOutsideClick(event, 'viewers-modal')" class="hidden fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-    <div class="w-full max-w-sm bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-2xl animate-pop-in space-y-3">
+    <div class="w-full max-w-sm bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-2xl animate-pop-in space-y-4">
       <div class="flex justify-between items-center border-b border-slate-800 pb-2">
-        <h3 class="font-bold text-sm text-white">Connected Viewers</h3>
+        <h3 class="font-bold text-sm text-white">Connected Viewers & Settings</h3>
         <button onclick="toggleModal('viewers-modal')" class="text-slate-400 hover:text-white">✕</button>
       </div>
-      <ul id="viewers-list-container" class="space-y-2 max-h-56 overflow-y-auto text-xs"></ul>
+      
+      <!-- Status Badge Selector -->
+      <div class="space-y-1">
+        <label class="block text-[11px] font-semibold text-slate-300">My Status</label>
+        <select id="user-status-select" onchange="updateMyStatus(this.value)" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500">
+          <option value="🟢 Active">🟢 Active</option>
+          <option value="🍿 Snack Break">🍿 Snack Break</option>
+          <option value="💤 AFK">💤 AFK</option>
+        </select>
+      </div>
+
+      <!-- Host Control Lock Panel (Only active if host) -->
+      <div id="host-settings-panel" class="hidden pt-2 border-t border-slate-800">
+        <label class="flex items-center gap-2 cursor-pointer">
+          <input type="checkbox" id="host-lock-toggle" onchange="toggleHostLock(this.checked)" class="rounded bg-slate-950 border-slate-700 text-indigo-600 focus:ring-0" />
+          <span class="text-xs font-semibold text-indigo-300">Lock playback & queue to Host only</span>
+        </label>
+      </div>
+
+      <ul id="viewers-list-container" class="space-y-2 max-h-48 overflow-y-auto text-xs pt-1"></ul>
     </div>
   </div>
 
@@ -389,9 +392,14 @@
     }
 
     window.addEventListener('DOMContentLoaded', () => {
-      // Restore from localStorage
+      // Restore Persistent State if available
       const savedName = localStorage.getItem('wp_name');
+      const savedRoom = localStorage.getItem('wp_room');
+      const savedPass = localStorage.getItem('wp_pass');
+
       if (savedName) document.getElementById('display-name-input').value = savedName;
+      if (savedRoom) document.getElementById('join-code-input').value = savedRoom;
+      if (savedPass) roomPassword = savedPass;
 
       fetch('https://watchparty-hdbe.onrender.com/myapp', { method: 'GET', mode: 'no-cors' }).catch(() => {});
 
@@ -427,14 +435,13 @@
       }
     }
 
-    // Audio SFX via Web Audio API
     function playSoundEffect() {
       try {
         const ctx = new (window.AudioContext || window.webkitAudioContext)();
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
         osc.type = 'sine';
-        osc.frequency.setValueAtTime(587.33, ctx.currentTime); // D5 note
+        osc.frequency.setValueAtTime(587.33, ctx.currentTime);
         gain.gain.setValueAtTime(0.1, ctx.currentTime);
         gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
         osc.connect(gain);
@@ -444,7 +451,7 @@
       } catch(e) {}
     }
 
-    // Voice Chat with Noise Suppression
+    // Voice Chat & Push-to-Talk (PTT) with Noise Suppression
     async function toggleVoiceChat() {
       const micBtnText = document.getElementById('mic-btn-text');
       const micBtn = document.getElementById('mic-btn');
@@ -457,7 +464,7 @@
           });
           isMicActive = true;
           micBtnText.innerText = 'Mic On';
-          micBtn.classList.remove('bg-rose-600/90');
+          micBtn.classList.remove('bg-rose-600/95');
           micBtn.classList.add('bg-emerald-600', 'text-white');
           showToast('Microphone active!', '🎙️');
 
@@ -467,16 +474,52 @@
           showToast('Could not access microphone.', '⚠️');
         }
       } else {
-        if (localStream) { localStream.getTracks().forEach(t => t.stop()); localStream = null; }
-        activeCalls.forEach(c => { try { c.close(); } catch(e) {} });
-        activeCalls = [];
-        isMicActive = false;
-        micBtnText.innerText = 'Mic Off';
-        micBtn.classList.remove('bg-emerald-600');
-        micBtn.classList.add('bg-rose-600/90');
-        showToast('Microphone muted.', '🔇');
+        muteMicrophone();
       }
     }
+
+    function muteMicrophone() {
+      const micBtnText = document.getElementById('mic-btn-text');
+      const micBtn = document.getElementById('mic-btn');
+      if (localStream) { localStream.getTracks().forEach(t => t.stop()); localStream = null; }
+      activeCalls.forEach(c => { try { c.close(); } catch(e) {} });
+      activeCalls = [];
+      isMicActive = false;
+      micBtnText.innerText = 'Mic Off';
+      micBtn.classList.remove('bg-emerald-600');
+      micBtn.classList.add('bg-rose-600/95');
+      showToast('Microphone muted.', '🔇');
+    }
+
+    async function startPTT() {
+      if (!isMicActive) {
+        try {
+          localStream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }, video: false });
+          isMicActive = true;
+          document.getElementById('mic-btn-text').innerText = 'PTT Live';
+          document.getElementById('mic-btn').classList.remove('bg-rose-600/95');
+          document.getElementById('mic-btn').classList.add('bg-emerald-600', 'text-white');
+          connections.forEach(conn => callPeer(conn.peer, localStream));
+          if (!isHost && hostConn && hostConn.open) callPeer(hostPeerId, localStream);
+        } catch(e) {}
+      }
+    }
+
+    function endPTT() {
+      if (isMicActive) muteMicrophone();
+    }
+
+    // Spacebar PTT shortcut
+    window.addEventListener('keydown', (e) => {
+      if (e.code === 'Space' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
+        if (!isMicActive) startPTT();
+      }
+    });
+    window.addEventListener('keyup', (e) => {
+      if (e.code === 'Space' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
+        if (isMicActive) endPTT();
+      }
+    });
 
     function callPeer(peerId, stream) {
       if (!peer || !stream) return;
@@ -501,7 +544,18 @@
       audioEl.srcObject = stream;
     }
 
-    // Typing Indicator Logic
+    function updateMyStatus(statusVal) {
+      currentUser.status = statusVal;
+      broadcast({ type: 'STATUS_UPDATE', payload: { id: currentUser.id, status: statusVal } });
+      updateViewersUI();
+    }
+
+    function toggleHostLock(isLocked) {
+      hostControlsOnly = isLocked;
+      broadcast({ type: 'HOST_LOCK_UPDATE', payload: { locked: isLocked } });
+      showToast(isLocked ? 'Controls locked to host' : 'Controls unlocked', '🔒');
+    }
+
     function handleTypingInput() {
       broadcast({ type: 'TYPING', payload: { name: currentUser.name, isTyping: true } });
       clearTimeout(typingTimeout);
@@ -575,7 +629,6 @@
       playSoundEffect();
     }
 
-    // Auto-Fetch YouTube OEmbed Titles
     async function fetchVideoTitle(url) {
       if (url.startsWith('blob:')) return '📁 Local Phone Video';
       if (url.includes('youtube.com') || url.includes('youtu.be')) {
@@ -688,12 +741,12 @@
         return;
       }
       currentUser.name = nameInput;
-      currentUser.status = document.getElementById('user-status-select').value;
       roomPassword = document.getElementById('host-password-input').value.trim();
-      hostControlsOnly = document.getElementById('host-lock-toggle').checked;
       isHost = true;
 
       localStorage.setItem('wp_name', currentUser.name);
+      localStorage.setItem('wp_pass', roomPassword);
+
       showToast('Initializing room...', '🔄');
 
       if (peer) { try { peer.destroy(); } catch(e) {} }
@@ -704,6 +757,7 @@
       peer.on('open', (id) => {
         currentUser.id = id;
         hostPeerId = id;
+        localStorage.setItem('wp_room', id);
         setupUIForRoom();
         participants = [{ id: currentUser.id, name: currentUser.name, status: currentUser.status, isHost: true }];
         updateViewersUI();
@@ -738,7 +792,6 @@
         return;
       }
       currentUser.name = nameInput;
-      currentUser.status = document.getElementById('user-status-select').value;
       localStorage.setItem('wp_name', currentUser.name);
 
       let targetInput = document.getElementById('join-code-input').value.trim();
@@ -757,6 +810,8 @@
       }
 
       hostPeerId = targetInput;
+      localStorage.setItem('wp_room', hostPeerId);
+      localStorage.setItem('wp_pass', roomPassword);
       isHost = false;
       connectToHostRoom();
     }
@@ -768,6 +823,7 @@
 
     function confirmPasswordAndJoin() {
       roomPassword = document.getElementById('modal-password-input').value.trim();
+      localStorage.setItem('wp_pass', roomPassword);
       document.getElementById('password-prompt-modal').classList.add('hidden');
       if (peer) { try { peer.destroy(); } catch(e) {} peer = null; }
       connectToHostRoom();
@@ -860,6 +916,7 @@
             showToast(`${data.payload.name} joined!`, '👋');
             
             conn.send({ type: 'QUEUE_UPDATE', payload: videoQueue });
+            conn.send({ type: 'HOST_LOCK_UPDATE', payload: { locked: hostControlsOnly } });
             if (activeMediaIndex !== -1) {
               const activeItem = videoQueue[activeMediaIndex];
               conn.send({ type: 'PLAY_QUEUE_INDEX', payload: { index: activeMediaIndex, url: activeItem.url, title: activeItem.title, playedBy: activeItem.addedBy } });
@@ -871,6 +928,15 @@
         case 'PARTICIPANTS_UPDATE':
           participants = data.payload;
           updateViewersUI();
+          break;
+
+        case 'STATUS_UPDATE':
+          participants = participants.map(p => p.id === data.payload.id ? { ...p, status: data.payload.status } : p);
+          updateViewersUI();
+          break;
+
+        case 'HOST_LOCK_UPDATE':
+          hostControlsOnly = data.payload.locked;
           break;
 
         case 'REACTION':
@@ -922,13 +988,17 @@
       document.getElementById('header-room-info').classList.remove('hidden');
       document.getElementById('header-room-info').classList.add('flex');
       document.getElementById('header-room-code').innerText = hostPeerId;
+
+      if (isHost) {
+        document.getElementById('host-settings-panel').classList.remove('hidden');
+      }
     }
 
     function updateViewersUI() {
       document.getElementById('viewer-count-text').innerText = participants.length;
       const container = document.getElementById('viewers-list-container');
       container.innerHTML = participants.map(p => `
-        <li class="flex items-center justify-between p-2 rounded-xl bg-slate-800/60 border border-slate-700/50">
+        <li class="flex items-center justify-between p-2 rounded-xl bg-slate-950/60 border border-slate-800/60">
           <div class="flex flex-col">
             <span class="font-medium text-slate-200">${escapeHtml(p.name)}</span>
             <span class="text-[10px] text-indigo-300">${escapeHtml(p.status || '🟢 Active')}</span>
