@@ -87,7 +87,7 @@
       </div>
       <div>
         <h1 class="text-base font-bold tracking-tight text-white leading-none">WatchParty</h1>
-        <p class="text-[10px] font-medium text-indigo-300/80 tracking-wide leading-tight mt-0.5">Watch Together, Anywhere</p>
+        <p class="text-[10px] font-medium text-indigo-300/80 tracking-wide leading-tight mt-0.5">by Ashiqur Rahman Alif[cite: 1]</p>
       </div>
     </div>
 
@@ -118,7 +118,7 @@
           🎬
         </div>
         <h2 class="text-2xl font-black text-white tracking-tight">Watch Together, Anywhere</h2>
-        <p class="text-xs text-slate-400">Sync YouTube & videos instantly with friends.</p>
+        <p class="text-xs text-slate-400">Sync YouTube, Facebook & web videos instantly.</p>
       </div>
 
       <!-- Main Form Container -->
@@ -179,12 +179,12 @@
           <div class="text-center p-6">
             <div class="text-4xl mb-2">🎬</div>
             <p class="text-sm font-medium text-slate-300">No media loaded yet</p>
-            <p class="text-xs text-slate-500 mt-1">Tap Video below to load a link</p>
+            <p class="text-xs text-slate-500 mt-1">Tap Video below to add links or phone videos</p>
           </div>
         </div>
       </div>
 
-      <!-- Timestamp Comments Section (Sits Below Video) -->
+      <!-- Timestamp Comments Section -->
       <div class="w-full max-w-3xl bg-slate-900/90 border border-slate-800/80 rounded-2xl p-4 shadow-xl flex flex-col gap-3 shrink-0">
         <div class="flex items-center justify-between border-b border-slate-800/80 pb-2">
           <h3 class="font-bold text-xs text-white uppercase tracking-wider flex items-center gap-1.5">
@@ -226,6 +226,10 @@
       <button onclick="toggleModal('video-modal')" class="px-3.5 py-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-white text-xs font-semibold transition active:scale-95 flex items-center gap-1.5">
         <span>🎬</span>
         <span>Video</span>
+      </button>
+      <button onclick="toggleModal('queue-modal')" class="px-3.5 py-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-white text-xs font-semibold transition active:scale-95 flex items-center gap-1.5">
+        <span>📃</span>
+        <span>Queue (<span id="queue-count-badge">0</span>)</span>
       </button>
       <button onclick="toggleModal('history-modal')" class="px-3.5 py-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-white text-xs font-semibold transition active:scale-95 flex items-center gap-1.5">
         <span>📜</span>
@@ -273,15 +277,39 @@
   </div>
 
   <div id="video-modal" onclick="handleOutsideClick(event, 'video-modal')" class="hidden fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-    <div class="w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-2xl animate-pop-in">
+    <div class="w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-2xl animate-pop-in space-y-4">
       <div class="flex justify-between items-center border-b border-slate-800 pb-2 mb-3">
-        <h3 class="font-bold text-sm text-white">Load Video / Stream</h3>
+        <h3 class="font-bold text-sm text-white">Add Video to Queue</h3>
         <button onclick="toggleModal('video-modal')" class="text-slate-400 hover:text-white">✕</button>
       </div>
       <div class="space-y-3">
-        <input type="text" id="media-url-input" placeholder="https://www.youtube.com/watch?v=..." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-indigo-500" />
-        <button onclick="handleLoadMedia()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-2.5 rounded-xl text-xs transition shadow-lg shadow-indigo-600/20 active:scale-95">Play Video for Room</button>
+        <input type="text" id="media-url-input" placeholder="Paste YouTube, Facebook or Web URL..." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-indigo-500" />
+        <button onclick="handleAddMediaToQueue()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-2.5 rounded-xl text-xs transition shadow-lg shadow-indigo-600/20 active:scale-95">Add to Queue</button>
+        
+        <div class="relative flex py-1 items-center">
+          <div class="flex-grow border-t border-slate-800"></div>
+          <span class="flex-shrink mx-3 text-[10px] text-slate-500 uppercase tracking-widest font-semibold">or upload phone video</span>
+          <div class="flex-grow border-t border-slate-800"></div>
+        </div>
+
+        <label class="block w-full bg-slate-800 hover:bg-slate-700 text-white text-center font-semibold py-2.5 rounded-xl text-xs transition cursor-pointer border border-slate-700 active:scale-95">
+          📁 Choose Video from Phone / PC
+          <input type="file" id="local-video-file" accept="video/*" onchange="handleLocalVideoUpload(event)" class="hidden" />
+        </label>
       </div>
+    </div>
+  </div>
+
+  <!-- QUEUE MODAL -->
+  <div id="queue-modal" onclick="handleOutsideClick(event, 'queue-modal')" class="hidden fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-2xl animate-pop-in">
+      <div class="flex justify-between items-center border-b border-slate-800 pb-2 mb-3">
+        <h3 class="font-bold text-sm text-white">Video Queue</h3>
+        <button onclick="toggleModal('queue-modal')" class="text-slate-400 hover:text-white">✕</button>
+      </div>
+      <ul id="queue-list-container" class="space-y-2 max-h-56 overflow-y-auto text-xs">
+        <li class="text-slate-500 italic text-center py-4">Queue is empty.</li>
+      </ul>
     </div>
   </div>
 
@@ -307,6 +335,8 @@
     let hostPeerId = '';
     let roomPassword = '';
     let participants = [];
+    let videoQueue = [];
+    let activeMediaIndex = -1;
     let mediaHistory = [];
     let commentsList = [];
     let ytPlayer = null;
@@ -539,6 +569,98 @@
       container.scrollTop = container.scrollHeight;
     }
 
+    // Video Title Fetcher & Queue Management
+    function extractVideoTitle(url) {
+      if (url.startsWith('blob:')) return '📁 Local Phone Video';
+      if (url.includes('youtube.com') || url.includes('youtu.be')) return '📺 YouTube Video';
+      if (url.includes('facebook.com')) return '📘 Facebook Video';
+      try {
+        const u = new URL(url);
+        const segments = u.pathname.split('/').filter(Boolean);
+        if (segments.length > 0) return `🌐 ${segments[segments.length - 1]}`;
+        return `🌐 ${u.hostname}`;
+      } catch(e) {
+        return '🎬 Web Stream';
+      }
+    }
+
+    function handleAddMediaToQueue(urlOverride = null, titleOverride = null) {
+      const urlInput = urlOverride || document.getElementById('media-url-input').value.trim();
+      if (!urlInput) return;
+
+      const title = titleOverride || extractVideoTitle(urlInput);
+      const queueItem = { url: urlInput, title: title, addedBy: currentUser.name };
+
+      videoQueue.push(queueItem);
+      updateQueueUI();
+
+      broadcast({ type: 'QUEUE_UPDATE', payload: videoQueue });
+
+      if (!urlOverride) {
+        toggleModal('video-modal');
+        document.getElementById('media-url-input').value = '';
+      }
+      showToast('Added video to queue!', '📃');
+
+      // If nothing is playing right now, play this immediately
+      if (activeMediaIndex === -1 && videoQueue.length === 1) {
+        playQueueItem(0);
+      }
+    }
+
+    function handleLocalVideoUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const fileURL = URL.createObjectURL(file);
+      handleAddMediaToQueue(fileURL, `📁 ${file.name}`);
+      event.target.value = '';
+    }
+
+    function playQueueItem(index) {
+      if (index < 0 || index >= videoQueue.length) return;
+      activeMediaIndex = index;
+      const item = videoQueue[index];
+
+      renderMedia(item.url, item.title, item.addedBy);
+      broadcast({ type: 'PLAY_QUEUE_INDEX', payload: { index, url: item.url, title: item.title, playedBy: item.addedBy } });
+      updateQueueUI();
+    }
+
+    function removeQueueItem(index, event) {
+      event.stopPropagation();
+      videoQueue.splice(index, 1);
+      if (activeMediaIndex === index) {
+        activeMediaIndex = -1;
+      } else if (activeMediaIndex > index) {
+        activeMediaIndex--;
+      }
+      updateQueueUI();
+      broadcast({ type: 'QUEUE_UPDATE', payload: videoQueue });
+      showToast('Removed item from queue', '🗑️');
+    }
+
+    function updateQueueUI() {
+      document.getElementById('queue-count-badge').innerText = videoQueue.length;
+      const container = document.getElementById('queue-list-container');
+      if (videoQueue.length === 0) {
+        container.innerHTML = `<li class="text-slate-500 italic text-center py-4">Queue is empty.</li>`;
+        return;
+      }
+
+      container.innerHTML = videoQueue.map((item, idx) => `
+        <li onclick="playQueueItem(${idx})" class="p-2.5 rounded-xl bg-slate-800/60 border ${idx === activeMediaIndex ? 'border-indigo-500 bg-indigo-950/40' : 'border-slate-700/50'} flex items-center justify-between gap-2 cursor-pointer hover:bg-slate-700/50 transition">
+          <div class="flex flex-col min-w-0 flex-1">
+            <span class="font-medium text-indigo-300 truncate">${escapeHtml(item.title)}</span>
+            <span class="text-[10px] text-slate-400">Added by ${escapeHtml(item.addedBy)}</span>
+          </div>
+          <div class="flex items-center gap-1.5 shrink-0">
+            ${idx === activeMediaIndex ? '<span class="text-[10px] bg-indigo-600 text-white px-2 py-0.5 rounded-full font-semibold">Playing</span>' : ''}
+            <button onclick="removeQueueItem(${idx}, event)" class="p-1 text-slate-400 hover:text-rose-400 rounded-lg">✕</button>
+          </div>
+        </li>
+      `).join('');
+    }
+
     function generateSixDigitId() {
       return Math.floor(100000 + Math.random() * 900000).toString();
     }
@@ -757,6 +879,13 @@
             updateViewersUI();
             showToast(`${data.payload.name} joined!`, '👋');
             
+            // Sync current queue state to newly joined user
+            conn.send({ type: 'QUEUE_UPDATE', payload: videoQueue });
+            if (activeMediaIndex !== -1) {
+              const activeItem = videoQueue[activeMediaIndex];
+              conn.send({ type: 'PLAY_QUEUE_INDEX', payload: { index: activeMediaIndex, url: activeItem.url, title: activeItem.title, playedBy: activeItem.addedBy } });
+            }
+
             if (isMicActive && localStream) {
               callPeer(data.payload.id, localStream);
             }
@@ -773,8 +902,15 @@
           broadcast(data, conn);
           break;
 
-        case 'LOAD_MEDIA':
-          renderMedia(data.payload.url, data.payload.playedBy);
+        case 'QUEUE_UPDATE':
+          videoQueue = data.payload;
+          updateQueueUI();
+          break;
+
+        case 'PLAY_QUEUE_INDEX':
+          activeMediaIndex = data.payload.index;
+          renderMedia(data.payload.url, data.payload.title, data.payload.playedBy);
+          updateQueueUI();
           broadcast(data, conn);
           break;
 
@@ -820,22 +956,7 @@
       `).join('');
     }
 
-    function handleLoadMedia(urlOverride = null) {
-      const urlInput = urlOverride || document.getElementById('media-url-input').value.trim();
-      if (!urlInput) return;
-
-      const payload = { url: urlInput, playedBy: currentUser.name };
-      renderMedia(urlInput, currentUser.name);
-
-      const packet = { type: 'LOAD_MEDIA', payload };
-      broadcast(packet);
-
-      if (!urlOverride) toggleModal('video-modal');
-      document.getElementById('media-url-input').value = '';
-      showToast('Video loaded for party', '🎬');
-    }
-
-    function renderMedia(url, playedBy) {
+    function renderMedia(url, title, playedBy) {
       const container = document.getElementById('player-container');
       const ytMatch = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
 
@@ -855,12 +976,16 @@
         if (window.YT && window.YT.Player) {
           createYtPlayer(ytMatch[1]);
         }
+      } else if (url.includes('facebook.com')) {
+        // Embed Facebook video iframe handler
+        const encodedUrl = encodeURIComponent(url);
+        container.innerHTML = `<iframe src="https://www.facebook.com/plugins/video.php?href=${encodedUrl}&show_text=false&width=560" class="w-full h-full border-0" allowfullscreen="true" allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"></iframe>`;
       } else {
         container.innerHTML = `<video id="active-video-element" class="w-full h-full object-contain" controls autoplay src="${url}"></video>`;
         attachHtml5VideoSyncListeners();
       }
 
-      mediaHistory.unshift({ url, playedBy });
+      mediaHistory.unshift({ title, url, playedBy });
       updateHistoryUI();
     }
 
@@ -876,6 +1001,15 @@
 
     function onYtPlayerStateChange(event) {
       if (isSyncingFromPeer) return;
+
+      // Auto-play next video in queue when current video ends
+      if (event.data === YT.PlayerState.ENDED) {
+        if (isHost && activeMediaIndex !== -1 && activeMediaIndex + 1 < videoQueue.length) {
+          playQueueItem(activeMediaIndex + 1);
+        }
+        return;
+      }
+
       if (!ytPlayer || typeof ytPlayer.getCurrentTime !== 'function') return;
 
       const currentTime = ytPlayer.getCurrentTime();
@@ -900,6 +1034,12 @@
     function attachHtml5VideoSyncListeners() {
       const video = document.getElementById('active-video-element');
       if (!video || video.tagName !== 'VIDEO') return;
+
+      video.onended = () => {
+        if (isHost && activeMediaIndex !== -1 && activeMediaIndex + 1 < videoQueue.length) {
+          playQueueItem(activeMediaIndex + 1);
+        }
+      };
 
       ['play', 'pause', 'seeked'].forEach(eventType => {
         video.addEventListener(eventType, () => {
@@ -950,19 +1090,14 @@
       container.innerHTML = mediaHistory.map(item => `
         <li class="p-2.5 rounded-xl bg-slate-800/60 border border-slate-700/50 flex items-center justify-between gap-2">
           <div class="flex flex-col min-w-0 flex-1">
-            <span class="font-medium text-indigo-300 truncate">${escapeHtml(item.url)}</span>
-            <span class="text-[10px] text-slate-400">${escapeHtml(item.playedBy)}</span>
+            <span class="font-medium text-indigo-300 truncate">${escapeHtml(item.title)}</span>
+            <span class="text-[10px] text-slate-400">Played by ${escapeHtml(item.playedBy)}</span>
           </div>
-          <button onclick="playFromHistory('${escapeHtml(item.url)}')" class="px-2.5 py-1 bg-indigo-600/80 hover:bg-indigo-500 text-white rounded-lg text-xs font-semibold shrink-0 transition active:scale-95">
-            ▶ Play
+          <button onclick="handleAddMediaToQueue('${escapeHtml(item.url)}', '${escapeHtml(item.title)}'); toggleModal('history-modal');" class="px-2.5 py-1 bg-indigo-600/80 hover:bg-indigo-500 text-white rounded-lg text-xs font-semibold shrink-0 transition active:scale-95">
+            + Queue
           </button>
         </li>
       `).join('');
-    }
-
-    function playFromHistory(url) {
-      toggleModal('history-modal');
-      handleLoadMedia(url);
     }
 
     function sendReaction(emoji) {
