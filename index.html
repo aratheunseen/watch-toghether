@@ -170,20 +170,22 @@
           <div class="text-center p-6">
             <div class="text-4xl mb-2">🎬</div>
             <p class="text-sm font-medium text-slate-300">No media loaded yet</p>
-            <p class="text-xs text-slate-500 mt-1">Tap Video below to add links</p>
+            <p class="text-xs text-slate-500 mt-1">Tap Add below to load links</p>
           </div>
         </div>
       </div>
 
-      <!-- Video Control Deck Underneath Player -->
-      <div class="w-full max-w-3xl bg-slate-900/90 border border-slate-800/80 rounded-2xl px-4 py-2.5 shadow-lg flex items-center justify-between gap-3 shrink-0">
-        <div class="flex items-center gap-2">
-          <button onclick="triggerVideoControl('play')" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold transition active:scale-95">▶ / ⏸</button>
-          <button onclick="triggerVideoControl('skip')" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold transition active:scale-95">Next ⏭</button>
+      <!-- Video Control Deck Underneath Player (Previous, Next, Add, Queue, History, Mute) -->
+      <div class="w-full max-w-3xl bg-slate-900/90 border border-slate-800/80 rounded-2xl px-4 py-2.5 shadow-lg flex items-center justify-between gap-2 shrink-0 flex-wrap">
+        <div class="flex items-center gap-1.5 flex-wrap">
+          <button onclick="triggerVideoControl('prev')" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold transition active:scale-95">⏮ Prev</button>
+          <button onclick="triggerVideoControl('next')" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold transition active:scale-95">Next ⏭</button>
         </div>
-        <div class="flex items-center gap-2">
-          <button onclick="toggleMuteVideo()" id="inline-mute-btn" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold transition active:scale-95">🔊 Mute</button>
-          <button onclick="toggleFullscreen()" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold transition active:scale-95">⛶ Fullscreen</button>
+        <div class="flex items-center gap-1.5 flex-wrap">
+          <button onclick="toggleModal('video-modal')" class="px-3 py-1.5 rounded-xl bg-indigo-600/90 hover:bg-indigo-500 text-white text-xs font-semibold transition active:scale-95">➕ Add</button>
+          <button onclick="toggleModal('queue-modal')" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold transition active:scale-95">📃 Queue (<span id="queue-count-badge">0</span>)</button>
+          <button onclick="toggleModal('history-modal')" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold transition active:scale-95">📜 History</button>
+          <button onclick="toggleMuteVideo()" id="inline-mute-btn" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold transition active:scale-95">🔊 Mute</button>
         </div>
       </div>
 
@@ -223,21 +225,18 @@
       <button onclick="sendReaction('👏')" class="p-2 text-2xl hover:scale-125 transition active:scale-90">👏</button>
     </div>
 
-    <!-- Reordered Control Bar: Game on Left, Voice/PTT on Right -->
+    <!-- Bottom Bar: Game on Left, Icon-Only Voice & PTT on Right -->
     <div class="w-full max-w-2xl mx-auto flex items-center justify-between gap-2 border-t border-slate-800/60 pt-2 pb-1 flex-wrap">
       
-      <!-- Left Group: Games & Media Controls -->
-      <div class="flex items-center gap-1.5 flex-wrap">
-        <button onclick="toggleModal('games-modal')" class="px-3 py-1.5 rounded-xl bg-violet-600/90 hover:bg-violet-500 text-white text-xs font-semibold transition active:scale-95 shadow flex items-center gap-1">🎮 Games</button>
-        <button onclick="toggleModal('video-modal')" class="px-3 py-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-white text-xs font-semibold transition active:scale-95">🎬 Video</button>
-        <button onclick="toggleModal('queue-modal')" class="px-3 py-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-white text-xs font-semibold transition active:scale-95">📃 Queue (<span id="queue-count-badge">0</span>)</button>
-        <button onclick="toggleModal('history-modal')" class="px-3 py-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-white text-xs font-semibold transition active:scale-95">📜 History</button>
+      <!-- Left Side: Game Button -->
+      <div>
+        <button onclick="toggleModal('games-modal')" class="px-3.5 py-2 rounded-xl bg-violet-600/90 hover:bg-violet-500 text-white text-xs font-semibold transition active:scale-95 shadow flex items-center gap-1.5">🎮 Games</button>
       </div>
 
-      <!-- Right Group: Polished Voice Chat & Push-to-Talk (PTT) -->
-      <div class="flex items-center gap-1.5">
-        <button onclick="toggleVoiceChat()" id="mic-btn" class="px-3 py-1.5 rounded-xl bg-rose-600/90 hover:bg-rose-500 text-white text-xs font-semibold transition active:scale-95 shadow flex items-center gap-1">🎙️ <span id="mic-btn-text">Mic Off</span></button>
-        <button onmousedown="startPTT()" onmouseup="endPTT()" ontouchstart="startPTT()" ontouchend="endPTT()" id="ptt-btn" class="px-3 py-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 border border-slate-700 text-indigo-300 text-xs font-semibold transition active:scale-95 select-none shadow">⚡ PTT (Hold)</button>
+      <!-- Right Side: Icon-Only Voice Chat & Push-to-Talk -->
+      <div class="flex items-center gap-2">
+        <button onclick="toggleVoiceChat()" id="mic-btn" title="Voice Chat" class="w-10 h-10 rounded-xl bg-rose-600/90 hover:bg-rose-500 text-white text-base font-semibold transition active:scale-95 shadow flex items-center justify-center">🎙️</button>
+        <button onmousedown="startPTT()" onmouseup="endPTT()" ontouchstart="startPTT()" ontouchend="endPTT()" id="ptt-btn" title="Push-to-Talk (Hold)" class="w-10 h-10 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-indigo-300 text-base font-semibold transition active:scale-95 select-none shadow flex items-center justify-center">⚡</button>
       </div>
 
     </div>
@@ -262,7 +261,7 @@
     </div>
   </div>
 
-  <!-- GAMES MODAL (Tic-Tac-Toe & Guess the Draw / Pictionary) -->
+  <!-- GAMES MODAL (Tic-Tac-Toe & Guess the Draw) -->
   <div id="games-modal" onclick="handleOutsideClick(event, 'games-modal')" class="hidden fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
     <div class="w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-2xl animate-pop-in space-y-4">
       <div class="flex justify-between items-center border-b border-slate-800 pb-2">
@@ -270,15 +269,13 @@
         <button onclick="toggleModal('games-modal')" class="text-slate-400 hover:text-white">✕</button>
       </div>
       
-      <!-- Game Selector Tabs -->
       <div class="grid grid-cols-2 gap-2">
         <button onclick="switchGameTab('tictactoe')" id="tab-tictactoe" class="py-2 rounded-xl bg-indigo-600 text-white font-semibold text-xs transition">Tic-Tac-Toe</button>
         <button onclick="switchGameTab('draw')" id="tab-draw" class="py-2 rounded-xl bg-slate-800 text-slate-300 font-semibold text-xs transition">Guess the Draw</button>
       </div>
 
-      <!-- Tic-Tac-Toe Game Panel -->
       <div id="game-panel-tictactoe" class="space-y-3 pt-2">
-        <p class="text-center text-xs text-slate-400" id="ttt-status">Your turn (X)</p>
+        <p class="text-center text-xs text-slate-400" id="ttt-status">Turn (X)</p>
         <div class="grid grid-cols-3 gap-2 max-w-[220px] mx-auto">
           <button onclick="makeTttMove(0)" id="cell-0" class="w-16 h-16 bg-slate-950 border border-slate-800 rounded-xl text-2xl font-bold text-indigo-400 flex items-center justify-center hover:border-indigo-500"></button>
           <button onclick="makeTttMove(1)" id="cell-1" class="w-16 h-16 bg-slate-950 border border-slate-800 rounded-xl text-2xl font-bold text-indigo-400 flex items-center justify-center hover:border-indigo-500"></button>
@@ -293,15 +290,12 @@
         <button onclick="resetTttGame()" class="w-full bg-slate-800 hover:bg-slate-700 text-white py-2 rounded-xl text-xs font-semibold transition">Reset Board</button>
       </div>
 
-      <!-- Guess the Draw / Pictionary Panel -->
       <div id="game-panel-draw" class="hidden space-y-3 pt-2">
-        <p class="text-center text-xs text-slate-400">Draw a clue or guess what your friends draw!</p>
+        <p class="text-center text-xs text-slate-400">Draw a clue for friends!</p>
         <div class="relative w-full aspect-[4/3] bg-slate-950 border border-slate-800 rounded-xl overflow-hidden">
           <canvas id="drawing-canvas" class="w-full h-full cursor-crosshair"></canvas>
         </div>
-        <div class="flex items-center gap-2">
-          <button onclick="clearCanvas()" class="w-full bg-slate-800 hover:bg-slate-700 text-white py-2 rounded-xl text-xs font-semibold transition">Clear Canvas</button>
-        </div>
+        <button onclick="clearCanvas()" class="w-full bg-slate-800 hover:bg-slate-700 text-white py-2 rounded-xl text-xs font-semibold transition">Clear Canvas</button>
       </div>
 
     </div>
@@ -403,7 +397,6 @@
     let isMicActive = false;
     let typingTimeout = null;
 
-    // Tic-Tac-Toe State
     let tttBoard = ['', '', '', '', '', '', '', '', ''];
     let tttIsX = true;
 
@@ -480,26 +473,14 @@
       }
     }
 
-    function toggleFullscreen() {
-      const container = document.getElementById('video-frame-container');
-      if (!document.fullscreenElement) {
-        container.requestFullscreen().catch(() => {});
-      } else {
-        document.exitFullscreen();
-      }
-    }
-
     function triggerVideoControl(action) {
-      if (action === 'play') {
-        const video = document.getElementById('active-video-element');
-        if (video && video.tagName === 'VIDEO') {
-          if (video.paused) video.play(); else video.pause();
-        } else if (ytPlayer && typeof ytPlayer.getPlayerState === 'function') {
-          const state = ytPlayer.getPlayerState();
-          if (state === YT.PlayerState.PLAYING) ytPlayer.pauseVideo();
-          else ytPlayer.playVideo();
+      if (action === 'prev') {
+        if (activeMediaIndex > 0) {
+          playQueueItem(activeMediaIndex - 1);
+        } else {
+          showToast('This is the first video', '⚠️');
         }
-      } else if (action === 'skip') {
+      } else if (action === 'next') {
         if (activeMediaIndex !== -1 && activeMediaIndex + 1 < videoQueue.length) {
           playQueueItem(activeMediaIndex + 1);
         } else {
@@ -527,7 +508,6 @@
       }
     }
 
-    // Tic-Tac-Toe Logic
     function makeTttMove(idx) {
       if (tttBoard[idx] !== '') return;
       tttBoard[idx] = tttIsX ? 'X' : 'O';
@@ -563,7 +543,6 @@
       }
     }
 
-    // Guess the Draw (Canvas Pictionary) Logic
     let canvas, ctx, isDrawing = false;
     function setupDrawingCanvas() {
       canvas = document.getElementById('drawing-canvas');
@@ -615,9 +594,7 @@
       } catch(e) {}
     }
 
-    // Voice Chat & Push-to-Talk with Gorgeous UI Styling
     async function toggleVoiceChat() {
-      const micBtnText = document.getElementById('mic-btn-text');
       const micBtn = document.getElementById('mic-btn');
 
       if (!isMicActive) {
@@ -627,7 +604,6 @@
             video: false 
           });
           isMicActive = true;
-          micBtnText.innerText = 'Mic On';
           micBtn.classList.remove('bg-rose-600/90');
           micBtn.classList.add('bg-emerald-600', 'text-white', 'ring-2', 'ring-emerald-400/50');
           showToast('Microphone active!', '🎙️');
@@ -643,13 +619,11 @@
     }
 
     function muteMicrophone() {
-      const micBtnText = document.getElementById('mic-btn-text');
       const micBtn = document.getElementById('mic-btn');
       if (localStream) { localStream.getTracks().forEach(t => t.stop()); localStream = null; }
       activeCalls.forEach(c => { try { c.close(); } catch(e) {} });
       activeCalls = [];
       isMicActive = false;
-      micBtnText.innerText = 'Mic Off';
       micBtn.classList.remove('bg-emerald-600', 'ring-2', 'ring-emerald-400/50');
       micBtn.classList.add('bg-rose-600/90');
       showToast('Microphone muted.', '🔇');
