@@ -87,7 +87,7 @@
       </div>
       <div>
         <h1 class="text-base font-bold tracking-tight text-white leading-none">WatchParty</h1>
-        <p class="text-[10px] font-medium text-indigo-300/80 tracking-wide leading-tight mt-0.5">by Ashiqur Rahman Alif[cite: 1]</p>
+        <p class="text-[10px] font-medium text-indigo-300/80 tracking-wide leading-tight mt-0.5">by Ashiqur Rahman Alif</p>
       </div>
     </div>
 
@@ -170,7 +170,8 @@
     </div>
 
     <!-- ROOM MAIN VIEW -->
-    <div id="room-view" class="hidden w-full h-full flex flex-col justify-start items-center overflow-hidden relative">
+    <div id="room-view" class="hidden w-full h-full flex flex-col justify-start items-center overflow-y-auto relative pb-6 gap-3">
+      <!-- Video Frame Container -->
       <div id="video-frame-container" class="relative w-full max-w-3xl aspect-video bg-black rounded-2xl overflow-hidden shadow-2xl border border-slate-800/80 shrink-0 mt-1">
         <div id="reaction-stream-container"></div>
         <div id="player-container" class="w-full h-full flex items-center justify-center">
@@ -179,6 +180,42 @@
             <p class="text-sm font-medium text-slate-300">No media loaded yet</p>
             <p class="text-xs text-slate-500 mt-1">Tap Change Video below to load a link</p>
           </div>
+        </div>
+      </div>
+
+      <!-- Quick Action Buttons Under Video Player -->
+      <div class="w-full max-w-3xl flex items-center justify-between gap-2 px-1">
+        <div class="flex items-center gap-2">
+          <button onclick="toggleVoiceChat()" id="player-mic-btn" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold transition active:scale-95 flex items-center gap-1.5 border border-slate-700/60 shadow">
+            <span>🎙️</span>
+            <span id="player-mic-text">Voice Chat Off</span>
+          </button>
+        </div>
+        <div class="text-xs text-slate-400 font-medium">
+          💡 Click a timestamp in comments to jump to that moment
+        </div>
+      </div>
+
+      <!-- Timestamp Comments Section -->
+      <div class="w-full max-w-3xl bg-slate-900/90 border border-slate-800/80 rounded-2xl p-4 shadow-xl flex flex-col gap-3">
+        <div class="flex items-center justify-between border-b border-slate-800/80 pb-2">
+          <h3 class="font-bold text-xs text-white uppercase tracking-wider flex items-center gap-1.5">
+            <span>💬</span> Room Comments & Timestamps
+          </h3>
+          <span class="text-[10px] text-slate-400">Syncs instantly with everyone</span>
+        </div>
+
+        <!-- Comments List -->
+        <div id="comments-list" class="space-y-2 max-h-36 overflow-y-auto pr-1 text-xs">
+          <p class="text-slate-500 italic text-center py-2">No comments yet. Be the first to share a thought!</p>
+        </div>
+
+        <!-- Add Comment Input Form -->
+        <div class="flex items-center gap-2 pt-1">
+          <input type="text" id="comment-input" placeholder="Type a comment..." onkeydown="if(event.key==='Enter') sendComment()" class="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-indigo-500 shadow-inner" />
+          <button onclick="sendComment()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-xl font-semibold text-xs transition active:scale-95 shadow">
+            Send 🕒
+          </button>
         </div>
       </div>
     </div>
@@ -206,17 +243,9 @@
         <span>📜</span>
         <span>History</span>
       </button>
-      <button onclick="toggleVoiceChat()" id="mic-btn" class="px-3.5 py-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-white text-xs font-semibold transition active:scale-95 flex items-center gap-1.5">
-        <span>🎙️</span>
-        <span id="mic-btn-text">Mic Off</span>
-      </button>
       <button onclick="toggleMuteVideo()" id="mute-btn" class="px-3.5 py-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-white text-xs font-semibold transition active:scale-95 flex items-center gap-1.5">
         <span>🔊</span>
         <span id="mute-btn-text">Mute</span>
-      </button>
-      <button onclick="toggleFullscreen()" class="px-3.5 py-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-white text-xs font-semibold transition active:scale-95 flex items-center gap-1.5">
-        <span>⛶</span>
-        <span>Fullscreen</span>
       </button>
     </div>
   </footer>
@@ -287,6 +316,7 @@
     let roomPassword = '';
     let participants = [];
     let mediaHistory = [];
+    let commentsList = [];
     let ytPlayer = null;
     let syncInterval = null;
     let isSyncingFromPeer = false;
@@ -384,31 +414,20 @@
       }
     }
 
-    function toggleFullscreen() {
-      const frame = document.getElementById('video-frame-container');
-      if (!document.fullscreenElement) {
-        if (frame.requestFullscreen) frame.requestFullscreen();
-        else if (frame.webkitRequestFullscreen) frame.webkitRequestFullscreen();
-      } else {
-        if (document.exitFullscreen) document.exitFullscreen();
-      }
-    }
-
     // Voice Chat Management
     async function toggleVoiceChat() {
-      const micBtnText = document.getElementById('mic-btn-text');
-      const micBtn = document.getElementById('mic-btn');
+      const micBtnText = document.getElementById('player-mic-text');
+      const micBtn = document.getElementById('player-mic-btn');
 
       if (!isMicActive) {
         try {
           localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
           isMicActive = true;
-          micBtnText.innerText = 'Mic On';
-          micBtn.classList.remove('bg-slate-800/80');
+          micBtnText.innerText = 'Voice Chat On';
+          micBtn.classList.remove('bg-slate-800');
           micBtn.classList.add('bg-emerald-600', 'text-white');
           showToast('Microphone active!', '🎙️');
 
-          // Call existing connections if any
           connections.forEach(conn => callPeer(conn.peer, localStream));
           if (!isHost && hostConn && hostConn.open) {
             callPeer(hostPeerId, localStream);
@@ -427,9 +446,9 @@
         });
         activeCalls = [];
         isMicActive = false;
-        micBtnText.innerText = 'Mic Off';
+        micBtnText.innerText = 'Voice Chat Off';
         micBtn.classList.remove('bg-emerald-600');
-        micBtn.classList.add('bg-slate-800/80');
+        micBtn.classList.add('bg-slate-800');
         showToast('Microphone muted.', '🔇');
       }
     }
@@ -457,6 +476,76 @@
         container.appendChild(audioEl);
       }
       audioEl.srcObject = stream;
+    }
+
+    // Helper to format seconds into MM:SS
+    function formatTime(seconds) {
+      const mins = Math.floor(seconds / 60);
+      const secs = Math.floor(seconds % 60);
+      return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+    }
+
+    function getCurrentVideoTime() {
+      const video = document.getElementById('active-video-element');
+      if (video && video.tagName === 'VIDEO') {
+        return video.currentTime;
+      }
+      if (ytPlayer && typeof ytPlayer.getCurrentTime === 'function') {
+        return ytPlayer.getCurrentTime();
+      }
+      return 0;
+    }
+
+    function jumpToTime(seconds) {
+      const video = document.getElementById('active-video-element');
+      if (video && video.tagName === 'VIDEO') {
+        video.currentTime = seconds;
+      }
+      if (ytPlayer && typeof ytPlayer.seekTo === 'function') {
+        ytPlayer.seekTo(seconds, true);
+      }
+      showToast(`Jumped to ${formatTime(seconds)}`, '⏩');
+    }
+
+    function sendComment() {
+      const inputEl = document.getElementById('comment-input');
+      const text = inputEl.value.trim();
+      if (!text) return;
+
+      const currentTime = getCurrentVideoTime();
+      const commentData = {
+        name: currentUser.name,
+        text: text,
+        time: currentTime,
+        timeFormatted: formatTime(currentTime)
+      };
+
+      commentsList.push(commentData);
+      renderCommentsUI();
+      inputEl.value = '';
+
+      broadcast({ type: 'NEW_COMMENT', payload: commentData });
+    }
+
+    function renderCommentsUI() {
+      const container = document.getElementById('comments-list');
+      if (commentsList.length === 0) {
+        container.innerHTML = `<p class="text-slate-500 italic text-center py-2">No comments yet. Be the first to share a thought!</p>`;
+        return;
+      }
+
+      container.innerHTML = commentsList.map(c => `
+        <div class="flex items-center justify-between p-2 rounded-xl bg-slate-950/80 border border-slate-800/60 gap-2">
+          <div class="flex items-center gap-2 min-w-0 flex-1">
+            <span class="font-bold text-indigo-400 shrink-0">${escapeHtml(c.name)}:</span>
+            <span class="text-slate-200 truncate">${escapeHtml(c.text)}</span>
+          </div>
+          <button onclick="jumpToTime(${c.time})" class="px-2 py-0.5 rounded-lg bg-indigo-600/30 hover:bg-indigo-600/50 text-indigo-300 font-mono text-[10px] border border-indigo-500/30 shrink-0 transition active:scale-95">
+            ▶ ${c.timeFormatted}
+          </button>
+        </div>
+      `).join('');
+      container.scrollTop = container.scrollHeight;
     }
 
     function generateSixDigitId() {
@@ -499,12 +588,11 @@
         }, 150);
       });
 
-      // Handle incoming voice calls
       peer.on('call', (call) => {
         if (isMicActive && localStream) {
           call.answer(localStream);
         } else {
-          call.answer(); // Answer with empty stream or receive remote
+          call.answer();
         }
         activeCalls.push(call);
         call.on('stream', (remoteStream) => {
@@ -609,7 +697,6 @@
 
       hostConn.on('open', () => {
         clearTimeout(connectTimeout);
-        // If mic is already active, call the host immediately
         if (isMicActive && localStream) {
           callPeer(hostPeerId, localStream);
         }
@@ -679,7 +766,6 @@
             updateViewersUI();
             showToast(`${data.payload.name} joined!`, '👋');
             
-            // If host has mic active, call the newly joined peer back for audio
             if (isMicActive && localStream) {
               callPeer(data.payload.id, localStream);
             }
@@ -703,6 +789,12 @@
 
         case 'SYNC_STATE':
           applyVideoSync(data.payload, conn);
+          break;
+
+        case 'NEW_COMMENT':
+          commentsList.push(data.payload);
+          renderCommentsUI();
+          broadcast(data, conn);
           break;
       }
     }
