@@ -121,14 +121,11 @@
       </div>
 
       <div class="space-y-4">
-        
-        <!-- Profile Name Input -->
         <div class="space-y-1">
           <label class="block text-xs font-semibold text-slate-300">Your Name <span class="text-rose-400">*</span></label>
           <input type="text" id="display-name-input" placeholder="e.g. Alex" class="w-full bg-slate-950/90 border border-slate-800 rounded-2xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition shadow-inner" />
         </div>
 
-        <!-- Optional Host Password -->
         <details class="group text-xs bg-slate-950/60 border border-slate-800/80 rounded-2xl p-3.5">
           <summary class="cursor-pointer text-slate-300 font-medium list-none flex items-center justify-between select-none">
             <span>🔒 Optional Host Password</span>
@@ -178,6 +175,18 @@
         </div>
       </div>
 
+      <!-- Video Control Deck Underneath Player -->
+      <div class="w-full max-w-3xl bg-slate-900/90 border border-slate-800/80 rounded-2xl px-4 py-2.5 shadow-lg flex items-center justify-between gap-3 shrink-0">
+        <div class="flex items-center gap-2">
+          <button onclick="triggerVideoControl('play')" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold transition active:scale-95">▶ / ⏸</button>
+          <button onclick="triggerVideoControl('skip')" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold transition active:scale-95">Next ⏭</button>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="toggleMuteVideo()" id="inline-mute-btn" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold transition active:scale-95">🔊 Mute</button>
+          <button onclick="toggleFullscreen()" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold transition active:scale-95">⛶ Fullscreen</button>
+        </div>
+      </div>
+
       <!-- Comments Section -->
       <div class="w-full max-w-3xl bg-slate-900/90 border border-slate-800/80 rounded-2xl p-4 shadow-xl flex flex-col gap-3 shrink-0">
         <div class="flex items-center justify-between border-b border-slate-800/80 pb-2">
@@ -214,14 +223,23 @@
       <button onclick="sendReaction('👏')" class="p-2 text-2xl hover:scale-125 transition active:scale-90">👏</button>
     </div>
 
-    <div class="w-full max-w-xl mx-auto flex items-center justify-center gap-2 border-t border-slate-800/60 pt-2 pb-1 flex-wrap">
-      <button onclick="toggleModal('video-modal')" class="px-3 py-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-white text-xs font-semibold transition active:scale-95">🎬 Video</button>
-      <button onclick="toggleModal('queue-modal')" class="px-3 py-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-white text-xs font-semibold transition active:scale-95">📃 Queue (<span id="queue-count-badge">0</span>)</button>
-      <button onclick="toggleModal('history-modal')" class="px-3 py-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-white text-xs font-semibold transition active:scale-95">📜 History</button>
-      <button onclick="toggleModal('bingo-modal')" class="px-3 py-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-white text-xs font-semibold transition active:scale-95">🎲 Bingo</button>
-      <button onclick="toggleVoiceChat()" id="mic-btn" class="px-3 py-1.5 rounded-xl bg-rose-600/95 hover:bg-rose-500 text-white text-xs font-semibold transition active:scale-95 shadow">🎙️ <span id="mic-btn-text">Mic Off</span></button>
-      <button onmousedown="startPTT()" onmouseup="endPTT()" ontouchstart="startPTT()" ontouchend="endPTT()" id="ptt-btn" class="px-3 py-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-indigo-300 text-xs font-semibold transition active:scale-95 select-none">ptt (hold)</button>
-      <button onclick="toggleMuteVideo()" id="mute-btn" class="px-3 py-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-white text-xs font-semibold transition active:scale-95">🔊 <span id="mute-btn-text">Mute</span></button>
+    <!-- Reordered Control Bar: Game on Left, Voice/PTT on Right -->
+    <div class="w-full max-w-2xl mx-auto flex items-center justify-between gap-2 border-t border-slate-800/60 pt-2 pb-1 flex-wrap">
+      
+      <!-- Left Group: Games & Media Controls -->
+      <div class="flex items-center gap-1.5 flex-wrap">
+        <button onclick="toggleModal('games-modal')" class="px-3 py-1.5 rounded-xl bg-violet-600/90 hover:bg-violet-500 text-white text-xs font-semibold transition active:scale-95 shadow flex items-center gap-1">🎮 Games</button>
+        <button onclick="toggleModal('video-modal')" class="px-3 py-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-white text-xs font-semibold transition active:scale-95">🎬 Video</button>
+        <button onclick="toggleModal('queue-modal')" class="px-3 py-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-white text-xs font-semibold transition active:scale-95">📃 Queue (<span id="queue-count-badge">0</span>)</button>
+        <button onclick="toggleModal('history-modal')" class="px-3 py-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-white text-xs font-semibold transition active:scale-95">📜 History</button>
+      </div>
+
+      <!-- Right Group: Polished Voice Chat & Push-to-Talk (PTT) -->
+      <div class="flex items-center gap-1.5">
+        <button onclick="toggleVoiceChat()" id="mic-btn" class="px-3 py-1.5 rounded-xl bg-rose-600/90 hover:bg-rose-500 text-white text-xs font-semibold transition active:scale-95 shadow flex items-center gap-1">🎙️ <span id="mic-btn-text">Mic Off</span></button>
+        <button onmousedown="startPTT()" onmouseup="endPTT()" ontouchstart="startPTT()" ontouchend="endPTT()" id="ptt-btn" class="px-3 py-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 border border-slate-700 text-indigo-300 text-xs font-semibold transition active:scale-95 select-none shadow">⚡ PTT (Hold)</button>
+      </div>
+
     </div>
   </footer>
 
@@ -244,7 +262,52 @@
     </div>
   </div>
 
-  <!-- VIEWERS & STATUS / HOST CONTROL PANEL MODAL -->
+  <!-- GAMES MODAL (Tic-Tac-Toe & Guess the Draw / Pictionary) -->
+  <div id="games-modal" onclick="handleOutsideClick(event, 'games-modal')" class="hidden fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-2xl animate-pop-in space-y-4">
+      <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+        <h3 class="font-bold text-sm text-white">🎮 WatchParty Mini-Games</h3>
+        <button onclick="toggleModal('games-modal')" class="text-slate-400 hover:text-white">✕</button>
+      </div>
+      
+      <!-- Game Selector Tabs -->
+      <div class="grid grid-cols-2 gap-2">
+        <button onclick="switchGameTab('tictactoe')" id="tab-tictactoe" class="py-2 rounded-xl bg-indigo-600 text-white font-semibold text-xs transition">Tic-Tac-Toe</button>
+        <button onclick="switchGameTab('draw')" id="tab-draw" class="py-2 rounded-xl bg-slate-800 text-slate-300 font-semibold text-xs transition">Guess the Draw</button>
+      </div>
+
+      <!-- Tic-Tac-Toe Game Panel -->
+      <div id="game-panel-tictactoe" class="space-y-3 pt-2">
+        <p class="text-center text-xs text-slate-400" id="ttt-status">Your turn (X)</p>
+        <div class="grid grid-cols-3 gap-2 max-w-[220px] mx-auto">
+          <button onclick="makeTttMove(0)" id="cell-0" class="w-16 h-16 bg-slate-950 border border-slate-800 rounded-xl text-2xl font-bold text-indigo-400 flex items-center justify-center hover:border-indigo-500"></button>
+          <button onclick="makeTttMove(1)" id="cell-1" class="w-16 h-16 bg-slate-950 border border-slate-800 rounded-xl text-2xl font-bold text-indigo-400 flex items-center justify-center hover:border-indigo-500"></button>
+          <button onclick="makeTttMove(2)" id="cell-2" class="w-16 h-16 bg-slate-950 border border-slate-800 rounded-xl text-2xl font-bold text-indigo-400 flex items-center justify-center hover:border-indigo-500"></button>
+          <button onclick="makeTttMove(3)" id="cell-3" class="w-16 h-16 bg-slate-950 border border-slate-800 rounded-xl text-2xl font-bold text-indigo-400 flex items-center justify-center hover:border-indigo-500"></button>
+          <button onclick="makeTttMove(4)" id="cell-4" class="w-16 h-16 bg-slate-950 border border-slate-800 rounded-xl text-2xl font-bold text-indigo-400 flex items-center justify-center hover:border-indigo-500"></button>
+          <button onclick="makeTttMove(5)" id="cell-5" class="w-16 h-16 bg-slate-950 border border-slate-800 rounded-xl text-2xl font-bold text-indigo-400 flex items-center justify-center hover:border-indigo-500"></button>
+          <button onclick="makeTttMove(6)" id="cell-6" class="w-16 h-16 bg-slate-950 border border-slate-800 rounded-xl text-2xl font-bold text-indigo-400 flex items-center justify-center hover:border-indigo-500"></button>
+          <button onclick="makeTttMove(7)" id="cell-7" class="w-16 h-16 bg-slate-950 border border-slate-800 rounded-xl text-2xl font-bold text-indigo-400 flex items-center justify-center hover:border-indigo-500"></button>
+          <button onclick="makeTttMove(8)" id="cell-8" class="w-16 h-16 bg-slate-950 border border-slate-800 rounded-xl text-2xl font-bold text-indigo-400 flex items-center justify-center hover:border-indigo-500"></button>
+        </div>
+        <button onclick="resetTttGame()" class="w-full bg-slate-800 hover:bg-slate-700 text-white py-2 rounded-xl text-xs font-semibold transition">Reset Board</button>
+      </div>
+
+      <!-- Guess the Draw / Pictionary Panel -->
+      <div id="game-panel-draw" class="hidden space-y-3 pt-2">
+        <p class="text-center text-xs text-slate-400">Draw a clue or guess what your friends draw!</p>
+        <div class="relative w-full aspect-[4/3] bg-slate-950 border border-slate-800 rounded-xl overflow-hidden">
+          <canvas id="drawing-canvas" class="w-full h-full cursor-crosshair"></canvas>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="clearCanvas()" class="w-full bg-slate-800 hover:bg-slate-700 text-white py-2 rounded-xl text-xs font-semibold transition">Clear Canvas</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- VIEWERS & SETTINGS MODAL -->
   <div id="viewers-modal" onclick="handleOutsideClick(event, 'viewers-modal')" class="hidden fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
     <div class="w-full max-w-sm bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-2xl animate-pop-in space-y-4">
       <div class="flex justify-between items-center border-b border-slate-800 pb-2">
@@ -252,7 +315,6 @@
         <button onclick="toggleModal('viewers-modal')" class="text-slate-400 hover:text-white">✕</button>
       </div>
       
-      <!-- Status Badge Selector -->
       <div class="space-y-1">
         <label class="block text-[11px] font-semibold text-slate-300">My Status</label>
         <select id="user-status-select" onchange="updateMyStatus(this.value)" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500">
@@ -262,7 +324,6 @@
         </select>
       </div>
 
-      <!-- Host Control Lock Panel (Only active if host) -->
       <div id="host-settings-panel" class="hidden pt-2 border-t border-slate-800">
         <label class="flex items-center gap-2 cursor-pointer">
           <input type="checkbox" id="host-lock-toggle" onchange="toggleHostLock(this.checked)" class="rounded bg-slate-950 border-slate-700 text-indigo-600 focus:ring-0" />
@@ -271,27 +332,6 @@
       </div>
 
       <ul id="viewers-list-container" class="space-y-2 max-h-48 overflow-y-auto text-xs pt-1"></ul>
-    </div>
-  </div>
-
-  <!-- BINGO MODAL -->
-  <div id="bingo-modal" onclick="handleOutsideClick(event, 'bingo-modal')" class="hidden fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-    <div class="w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-2xl animate-pop-in space-y-4">
-      <div class="flex justify-between items-center border-b border-slate-800 pb-2">
-        <h3 class="font-bold text-sm text-white">🎲 Movie Trope Bingo</h3>
-        <button onclick="toggleModal('bingo-modal')" class="text-slate-400 hover:text-white">✕</button>
-      </div>
-      <div class="grid grid-cols-3 gap-2 text-center text-xs">
-        <button onclick="toggleBingoCell(this)" class="p-3 bg-slate-950 border border-slate-800 rounded-xl hover:border-indigo-500 transition">Main Character Trips</button>
-        <button onclick="toggleBingoCell(this)" class="p-3 bg-slate-950 border border-slate-800 rounded-xl hover:border-indigo-500 transition">Awkward Silence</button>
-        <button onclick="toggleBingoCell(this)" class="p-3 bg-slate-950 border border-slate-800 rounded-xl hover:border-indigo-500 transition">Bad CGI</button>
-        <button onclick="toggleBingoCell(this)" class="p-3 bg-slate-950 border border-slate-800 rounded-xl hover:border-indigo-500 transition">Jump Scare</button>
-        <button onclick="toggleBingoCell(this)" class="p-3 bg-indigo-950/60 border border-indigo-500 rounded-xl font-bold text-indigo-300">FREE SPACE</button>
-        <button onclick="toggleBingoCell(this)" class="p-3 bg-slate-950 border border-slate-800 rounded-xl hover:border-indigo-500 transition">Plot Armor</button>
-        <button onclick="toggleBingoCell(this)" class="p-3 bg-slate-950 border border-slate-800 rounded-xl hover:border-indigo-500 transition">Suspicious Noise</button>
-        <button onclick="toggleBingoCell(this)" class="p-3 bg-slate-950 border border-slate-800 rounded-xl hover:border-indigo-500 transition">Unexplained Explosion</button>
-        <button onclick="toggleBingoCell(this)" class="p-3 bg-slate-950 border border-slate-800 rounded-xl hover:border-indigo-500 transition">Credits Roll</button>
-      </div>
     </div>
   </div>
 
@@ -363,6 +403,10 @@
     let isMicActive = false;
     let typingTimeout = null;
 
+    // Tic-Tac-Toe State
+    let tttBoard = ['', '', '', '', '', '', '', '', ''];
+    let tttIsX = true;
+
     const RENDER_PEER_OPTIONS = {
       host: 'watchparty-hdbe.onrender.com',
       port: 443,
@@ -392,7 +436,6 @@
     }
 
     window.addEventListener('DOMContentLoaded', () => {
-      // Restore Persistent State if available
       const savedName = localStorage.getItem('wp_name');
       const savedRoom = localStorage.getItem('wp_room');
       const savedPass = localStorage.getItem('wp_pass');
@@ -410,6 +453,8 @@
         document.getElementById('join-code-input').value = inviteHost;
         if (invitePass) roomPassword = invitePass;
       }
+
+      setupDrawingCanvas();
     });
 
     function toggleModal(modalId) {
@@ -425,14 +470,133 @@
 
     function toggleMuteVideo() {
       const video = document.getElementById('active-video-element');
-      const textSpan = document.getElementById('mute-btn-text');
+      const textSpan = document.getElementById('inline-mute-btn');
       if (video && video.tagName === 'VIDEO') {
         video.muted = !video.muted;
-        textSpan.innerText = video.muted ? 'Unmute' : 'Mute';
+        textSpan.innerText = video.muted ? '🔊 Unmute' : '🔊 Mute';
       } else if (ytPlayer && typeof ytPlayer.isMuted === 'function') {
-        if (ytPlayer.isMuted()) { ytPlayer.unMute(); textSpan.innerText = 'Mute'; }
-        else { ytPlayer.mute(); textSpan.innerText = 'Unmute'; }
+        if (ytPlayer.isMuted()) { ytPlayer.unMute(); textSpan.innerText = '🔊 Mute'; }
+        else { ytPlayer.mute(); textSpan.innerText = '🔊 Unmute'; }
       }
+    }
+
+    function toggleFullscreen() {
+      const container = document.getElementById('video-frame-container');
+      if (!document.fullscreenElement) {
+        container.requestFullscreen().catch(() => {});
+      } else {
+        document.exitFullscreen();
+      }
+    }
+
+    function triggerVideoControl(action) {
+      if (action === 'play') {
+        const video = document.getElementById('active-video-element');
+        if (video && video.tagName === 'VIDEO') {
+          if (video.paused) video.play(); else video.pause();
+        } else if (ytPlayer && typeof ytPlayer.getPlayerState === 'function') {
+          const state = ytPlayer.getPlayerState();
+          if (state === YT.PlayerState.PLAYING) ytPlayer.pauseVideo();
+          else ytPlayer.playVideo();
+        }
+      } else if (action === 'skip') {
+        if (activeMediaIndex !== -1 && activeMediaIndex + 1 < videoQueue.length) {
+          playQueueItem(activeMediaIndex + 1);
+        } else {
+          showToast('No more videos in queue', '⚠️');
+        }
+      }
+    }
+
+    function switchGameTab(tabName) {
+      const tttTab = document.getElementById('tab-tictactoe');
+      const drawTab = document.getElementById('tab-draw');
+      const tttPanel = document.getElementById('game-panel-tictactoe');
+      const drawPanel = document.getElementById('game-panel-draw');
+
+      if (tabName === 'tictactoe') {
+        tttTab.className = 'py-2 rounded-xl bg-indigo-600 text-white font-semibold text-xs transition';
+        drawTab.className = 'py-2 rounded-xl bg-slate-800 text-slate-300 font-semibold text-xs transition';
+        tttPanel.classList.remove('hidden');
+        drawPanel.classList.add('hidden');
+      } else {
+        drawTab.className = 'py-2 rounded-xl bg-indigo-600 text-white font-semibold text-xs transition';
+        tttTab.className = 'py-2 rounded-xl bg-slate-800 text-slate-300 font-semibold text-xs transition';
+        drawPanel.classList.remove('hidden');
+        tttPanel.classList.add('hidden');
+      }
+    }
+
+    // Tic-Tac-Toe Logic
+    function makeTttMove(idx) {
+      if (tttBoard[idx] !== '') return;
+      tttBoard[idx] = tttIsX ? 'X' : 'O';
+      tttIsX = !tttIsX;
+      updateTttUI();
+      broadcast({ type: 'TTT_UPDATE', payload: { board: tttBoard, isX: tttIsX } });
+      checkTttWinner();
+    }
+
+    function updateTttUI() {
+      for (let i = 0; i < 9; i++) {
+        const cell = document.getElementById(`cell-${i}`);
+        cell.innerText = tttBoard[i];
+      }
+      document.getElementById('ttt-status').innerText = `Turn: ${tttIsX ? 'X' : 'O'}`;
+    }
+
+    function resetTttGame() {
+      tttBoard = ['', '', '', '', '', '', '', '', ''];
+      tttIsX = true;
+      updateTttUI();
+      broadcast({ type: 'TTT_UPDATE', payload: { board: tttBoard, isX: tttIsX } });
+    }
+
+    function checkTttWinner() {
+      const wins = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+      for (let w of wins) {
+        const [a, b, c] = w;
+        if (tttBoard[a] && tttBoard[a] === tttBoard[b] && tttBoard[a] === tttBoard[c]) {
+          showToast(`Player ${tttBoard[a]} Wins! 🎉`, '🏆');
+          return;
+        }
+      }
+    }
+
+    // Guess the Draw (Canvas Pictionary) Logic
+    let canvas, ctx, isDrawing = false;
+    function setupDrawingCanvas() {
+      canvas = document.getElementById('drawing-canvas');
+      if (!canvas) return;
+      ctx = canvas.getContext('2d');
+      canvas.width = canvas.parentElement.clientWidth;
+      canvas.height = canvas.parentElement.clientHeight;
+
+      ctx.strokeStyle = '#6366f1';
+      ctx.lineWidth = 3;
+      ctx.lineCap = 'round';
+
+      canvas.onmousedown = (e) => { isDrawing = true; ctx.beginPath(); ctx.moveTo(e.offsetX, e.offsetY); };
+      canvas.onmousemove = (e) => {
+        if (!isDrawing) return;
+        ctx.lineTo(e.offsetX, e.offsetY);
+        ctx.stroke();
+        broadcastCanvasData();
+      };
+      canvas.onmouseup = () => { isDrawing = false; };
+      canvas.onmouseleave = () => { isDrawing = false; };
+    }
+
+    function broadcastCanvasData() {
+      if (!canvas) return;
+      const dataUrl = canvas.toDataURL();
+      broadcast({ type: 'DRAW_UPDATE', payload: dataUrl });
+    }
+
+    function clearCanvas() {
+      if (!ctx || !canvas) return;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      broadcast({ type: 'DRAW_UPDATE', payload: canvas.toDataURL() });
     }
 
     function playSoundEffect() {
@@ -451,7 +615,7 @@
       } catch(e) {}
     }
 
-    // Voice Chat & Push-to-Talk (PTT) with Noise Suppression
+    // Voice Chat & Push-to-Talk with Gorgeous UI Styling
     async function toggleVoiceChat() {
       const micBtnText = document.getElementById('mic-btn-text');
       const micBtn = document.getElementById('mic-btn');
@@ -464,8 +628,8 @@
           });
           isMicActive = true;
           micBtnText.innerText = 'Mic On';
-          micBtn.classList.remove('bg-rose-600/95');
-          micBtn.classList.add('bg-emerald-600', 'text-white');
+          micBtn.classList.remove('bg-rose-600/90');
+          micBtn.classList.add('bg-emerald-600', 'text-white', 'ring-2', 'ring-emerald-400/50');
           showToast('Microphone active!', '🎙️');
 
           connections.forEach(conn => callPeer(conn.peer, localStream));
@@ -486,19 +650,18 @@
       activeCalls = [];
       isMicActive = false;
       micBtnText.innerText = 'Mic Off';
-      micBtn.classList.remove('bg-emerald-600');
-      micBtn.classList.add('bg-rose-600/95');
+      micBtn.classList.remove('bg-emerald-600', 'ring-2', 'ring-emerald-400/50');
+      micBtn.classList.add('bg-rose-600/90');
       showToast('Microphone muted.', '🔇');
     }
 
     async function startPTT() {
+      const pttBtn = document.getElementById('ptt-btn');
+      pttBtn.classList.add('bg-indigo-600', 'text-white', 'border-indigo-400', 'ring-2', 'ring-indigo-400/50');
       if (!isMicActive) {
         try {
           localStream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }, video: false });
           isMicActive = true;
-          document.getElementById('mic-btn-text').innerText = 'PTT Live';
-          document.getElementById('mic-btn').classList.remove('bg-rose-600/95');
-          document.getElementById('mic-btn').classList.add('bg-emerald-600', 'text-white');
           connections.forEach(conn => callPeer(conn.peer, localStream));
           if (!isHost && hostConn && hostConn.open) callPeer(hostPeerId, localStream);
         } catch(e) {}
@@ -506,10 +669,11 @@
     }
 
     function endPTT() {
+      const pttBtn = document.getElementById('ptt-btn');
+      pttBtn.classList.remove('bg-indigo-600', 'text-white', 'border-indigo-400', 'ring-2', 'ring-indigo-400/50');
       if (isMicActive) muteMicrophone();
     }
 
-    // Spacebar PTT shortcut
     window.addEventListener('keydown', (e) => {
       if (e.code === 'Space' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
         if (!isMicActive) startPTT();
@@ -621,12 +785,6 @@
         </div>
       `).join('');
       container.scrollTop = container.scrollHeight;
-    }
-
-    function toggleBingoCell(btn) {
-      btn.classList.toggle('bg-indigo-600');
-      btn.classList.toggle('text-white');
-      playSoundEffect();
     }
 
     async function fetchVideoTitle(url) {
@@ -965,6 +1123,23 @@
           commentsList.push(data.payload);
           renderCommentsUI();
           broadcast(data, conn);
+          break;
+
+        case 'TTT_UPDATE':
+          tttBoard = data.payload.board;
+          tttIsX = data.payload.isX;
+          updateTttUI();
+          break;
+
+        case 'DRAW_UPDATE':
+          if (ctx && canvas) {
+            const img = new Image();
+            img.onload = () => {
+              ctx.clearRect(0, 0, canvas.width, canvas.height);
+              ctx.drawImage(img, 0, 0);
+            };
+            img.src = data.payload;
+          }
           break;
 
         case 'TYPING':
