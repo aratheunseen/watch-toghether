@@ -76,6 +76,9 @@
   <!-- TOAST NOTIFICATION CONTAINER -->
   <div id="toast-container" class="fixed top-14 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center gap-2 pointer-events-none w-full max-w-xs px-4"></div>
 
+  <!-- AUDIO CONTAINER FOR REMOTE VOICES -->
+  <div id="audio-container" class="hidden"></div>
+
   <!-- HEADER BAR -->
   <header class="w-full bg-slate-900/80 backdrop-blur-md border-b border-slate-800/80 z-30 pt-safe px-4 py-2.5 flex items-center justify-between shadow-lg shrink-0">
     <div class="flex items-center gap-2.5">
@@ -84,7 +87,7 @@
       </div>
       <div>
         <h1 class="text-base font-bold tracking-tight text-white leading-none">WatchParty</h1>
-        <p class="text-[10px] font-medium text-indigo-300/80 tracking-wide leading-tight mt-0.5">by Ashiqur Rahman Alif</p>
+        <p class="text-[10px] font-medium text-indigo-300/80 tracking-wide leading-tight mt-0.5">by Ashiqur Rahman Alif[cite: 1]</p>
       </div>
     </div>
 
@@ -203,6 +206,10 @@
         <span>📜</span>
         <span>History</span>
       </button>
+      <button onclick="toggleVoiceChat()" id="mic-btn" class="px-3.5 py-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-white text-xs font-semibold transition active:scale-95 flex items-center gap-1.5">
+        <span>🎙️</span>
+        <span id="mic-btn-text">Mic Off</span>
+      </button>
       <button onclick="toggleMuteVideo()" id="mute-btn" class="px-3.5 py-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-white text-xs font-semibold transition active:scale-95 flex items-center gap-1.5">
         <span>🔊</span>
         <span id="mute-btn-text">Mute</span>
@@ -283,6 +290,11 @@
     let ytPlayer = null;
     let syncInterval = null;
     let isSyncingFromPeer = false;
+
+    // Voice Chat variables
+    let localStream = null;
+    let activeCalls = [];
+    let isMicActive = false;
 
     const RENDER_PEER_OPTIONS = {
       host: 'watchparty-hdbe.onrender.com',
@@ -382,6 +394,71 @@
       }
     }
 
+    // Voice Chat Management
+    async function toggleVoiceChat() {
+      const micBtnText = document.getElementById('mic-btn-text');
+      const micBtn = document.getElementById('mic-btn');
+
+      if (!isMicActive) {
+        try {
+          localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+          isMicActive = true;
+          micBtnText.innerText = 'Mic On';
+          micBtn.classList.remove('bg-slate-800/80');
+          micBtn.classList.add('bg-emerald-600', 'text-white');
+          showToast('Microphone active!', '🎙️');
+
+          // Call existing connections if any
+          connections.forEach(conn => callPeer(conn.peer, localStream));
+          if (!isHost && hostConn && hostConn.open) {
+            callPeer(hostPeerId, localStream);
+          }
+        } catch (err) {
+          console.error('Microphone access denied:', err);
+          showToast('Could not access microphone.', '⚠️');
+        }
+      } else {
+        if (localStream) {
+          localStream.getTracks().forEach(track => track.stop());
+          localStream = null;
+        }
+        activeCalls.forEach(call => {
+          try { call.close(); } catch(e) {}
+        });
+        activeCalls = [];
+        isMicActive = false;
+        micBtnText.innerText = 'Mic Off';
+        micBtn.classList.remove('bg-emerald-600');
+        micBtn.classList.add('bg-slate-800/80');
+        showToast('Microphone muted.', '🔇');
+      }
+    }
+
+    function callPeer(peerId, stream) {
+      if (!peer || !stream) return;
+      try {
+        const call = peer.call(peerId, stream);
+        if (call) {
+          activeCalls.push(call);
+          call.on('stream', (remoteStream) => {
+            playRemoteAudio(remoteStream, peerId);
+          });
+        }
+      } catch(e) {}
+    }
+
+    function playRemoteAudio(stream, peerId) {
+      const container = document.getElementById('audio-container');
+      let audioEl = document.getElementById(`audio-${peerId}`);
+      if (!audioEl) {
+        audioEl = document.createElement('audio');
+        audioEl.id = `audio-${peerId}`;
+        audioEl.autoplay = true;
+        container.appendChild(audioEl);
+      }
+      audioEl.srcObject = stream;
+    }
+
     function generateSixDigitId() {
       return Math.floor(100000 + Math.random() * 900000).toString();
     }
@@ -422,10 +499,22 @@
         }, 150);
       });
 
+      // Handle incoming voice calls
+      peer.on('call', (call) => {
+        if (isMicActive && localStream) {
+          call.answer(localStream);
+        } else {
+          call.answer(); // Answer with empty stream or receive remote
+        }
+        activeCalls.push(call);
+        call.on('stream', (remoteStream) => {
+          playRemoteAudio(remoteStream, call.peer);
+        });
+      });
+
       peer.on('error', (err) => {
         console.error('Peer error:', err);
         if (err.type === 'unavailable-id') {
-          // Retry automatically with a new 6-digit ID if collision occurs
           startParty();
         } else if (err.type === 'network') {
           showToast('Server is waking up. Please try again in 10 seconds.', '⚠️');
@@ -492,6 +581,17 @@
       if (!peer || peer.disconnected || peer.destroyed) {
         peer = new Peer(RENDER_PEER_OPTIONS);
         peer.on('open', () => executeConnectionToHost());
+        peer.on('call', (call) => {
+          if (isMicActive && localStream) {
+            call.answer(localStream);
+          } else {
+            call.answer();
+          }
+          activeCalls.push(call);
+          call.on('stream', (remoteStream) => {
+            playRemoteAudio(remoteStream, call.peer);
+          });
+        });
         peer.on('error', (err) => showToast(`Network error: ${err.type}`, '⚠️'));
         return;
       }
@@ -509,6 +609,10 @@
 
       hostConn.on('open', () => {
         clearTimeout(connectTimeout);
+        // If mic is already active, call the host immediately
+        if (isMicActive && localStream) {
+          callPeer(hostPeerId, localStream);
+        }
       });
 
       setupConnectionHandlers(hostConn);
@@ -544,7 +648,6 @@
       conn.on('data', (data) => {
         if (data.type === 'AUTH_RESPONSE') {
           if (!data.payload.success) {
-            // Show password modal if authorization failed
             toggleModal('password-prompt-modal');
             showToast(data.payload.message || 'Password required', '🔒');
             try { peer.destroy(); } catch(e) {}
@@ -575,6 +678,11 @@
             broadcast({ type: 'PARTICIPANTS_UPDATE', payload: participants });
             updateViewersUI();
             showToast(`${data.payload.name} joined!`, '👋');
+            
+            // If host has mic active, call the newly joined peer back for audio
+            if (isMicActive && localStream) {
+              callPeer(data.payload.id, localStream);
+            }
           }
           break;
 
@@ -615,7 +723,7 @@
       document.getElementById('bottom-emoji-deck').classList.add('flex');
       document.getElementById('header-room-info').classList.remove('hidden');
       document.getElementById('header-room-info').classList.add('flex');
-      document.getElementById('header-room-code').innerText = hostPeerId; // Shows full 6 digits clearly
+      document.getElementById('header-room-code').innerText = hostPeerId;
     }
 
     function updateViewersUI() {
