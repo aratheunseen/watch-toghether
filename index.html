@@ -126,13 +126,15 @@
           <input type="text" id="display-name-input" placeholder="e.g. Alex" class="w-full bg-slate-950/90 border border-slate-800 rounded-2xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition shadow-inner" />
         </div>
 
-        <details class="group text-xs bg-slate-950/60 border border-slate-800/80 rounded-2xl p-3.5">
-          <summary class="cursor-pointer text-slate-300 font-medium list-none flex items-center justify-between select-none">
-            <span>🔒 Optional Host Password</span>
+        <!-- Advanced Feature Dropdown for Host Password -->
+        <details class="group text-xs bg-slate-950/80 border border-slate-800 rounded-2xl p-3">
+          <summary class="cursor-pointer text-indigo-300 font-medium list-none flex items-center justify-between select-none">
+            <span class="flex items-center gap-1.5">⚙️ Advanced Features (Host Password)</span>
             <span class="group-open:rotate-180 transition-transform text-[10px]">▼</span>
           </summary>
-          <div class="pt-3 space-y-2">
-            <input type="password" id="host-password-input" placeholder="Set room password" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-indigo-500" />
+          <div class="pt-3 space-y-1.5 border-t border-slate-800/80 mt-2">
+            <label class="block text-[11px] font-semibold text-slate-400">Optional Room Password</label>
+            <input type="password" id="host-password-input" placeholder="Set room password" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-indigo-500" />
           </div>
         </details>
 
@@ -168,24 +170,33 @@
         <div id="reaction-stream-container"></div>
         <div id="player-container" class="w-full h-full flex items-center justify-center">
           <div class="text-center p-6">
-            <div class="text-3xl mb-1 text-slate-500">🍿</div>
+            <div class="text-3xl mb-1 text-slate-500">🎬</div>
             <p class="text-xs font-medium text-slate-300">No media loaded yet</p>
             <p class="text-[11px] text-slate-500 mt-0.5">Tap ➕ to add media links</p>
           </div>
         </div>
       </div>
 
-      <!-- Video Control Deck Under Video (Add, Queue, History, Mute) -->
-      <div class="w-full max-w-3xl bg-slate-900/90 border border-slate-800/80 rounded-xl px-3 py-1.5 shadow-md flex items-center justify-end gap-2 shrink-0">
-        <button onclick="toggleModal('video-modal')" title="Add Video" class="px-3 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold transition active:scale-90 shadow-md shadow-indigo-600/30 border border-indigo-400/40 flex items-center gap-1">
-          <span>➕</span>
-          <span>Add</span>
-        </button>
-        <button onclick="toggleModal('queue-modal')" title="Video Queue" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold transition active:scale-90 relative border border-slate-700/60">
-          📃 <span id="queue-count-badge" class="absolute -top-1 -right-1 bg-indigo-600 text-white text-[8px] font-bold w-3.5 h-3.5 rounded-full flex items-center justify-center">0</span>
-        </button>
-        <button onclick="toggleModal('history-modal')" title="Watch History" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold transition active:scale-90 border border-slate-700/60">📜</button>
-        <button onclick="toggleMuteVideo()" id="inline-mute-btn" title="Toggle Mute" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold transition active:scale-90 border border-slate-700/60">🔊</button>
+      <!-- Video Control Deck Under Video (Previous/Next on Left | Add/Queue/History/Mute on Right) -->
+      <div class="w-full max-w-3xl bg-slate-900/90 border border-slate-800/80 rounded-xl px-3 py-1.5 shadow-md flex items-center justify-between gap-2 shrink-0">
+        <!-- Left Side: Previous & Next Buttons -->
+        <div class="flex items-center gap-1.5">
+          <button onclick="triggerVideoControl('prev')" title="Previous Video" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold transition active:scale-90 border border-slate-700/60">⏮</button>
+          <button onclick="triggerVideoControl('next')" title="Next Video" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold transition active:scale-90 border border-slate-700/60">⏭</button>
+        </div>
+
+        <!-- Right Side: Add, Queue, History, Mute -->
+        <div class="flex items-center gap-1.5">
+          <button onclick="toggleModal('video-modal')" title="Add Video" class="px-3 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold transition active:scale-90 shadow-md shadow-indigo-600/30 border border-indigo-400/40 flex items-center gap-1">
+            <span>➕</span>
+            <span>Add</span>
+          </button>
+          <button onclick="toggleModal('queue-modal')" title="Video Queue" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold transition active:scale-90 relative border border-slate-700/60">
+            📃 <span id="queue-count-badge" class="absolute -top-1 -right-1 bg-indigo-600 text-white text-[8px] font-bold w-3.5 h-3.5 rounded-full flex items-center justify-center">0</span>
+          </button>
+          <button onclick="toggleModal('history-modal')" title="Watch History" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold transition active:scale-90 border border-slate-700/60">📜</button>
+          <button onclick="toggleMuteVideo()" id="inline-mute-btn" title="Toggle Mute" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold transition active:scale-90 border border-slate-700/60">🔊</button>
+        </div>
       </div>
 
       <!-- Comments Section -->
@@ -213,34 +224,35 @@
   </main>
 
   <!-- BOTTOM CONTROL BAR & REACTION DECK -->
-  <footer id="bottom-emoji-deck" class="hidden w-full bg-slate-900/90 border-t border-slate-800/80 backdrop-blur-md pb-safe pt-1.5 px-3 z-30 shrink-0 flex-col gap-1.5">
+  <footer id="bottom-emoji-deck" class="hidden w-full bg-slate-900/90 border-t border-slate-800/80 backdrop-blur-md pb-safe pt-2 px-3 z-30 shrink-0 flex-col gap-2">
+    <!-- Reaction Emoji Stream (No popcorn) -->
     <div class="max-w-xl mx-auto flex items-center justify-around gap-1 w-full">
-      <button onclick="sendReaction('🍿')" class="p-1 text-xl hover:scale-125 transition active:scale-90">🍿</button>
-      <button onclick="sendReaction('❤️')" class="p-1 text-xl hover:scale-125 transition active:scale-90">❤️</button>
-      <button onclick="sendReaction('😂')" class="p-1 text-xl hover:scale-125 transition active:scale-90">😂</button>
-      <button onclick="sendReaction('🔥')" class="p-1 text-xl hover:scale-125 transition active:scale-90">🔥</button>
-      <button onclick="sendReaction('😱')" class="p-1 text-xl hover:scale-125 transition active:scale-90">😱</button>
-      <button onclick="sendReaction('😭')" class="p-1 text-xl hover:scale-125 transition active:scale-90">😭</button>
-      <button onclick="sendReaction('👏')" class="p-1 text-xl hover:scale-125 transition active:scale-90">👏</button>
+      <button onclick="sendReaction('❤️')" class="p-1 text-2xl hover:scale-125 transition active:scale-90">❤️</button>
+      <button onclick="sendReaction('😂')" class="p-1 text-2xl hover:scale-125 transition active:scale-90">😂</button>
+      <button onclick="sendReaction('🔥')" class="p-1 text-2xl hover:scale-125 transition active:scale-90">🔥</button>
+      <button onclick="sendReaction('😱')" class="p-1 text-2xl hover:scale-125 transition active:scale-90">😱</button>
+      <button onclick="sendReaction('😭')" class="p-1 text-2xl hover:scale-125 transition active:scale-90">😭</button>
+      <button onclick="sendReaction('👏')" class="p-1 text-2xl hover:scale-125 transition active:scale-90">👏</button>
+      <button onclick="sendReaction('🎉')" class="p-1 text-2xl hover:scale-125 transition active:scale-90">🎉</button>
     </div>
 
-    <!-- Bottom Bar: Left Games Button | Right Voice & PTT -->
-    <div class="w-full max-w-2xl mx-auto flex items-center justify-between gap-2 border-t border-slate-800/60 pt-1.5 pb-0.5">
+    <!-- Bottom Bar: Left Games Button | Right Prominent Voice & Push-To-Talk -->
+    <div class="w-full max-w-2xl mx-auto flex items-center justify-between gap-2 border-t border-slate-800/60 pt-2 pb-1">
       
       <!-- Left Side: Games -->
       <div>
-        <button onclick="toggleModal('games-modal')" class="px-3 py-1 rounded-xl bg-violet-600/90 hover:bg-violet-500 text-white text-[11px] font-semibold transition active:scale-95 shadow flex items-center gap-1">
+        <button onclick="toggleModal('games-modal')" class="px-3 py-2 rounded-xl bg-violet-600/90 hover:bg-violet-500 text-white text-xs font-semibold transition active:scale-95 shadow flex items-center gap-1.5">
           <span>🎮</span>
           <span>Games</span>
         </button>
       </div>
 
-      <!-- Right Side: Voice Chat & Push-to-Talk -->
-      <div class="flex items-center gap-1.5">
-        <button onclick="toggleVoiceChat()" id="mic-btn" title="Voice Chat On/Off" class="w-7 h-7 rounded-lg bg-rose-600/90 hover:bg-rose-500 text-white text-xs font-bold transition active:scale-95 shadow flex items-center justify-center select-none">
+      <!-- Right Side: Prominent Larger Voice Chat & Push-to-Talk Buttons -->
+      <div class="flex items-center gap-2">
+        <button onclick="toggleVoiceChat()" id="mic-btn" title="Voice Chat On/Off" class="w-10 h-10 rounded-xl bg-rose-600/90 hover:bg-rose-500 text-white text-lg font-bold transition active:scale-95 shadow flex items-center justify-center select-none">
           🎙️
         </button>
-        <button onmousedown="startPTT()" onmouseup="endPTT()" ontouchstart="startPTT()" ontouchend="endPTT()" id="ptt-btn" title="Push-to-Talk (Hold)" class="w-7 h-7 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-indigo-300 text-xs font-bold transition active:scale-95 select-none shadow flex items-center justify-center">
+        <button onmousedown="startPTT()" onmouseup="endPTT()" ontouchstart="startPTT()" ontouchend="endPTT()" id="ptt-btn" title="Push-to-Talk (Hold)" class="w-10 h-10 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-indigo-300 text-lg font-bold transition active:scale-95 select-none shadow flex items-center justify-center">
           ⚡
         </button>
       </div>
@@ -286,7 +298,7 @@
     </div>
   </div>
 
-  <!-- VIEWERS & ROOM CONTROL MODAL (Attractive Same-Row Layout) -->
+  <!-- VIEWERS & ROOM CONTROL MODAL -->
   <div id="viewers-modal" onclick="handleOutsideClick(event, 'viewers-modal')" class="hidden fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
     <div class="w-full max-w-sm bg-slate-900/95 border border-slate-800 rounded-2xl p-4 shadow-2xl animate-pop-in space-y-3">
       <div class="flex justify-between items-center border-b border-slate-800/80 pb-2">
@@ -459,6 +471,22 @@
       } else if (ytPlayer && typeof ytPlayer.isMuted === 'function') {
         if (ytPlayer.isMuted()) { ytPlayer.unMute(); textSpan.innerText = '🔊'; }
         else { ytPlayer.mute(); textSpan.innerText = '🔇'; }
+      }
+    }
+
+    function triggerVideoControl(action) {
+      if (action === 'prev') {
+        if (activeMediaIndex > 0) {
+          playQueueItem(activeMediaIndex - 1);
+        } else {
+          showToast('This is the first video', '⚠️');
+        }
+      } else if (action === 'next') {
+        if (activeMediaIndex !== -1 && activeMediaIndex + 1 < videoQueue.length) {
+          playQueueItem(activeMediaIndex + 1);
+        } else {
+          showToast('No more videos in queue', '⚠️');
+        }
       }
     }
 
