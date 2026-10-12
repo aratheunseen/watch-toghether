@@ -87,7 +87,7 @@
       </div>
       <div>
         <h1 class="text-base font-bold tracking-tight text-white leading-none">WatchParty</h1>
-        <p class="text-[10px] font-medium text-indigo-300/80 tracking-wide leading-tight mt-0.5">by Ashiqur Rahman Alif[cite: 1]</p>
+        <p class="text-[10px] font-medium text-indigo-300/80 tracking-wide leading-tight mt-0.5">by Ashiqur Rahman Alif</p>
       </div>
     </div>
 
@@ -112,7 +112,6 @@
     <!-- SIMPLIFIED HOMEPAGE LOBBY CARD -->
     <div id="lobby-card" class="w-full max-w-md bg-slate-900/95 border border-slate-800/80 p-6 sm:p-8 rounded-3xl shadow-2xl backdrop-blur-2xl animate-pop-in my-auto space-y-6">
       
-      <!-- Brand & Welcome Header -->
       <div class="text-center space-y-1.5">
         <div class="inline-flex w-16 h-16 bg-gradient-to-tr from-indigo-600/20 to-violet-500/20 border border-indigo-500/30 rounded-2xl items-center justify-center text-3xl shadow-inner mb-1">
           🎬
@@ -121,7 +120,6 @@
         <p class="text-xs text-slate-400">Sync YouTube, Facebook & web videos instantly.</p>
       </div>
 
-      <!-- Main Form Container -->
       <div class="space-y-4">
         
         <!-- Profile Name Input -->
@@ -130,31 +128,44 @@
           <input type="text" id="display-name-input" placeholder="e.g. Alex" class="w-full bg-slate-950/90 border border-slate-800 rounded-2xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition shadow-inner" />
         </div>
 
-        <!-- Optional Host Password Settings Dropdown -->
+        <!-- Status Badge Selection -->
+        <div class="space-y-1">
+          <label class="block text-xs font-semibold text-slate-300">Status</label>
+          <select id="user-status-select" class="w-full bg-slate-950/90 border border-slate-800 rounded-2xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-indigo-500">
+            <option value="🟢 Active">🟢 Active</option>
+            <option value="🍿 Snack Break">🍿 Snack Break</option>
+            <option value="💤 AFK">💤 AFK</option>
+          </select>
+        </div>
+
+        <!-- Advanced Host Settings -->
         <details class="group text-xs bg-slate-950/60 border border-slate-800/80 rounded-2xl p-3.5">
           <summary class="cursor-pointer text-slate-300 font-medium list-none flex items-center justify-between select-none">
-            <span>🔒 Advanced Host Settings (Optional)</span>
+            <span>🔒 Advanced Host Settings</span>
             <span class="group-open:rotate-180 transition-transform text-[10px]">▼</span>
           </summary>
-          <div class="pt-3 space-y-2">
-            <label class="block text-[11px] text-slate-400">Room Password (Optional)</label>
-            <input type="password" id="host-password-input" placeholder="Set a room password" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-indigo-500" />
+          <div class="pt-3 space-y-3">
+            <div>
+              <label class="block text-[11px] text-slate-400 mb-1">Room Password (Optional)</label>
+              <input type="password" id="host-password-input" placeholder="Set room password" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500" />
+            </div>
+            <label class="flex items-center gap-2 cursor-pointer pt-1">
+              <input type="checkbox" id="host-lock-toggle" class="rounded bg-slate-900 border-slate-700 text-indigo-600 focus:ring-0" />
+              <span class="text-[11px] text-slate-300">Lock controls & queue to Host only</span>
+            </label>
           </div>
         </details>
 
-        <!-- Host Action Button -->
         <button onclick="startParty()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-3 rounded-2xl text-sm transition shadow-lg shadow-indigo-600/20 active:scale-95">
           🚀 Host Party
         </button>
 
-        <!-- Divider -->
         <div class="relative flex py-2 items-center">
           <div class="flex-grow border-t border-slate-800"></div>
           <span class="flex-shrink mx-3 text-[11px] text-slate-500 uppercase tracking-widest font-semibold">or join room</span>
           <div class="flex-grow border-t border-slate-800"></div>
         </div>
 
-        <!-- Join Room Section -->
         <div class="space-y-3">
           <div>
             <label class="block text-xs font-semibold text-slate-300 mb-1">Enter 6-Digit Code or Invite Link</label>
@@ -172,35 +183,33 @@
     <!-- ROOM MAIN VIEW -->
     <div id="room-view" class="hidden w-full h-full flex flex-col justify-start items-center overflow-y-auto relative pb-6 gap-3 shrink-0">
       
-      <!-- Video Frame Container (Stays Fixed on Top) -->
+      <!-- Video Frame Container -->
       <div id="video-frame-container" class="relative w-full max-w-3xl aspect-video bg-black rounded-2xl overflow-hidden shadow-2xl border border-slate-800/80 shrink-0 mt-1">
         <div id="reaction-stream-container"></div>
         <div id="player-container" class="w-full h-full flex items-center justify-center">
           <div class="text-center p-6">
             <div class="text-4xl mb-2">🎬</div>
             <p class="text-sm font-medium text-slate-300">No media loaded yet</p>
-            <p class="text-xs text-slate-500 mt-1">Tap Video below to add links or phone videos</p>
+            <p class="text-xs text-slate-500 mt-1">Tap Video below to add links</p>
           </div>
         </div>
       </div>
 
-      <!-- Timestamp Comments Section -->
+      <!-- Comments Section -->
       <div class="w-full max-w-3xl bg-slate-900/90 border border-slate-800/80 rounded-2xl p-4 shadow-xl flex flex-col gap-3 shrink-0">
         <div class="flex items-center justify-between border-b border-slate-800/80 pb-2">
           <h3 class="font-bold text-xs text-white uppercase tracking-wider flex items-center gap-1.5">
-            <span>💬</span> Comments
+            <span>💬</span> Room Chat
           </h3>
-          <span class="text-[10px] text-slate-400">Click timestamps to jump</span>
+          <span id="typing-indicator" class="text-[10px] text-indigo-400 italic"></span>
         </div>
 
-        <!-- Comments List -->
         <div id="comments-list" class="space-y-2 max-h-36 overflow-y-auto pr-1 text-xs">
-          <p class="text-slate-500 italic text-center py-2">No comments yet.</p>
+          <p class="text-slate-500 italic text-center py-2">No messages yet.</p>
         </div>
 
-        <!-- Add Comment Input Form -->
         <div class="flex items-center gap-2 pt-1">
-          <input type="text" id="comment-input" placeholder="Type a comment..." onkeydown="if(event.key==='Enter') sendComment()" class="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-indigo-500 shadow-inner" />
+          <input type="text" id="comment-input" placeholder="Type message or timestamp comment..." oninput="handleTypingInput()" onkeydown="if(event.key==='Enter') sendComment()" class="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-indigo-500 shadow-inner" />
           <button onclick="sendComment()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-xl font-semibold text-xs transition active:scale-95 shadow">
             Send 🕒
           </button>
@@ -223,26 +232,12 @@
     </div>
 
     <div class="w-full max-w-xl mx-auto flex items-center justify-center gap-2 border-t border-slate-800/60 pt-2 pb-1 flex-wrap">
-      <button onclick="toggleModal('video-modal')" class="px-3.5 py-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-white text-xs font-semibold transition active:scale-95 flex items-center gap-1.5">
-        <span>🎬</span>
-        <span>Video</span>
-      </button>
-      <button onclick="toggleModal('queue-modal')" class="px-3.5 py-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-white text-xs font-semibold transition active:scale-95 flex items-center gap-1.5">
-        <span>📃</span>
-        <span>Queue (<span id="queue-count-badge">0</span>)</span>
-      </button>
-      <button onclick="toggleModal('history-modal')" class="px-3.5 py-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-white text-xs font-semibold transition active:scale-95 flex items-center gap-1.5">
-        <span>📜</span>
-        <span>History</span>
-      </button>
-      <button onclick="toggleVoiceChat()" id="mic-btn" class="px-3.5 py-1.5 rounded-xl bg-rose-600/90 hover:bg-rose-500 text-white text-xs font-semibold transition active:scale-95 flex items-center gap-1.5 shadow">
-        <span>🎙️</span>
-        <span id="mic-btn-text">Mic Off</span>
-      </button>
-      <button onclick="toggleMuteVideo()" id="mute-btn" class="px-3.5 py-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-white text-xs font-semibold transition active:scale-95 flex items-center gap-1.5">
-        <span>🔊</span>
-        <span id="mute-btn-text">Mute</span>
-      </button>
+      <button onclick="toggleModal('video-modal')" class="px-3 py-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-white text-xs font-semibold transition active:scale-95 flex items-center gap-1">🎬 Video</button>
+      <button onclick="toggleModal('queue-modal')" class="px-3 py-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-white text-xs font-semibold transition active:scale-95 flex items-center gap-1">📃 Queue (<span id="queue-count-badge">0</span>)</button>
+      <button onclick="toggleModal('history-modal')" class="px-3 py-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-white text-xs font-semibold transition active:scale-95 flex items-center gap-1">📜 History</button>
+      <button onclick="toggleModal('bingo-modal')" class="px-3 py-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-white text-xs font-semibold transition active:scale-95 flex items-center gap-1">🎲 Bingo</button>
+      <button onclick="toggleVoiceChat()" id="mic-btn" class="px-3 py-1.5 rounded-xl bg-rose-600/90 hover:bg-rose-500 text-white text-xs font-semibold transition active:scale-95 flex items-center gap-1 shadow">🎙️ <span id="mic-btn-text">Mic Off</span></button>
+      <button onclick="toggleMuteVideo()" id="mute-btn" class="px-3 py-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-white text-xs font-semibold transition active:scale-95 flex items-center gap-1">🔊 <span id="mute-btn-text">Mute</span></button>
     </div>
   </footer>
 
@@ -265,35 +260,50 @@
     </div>
   </div>
 
-  <!-- MODALS -->
+  <!-- VIEWERS & DIRECT MESSAGE MODAL -->
   <div id="viewers-modal" onclick="handleOutsideClick(event, 'viewers-modal')" class="hidden fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-    <div class="w-full max-w-xs bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-2xl animate-pop-in">
-      <div class="flex justify-between items-center border-b border-slate-800 pb-2 mb-3">
+    <div class="w-full max-w-sm bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-2xl animate-pop-in space-y-3">
+      <div class="flex justify-between items-center border-b border-slate-800 pb-2">
         <h3 class="font-bold text-sm text-white">Connected Viewers</h3>
         <button onclick="toggleModal('viewers-modal')" class="text-slate-400 hover:text-white">✕</button>
       </div>
-      <ul id="viewers-list-container" class="space-y-2 max-h-48 overflow-y-auto text-xs"></ul>
+      <ul id="viewers-list-container" class="space-y-2 max-h-56 overflow-y-auto text-xs"></ul>
     </div>
   </div>
 
+  <!-- BINGO MODAL -->
+  <div id="bingo-modal" onclick="handleOutsideClick(event, 'bingo-modal')" class="hidden fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-2xl animate-pop-in space-y-4">
+      <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+        <h3 class="font-bold text-sm text-white">🎲 Movie Trope Bingo</h3>
+        <button onclick="toggleModal('bingo-modal')" class="text-slate-400 hover:text-white">✕</button>
+      </div>
+      <div class="grid grid-cols-3 gap-2 text-center text-xs">
+        <button onclick="toggleBingoCell(this)" class="p-3 bg-slate-950 border border-slate-800 rounded-xl hover:border-indigo-500 transition">Main Character Trips</button>
+        <button onclick="toggleBingoCell(this)" class="p-3 bg-slate-950 border border-slate-800 rounded-xl hover:border-indigo-500 transition">Awkward Silence</button>
+        <button onclick="toggleBingoCell(this)" class="p-3 bg-slate-950 border border-slate-800 rounded-xl hover:border-indigo-500 transition">Bad CGI</button>
+        <button onclick="toggleBingoCell(this)" class="p-3 bg-slate-950 border border-slate-800 rounded-xl hover:border-indigo-500 transition">Jump Scare</button>
+        <button onclick="toggleBingoCell(this)" class="p-3 bg-indigo-950/60 border border-indigo-500 rounded-xl font-bold text-indigo-300">FREE SPACE</button>
+        <button onclick="toggleBingoCell(this)" class="p-3 bg-slate-950 border border-slate-800 rounded-xl hover:border-indigo-500 transition">Plot Armor</button>
+        <button onclick="toggleBingoCell(this)" class="p-3 bg-slate-950 border border-slate-800 rounded-xl hover:border-indigo-500 transition">Suspicious Noise</button>
+        <button onclick="toggleBingoCell(this)" class="p-3 bg-slate-950 border border-slate-800 rounded-xl hover:border-indigo-500 transition">Unexplained Explosion</button>
+        <button onclick="toggleBingoCell(this)" class="p-3 bg-slate-950 border border-slate-800 rounded-xl hover:border-indigo-500 transition">Credits Roll</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- VIDEO MODAL -->
   <div id="video-modal" onclick="handleOutsideClick(event, 'video-modal')" class="hidden fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
     <div class="w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-2xl animate-pop-in space-y-4">
-      <div class="flex justify-between items-center border-b border-slate-800 pb-2 mb-3">
+      <div class="flex justify-between items-center border-b border-slate-800 pb-2">
         <h3 class="font-bold text-sm text-white">Add Video to Queue</h3>
         <button onclick="toggleModal('video-modal')" class="text-slate-400 hover:text-white">✕</button>
       </div>
       <div class="space-y-3">
-        <input type="text" id="media-url-input" placeholder="Paste YouTube, Facebook or Web URL..." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-indigo-500" />
+        <input type="text" id="media-url-input" placeholder="Paste YouTube or Web URL..." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-indigo-500" />
         <button onclick="handleAddMediaToQueue()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-2.5 rounded-xl text-xs transition shadow-lg shadow-indigo-600/20 active:scale-95">Add to Queue</button>
-        
-        <div class="relative flex py-1 items-center">
-          <div class="flex-grow border-t border-slate-800"></div>
-          <span class="flex-shrink mx-3 text-[10px] text-slate-500 uppercase tracking-widest font-semibold">or upload phone video</span>
-          <div class="flex-grow border-t border-slate-800"></div>
-        </div>
-
         <label class="block w-full bg-slate-800 hover:bg-slate-700 text-white text-center font-semibold py-2.5 rounded-xl text-xs transition cursor-pointer border border-slate-700 active:scale-95">
-          📁 Choose Video from Phone / PC
+          📁 Choose Local Video File
           <input type="file" id="local-video-file" accept="video/*" onchange="handleLocalVideoUpload(event)" class="hidden" />
         </label>
       </div>
@@ -313,6 +323,7 @@
     </div>
   </div>
 
+  <!-- HISTORY MODAL -->
   <div id="history-modal" onclick="handleOutsideClick(event, 'history-modal')" class="hidden fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
     <div class="w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-2xl animate-pop-in">
       <div class="flex justify-between items-center border-b border-slate-800 pb-2 mb-3">
@@ -331,9 +342,10 @@
     let connections = [];
     let hostConn = null;
     let isHost = false;
-    let currentUser = { name: '', id: '' };
+    let currentUser = { name: '', id: '', status: '🟢 Active' };
     let hostPeerId = '';
     let roomPassword = '';
+    let hostControlsOnly = false;
     let participants = [];
     let videoQueue = [];
     let activeMediaIndex = -1;
@@ -343,10 +355,10 @@
     let syncInterval = null;
     let isSyncingFromPeer = false;
 
-    // Voice Chat variables
     let localStream = null;
     let activeCalls = [];
     let isMicActive = false;
+    let typingTimeout = null;
 
     const RENDER_PEER_OPTIONS = {
       host: 'watchparty-hdbe.onrender.com',
@@ -357,9 +369,7 @@
       config: {
         iceServers: [
           { urls: 'stun:stun.l.google.com:19302' },
-          { urls: 'stun:stun1.l.google.com:19302' },
-          { urls: 'stun:stun2.l.google.com:19302' },
-          { urls: 'stun:global.stun.twilio.com:3478' }
+          { urls: 'stun:stun1.l.google.com:19302' }
         ],
         iceCandidatePoolSize: 10
       }
@@ -375,48 +385,34 @@
     }
 
     function handleOutsideClick(event, modalId) {
-      if (event.target.id === modalId) {
-        toggleModal(modalId);
-      }
+      if (event.target.id === modalId) toggleModal(modalId);
     }
 
     window.addEventListener('DOMContentLoaded', () => {
-      const sampleNames = ['Alex', 'Cinephile', 'Sam', 'Nova', 'Pixel'];
-      document.getElementById('display-name-input').placeholder = `e.g. ${sampleNames[Math.floor(Math.random() * sampleNames.length)]}`;
+      // Restore from localStorage
+      const savedName = localStorage.getItem('wp_name');
+      if (savedName) document.getElementById('display-name-input').value = savedName;
 
-      // Wake up Render signaling server from cold start
-      showToast('Waking up party server...', '⏳');
-      fetch('https://watchparty-hdbe.onrender.com/myapp', { method: 'GET', mode: 'no-cors' })
-        .then(() => showToast('Server ready!', '✨'))
-        .catch(() => {});
+      fetch('https://watchparty-hdbe.onrender.com/myapp', { method: 'GET', mode: 'no-cors' }).catch(() => {});
 
       const urlParams = new URLSearchParams(window.location.search);
       const inviteHost = urlParams.get('host');
       const invitePass = urlParams.get('pass');
       if (inviteHost) {
         document.getElementById('join-code-input').value = inviteHost;
-        if (invitePass) {
-          roomPassword = invitePass;
-        }
+        if (invitePass) roomPassword = invitePass;
       }
     });
 
     function toggleModal(modalId) {
       const modal = document.getElementById(modalId);
-      if (!modal) return;
-      modal.classList.toggle('hidden');
+      if (modal) modal.classList.toggle('hidden');
     }
 
     function copyRoomLink() {
       let url = `${window.location.origin}${window.location.pathname}?host=${encodeURIComponent(hostPeerId)}`;
-      if (roomPassword) {
-        url += `&pass=${encodeURIComponent(roomPassword)}`;
-      }
-      navigator.clipboard.writeText(url).then(() => {
-        showToast('Invite link copied! Send this to your friend.', '📋');
-      }).catch(() => {
-        showToast('Failed to copy link', '⚠️');
-      });
+      if (roomPassword) url += `&pass=${encodeURIComponent(roomPassword)}`;
+      navigator.clipboard.writeText(url).then(() => showToast('Invite link copied!', '📋'));
     }
 
     function toggleMuteVideo() {
@@ -426,51 +422,58 @@
         video.muted = !video.muted;
         textSpan.innerText = video.muted ? 'Unmute' : 'Mute';
       } else if (ytPlayer && typeof ytPlayer.isMuted === 'function') {
-        if (ytPlayer.isMuted()) {
-          ytPlayer.unMute();
-          textSpan.innerText = 'Mute';
-        } else {
-          ytPlayer.mute();
-          textSpan.innerText = 'Unmute';
-        }
+        if (ytPlayer.isMuted()) { ytPlayer.unMute(); textSpan.innerText = 'Mute'; }
+        else { ytPlayer.mute(); textSpan.innerText = 'Unmute'; }
       }
     }
 
-    // Voice Chat Management (Green/Red Toggle)
+    // Audio SFX via Web Audio API
+    function playSoundEffect() {
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(587.33, ctx.currentTime); // D5 note
+        gain.gain.setValueAtTime(0.1, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.3);
+      } catch(e) {}
+    }
+
+    // Voice Chat with Noise Suppression
     async function toggleVoiceChat() {
       const micBtnText = document.getElementById('mic-btn-text');
       const micBtn = document.getElementById('mic-btn');
 
       if (!isMicActive) {
         try {
-          localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+          localStream = await navigator.mediaDevices.getUserMedia({ 
+            audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }, 
+            video: false 
+          });
           isMicActive = true;
           micBtnText.innerText = 'Mic On';
-          micBtn.classList.remove('bg-rose-600/90', 'hover:bg-rose-500');
-          micBtn.classList.add('bg-emerald-600', 'hover:bg-emerald-500', 'text-white');
+          micBtn.classList.remove('bg-rose-600/90');
+          micBtn.classList.add('bg-emerald-600', 'text-white');
           showToast('Microphone active!', '🎙️');
 
           connections.forEach(conn => callPeer(conn.peer, localStream));
-          if (!isHost && hostConn && hostConn.open) {
-            callPeer(hostPeerId, localStream);
-          }
+          if (!isHost && hostConn && hostConn.open) callPeer(hostPeerId, localStream);
         } catch (err) {
-          console.error('Microphone access denied:', err);
           showToast('Could not access microphone.', '⚠️');
         }
       } else {
-        if (localStream) {
-          localStream.getTracks().forEach(track => track.stop());
-          localStream = null;
-        }
-        activeCalls.forEach(call => {
-          try { call.close(); } catch(e) {}
-        });
+        if (localStream) { localStream.getTracks().forEach(t => t.stop()); localStream = null; }
+        activeCalls.forEach(c => { try { c.close(); } catch(e) {} });
         activeCalls = [];
         isMicActive = false;
         micBtnText.innerText = 'Mic Off';
-        micBtn.classList.remove('bg-emerald-600', 'hover:bg-emerald-500');
-        micBtn.classList.add('bg-rose-600/90', 'hover:bg-rose-500');
+        micBtn.classList.remove('bg-emerald-600');
+        micBtn.classList.add('bg-rose-600/90');
         showToast('Microphone muted.', '🔇');
       }
     }
@@ -481,9 +484,7 @@
         const call = peer.call(peerId, stream);
         if (call) {
           activeCalls.push(call);
-          call.on('stream', (remoteStream) => {
-            playRemoteAudio(remoteStream, peerId);
-          });
+          call.on('stream', (remoteStream) => playRemoteAudio(remoteStream, peerId));
         }
       } catch(e) {}
     }
@@ -500,6 +501,15 @@
       audioEl.srcObject = stream;
     }
 
+    // Typing Indicator Logic
+    function handleTypingInput() {
+      broadcast({ type: 'TYPING', payload: { name: currentUser.name, isTyping: true } });
+      clearTimeout(typingTimeout);
+      typingTimeout = setTimeout(() => {
+        broadcast({ type: 'TYPING', payload: { name: currentUser.name, isTyping: false } });
+      }, 1500);
+    }
+
     function formatTime(seconds) {
       const mins = Math.floor(seconds / 60);
       const secs = Math.floor(seconds % 60);
@@ -508,23 +518,15 @@
 
     function getCurrentVideoTime() {
       const video = document.getElementById('active-video-element');
-      if (video && video.tagName === 'VIDEO') {
-        return video.currentTime;
-      }
-      if (ytPlayer && typeof ytPlayer.getCurrentTime === 'function') {
-        return ytPlayer.getCurrentTime();
-      }
+      if (video && video.tagName === 'VIDEO') return video.currentTime;
+      if (ytPlayer && typeof ytPlayer.getCurrentTime === 'function') return ytPlayer.getCurrentTime();
       return 0;
     }
 
     function jumpToTime(seconds) {
       const video = document.getElementById('active-video-element');
-      if (video && video.tagName === 'VIDEO') {
-        video.currentTime = seconds;
-      }
-      if (ytPlayer && typeof ytPlayer.seekTo === 'function') {
-        ytPlayer.seekTo(seconds, true);
-      }
+      if (video && video.tagName === 'VIDEO') video.currentTime = seconds;
+      if (ytPlayer && typeof ytPlayer.seekTo === 'function') ytPlayer.seekTo(seconds, true);
       showToast(`Jumped to ${formatTime(seconds)}`, '⏩');
     }
 
@@ -544,17 +546,15 @@
       commentsList.push(commentData);
       renderCommentsUI();
       inputEl.value = '';
-
       broadcast({ type: 'NEW_COMMENT', payload: commentData });
     }
 
     function renderCommentsUI() {
       const container = document.getElementById('comments-list');
       if (commentsList.length === 0) {
-        container.innerHTML = `<p class="text-slate-500 italic text-center py-2">No comments yet.</p>`;
+        container.innerHTML = `<p class="text-slate-500 italic text-center py-2">No messages yet.</p>`;
         return;
       }
-
       container.innerHTML = commentsList.map(c => `
         <div class="flex items-center justify-between p-2 rounded-xl bg-slate-950/80 border border-slate-800/60 gap-2">
           <div class="flex items-center gap-2 min-w-0 flex-1">
@@ -569,31 +569,49 @@
       container.scrollTop = container.scrollHeight;
     }
 
-    // Video Title Fetcher & Queue Management
-    function extractVideoTitle(url) {
+    function toggleBingoCell(btn) {
+      btn.classList.toggle('bg-indigo-600');
+      btn.classList.toggle('text-white');
+      playSoundEffect();
+    }
+
+    // Auto-Fetch YouTube OEmbed Titles
+    async function fetchVideoTitle(url) {
       if (url.startsWith('blob:')) return '📁 Local Phone Video';
-      if (url.includes('youtube.com') || url.includes('youtu.be')) return '📺 YouTube Video';
+      if (url.includes('youtube.com') || url.includes('youtu.be')) {
+        try {
+          const res = await fetch(`https://www.youtube.com/oembed?url=${encodeURIComponent(url)}&format=json`);
+          if (res.ok) {
+            const data = await res.json();
+            if (data && data.title) return `📺 ${data.title}`;
+          }
+        } catch(e) {}
+        return '📺 YouTube Video';
+      }
       if (url.includes('facebook.com')) return '📘 Facebook Video';
       try {
         const u = new URL(url);
-        const segments = u.pathname.split('/').filter(Boolean);
-        if (segments.length > 0) return `🌐 ${segments[segments.length - 1]}`;
+        const segs = u.pathname.split('/').filter(Boolean);
+        if (segs.length > 0) return `🌐 ${segs[segs.length - 1]}`;
         return `🌐 ${u.hostname}`;
       } catch(e) {
         return '🎬 Web Stream';
       }
     }
 
-    function handleAddMediaToQueue(urlOverride = null, titleOverride = null) {
+    async function handleAddMediaToQueue(urlOverride = null, titleOverride = null) {
+      if (hostControlsOnly && !isHost) {
+        showToast('Host has locked queue controls!', '🔒');
+        return;
+      }
       const urlInput = urlOverride || document.getElementById('media-url-input').value.trim();
       if (!urlInput) return;
 
-      const title = titleOverride || extractVideoTitle(urlInput);
+      const title = titleOverride || await fetchVideoTitle(urlInput);
       const queueItem = { url: urlInput, title: title, addedBy: currentUser.name };
 
       videoQueue.push(queueItem);
       updateQueueUI();
-
       broadcast({ type: 'QUEUE_UPDATE', payload: videoQueue });
 
       if (!urlOverride) {
@@ -602,10 +620,7 @@
       }
       showToast('Added video to queue!', '📃');
 
-      // If nothing is playing right now, play this immediately
-      if (activeMediaIndex === -1 && videoQueue.length === 1) {
-        playQueueItem(0);
-      }
+      if (activeMediaIndex === -1 && videoQueue.length === 1) playQueueItem(0);
     }
 
     function handleLocalVideoUpload(event) {
@@ -617,6 +632,10 @@
     }
 
     function playQueueItem(index) {
+      if (hostControlsOnly && !isHost) {
+        showToast('Host has locked playback controls!', '🔒');
+        return;
+      }
       if (index < 0 || index >= videoQueue.length) return;
       activeMediaIndex = index;
       const item = videoQueue[index];
@@ -628,15 +647,12 @@
 
     function removeQueueItem(index, event) {
       event.stopPropagation();
+      if (hostControlsOnly && !isHost) return;
       videoQueue.splice(index, 1);
-      if (activeMediaIndex === index) {
-        activeMediaIndex = -1;
-      } else if (activeMediaIndex > index) {
-        activeMediaIndex--;
-      }
+      if (activeMediaIndex === index) activeMediaIndex = -1;
+      else if (activeMediaIndex > index) activeMediaIndex--;
       updateQueueUI();
       broadcast({ type: 'QUEUE_UPDATE', payload: videoQueue });
-      showToast('Removed item from queue', '🗑️');
     }
 
     function updateQueueUI() {
@@ -646,7 +662,6 @@
         container.innerHTML = `<li class="text-slate-500 italic text-center py-4">Queue is empty.</li>`;
         return;
       }
-
       container.innerHTML = videoQueue.map((item, idx) => `
         <li onclick="playQueueItem(${idx})" class="p-2.5 rounded-xl bg-slate-800/60 border ${idx === activeMediaIndex ? 'border-indigo-500 bg-indigo-950/40' : 'border-slate-700/50'} flex items-center justify-between gap-2 cursor-pointer hover:bg-slate-700/50 transition">
           <div class="flex flex-col min-w-0 flex-1">
@@ -673,14 +688,15 @@
         return;
       }
       currentUser.name = nameInput;
+      currentUser.status = document.getElementById('user-status-select').value;
       roomPassword = document.getElementById('host-password-input').value.trim();
+      hostControlsOnly = document.getElementById('host-lock-toggle').checked;
       isHost = true;
 
+      localStorage.setItem('wp_name', currentUser.name);
       showToast('Initializing room...', '🔄');
 
-      if (peer) {
-        try { peer.destroy(); } catch(e) {}
-      }
+      if (peer) { try { peer.destroy(); } catch(e) {} }
 
       const sixDigitId = generateSixDigitId();
       peer = new Peer(sixDigitId, RENDER_PEER_OPTIONS);
@@ -689,7 +705,7 @@
         currentUser.id = id;
         hostPeerId = id;
         setupUIForRoom();
-        participants = [{ id: currentUser.id, name: currentUser.name, isHost: true }];
+        participants = [{ id: currentUser.id, name: currentUser.name, status: currentUser.status, isHost: true }];
         updateViewersUI();
         showToast(`Room created! Code: ${id}`, '👑');
       });
@@ -702,26 +718,15 @@
       });
 
       peer.on('call', (call) => {
-        if (isMicActive && localStream) {
-          call.answer(localStream);
-        } else {
-          call.answer();
-        }
+        if (isMicActive && localStream) call.answer(localStream);
+        else call.answer();
         activeCalls.push(call);
-        call.on('stream', (remoteStream) => {
-          playRemoteAudio(remoteStream, call.peer);
-        });
+        call.on('stream', (remoteStream) => playRemoteAudio(remoteStream, call.peer));
       });
 
       peer.on('error', (err) => {
-        console.error('Peer error:', err);
-        if (err.type === 'unavailable-id') {
-          startParty();
-        } else if (err.type === 'network') {
-          showToast('Server is waking up. Please try again in 10 seconds.', '⚠️');
-        } else {
-          showToast(`Connection error: ${err.type}`, '⚠️');
-        }
+        if (err.type === 'unavailable-id') startParty();
+        else showToast(`Connection error: ${err.type}`, '⚠️');
       });
     }
 
@@ -733,10 +738,12 @@
         return;
       }
       currentUser.name = nameInput;
+      currentUser.status = document.getElementById('user-status-select').value;
+      localStorage.setItem('wp_name', currentUser.name);
 
       let targetInput = document.getElementById('join-code-input').value.trim();
       if (!targetInput) {
-        showToast('Please enter the 6-digit room code or invite link!', '⚠️');
+        showToast('Please enter the 6-digit room code!', '⚠️');
         return;
       }
 
@@ -751,49 +758,33 @@
 
       hostPeerId = targetInput;
       isHost = false;
-
       connectToHostRoom();
     }
 
     function closePasswordPrompt() {
       document.getElementById('password-prompt-modal').classList.add('hidden');
-      if (peer) {
-        try { peer.destroy(); } catch(e) {}
-        peer = null;
-      }
+      if (peer) { try { peer.destroy(); } catch(e) {} peer = null; }
     }
 
     function confirmPasswordAndJoin() {
-      const passInput = document.getElementById('modal-password-input').value.trim();
-      roomPassword = passInput;
+      roomPassword = document.getElementById('modal-password-input').value.trim();
       document.getElementById('password-prompt-modal').classList.add('hidden');
-      
-      if (peer) {
-        try { peer.destroy(); } catch(e) {}
-        peer = null;
-      }
-      
+      if (peer) { try { peer.destroy(); } catch(e) {} peer = null; }
       connectToHostRoom();
     }
 
     function connectToHostRoom() {
       showToast(`Connecting to room ${hostPeerId}...`, '⏳');
-
       if (!peer || peer.disconnected || peer.destroyed) {
         peer = new Peer(RENDER_PEER_OPTIONS);
         peer.on('open', () => executeConnectionToHost());
         peer.on('call', (call) => {
-          if (isMicActive && localStream) {
-            call.answer(localStream);
-          } else {
-            call.answer();
-          }
+          if (isMicActive && localStream) call.answer(localStream);
+          else call.answer();
           activeCalls.push(call);
-          call.on('stream', (remoteStream) => {
-            playRemoteAudio(remoteStream, call.peer);
-          });
+          call.on('stream', (remoteStream) => playRemoteAudio(remoteStream, call.peer));
         });
-        peer.on('error', (err) => showToast(`Network error: ${err.type}`, '⚠️'));
+        peer.on('error', () => showToast('Network connection error', '⚠️'));
         return;
       }
       executeConnectionToHost();
@@ -801,20 +792,14 @@
 
     function executeConnectionToHost() {
       hostConn = peer.connect(hostPeerId, { reliable: true });
-
       const connectTimeout = setTimeout(() => {
-        if (!hostConn || !hostConn.open) {
-          showToast('Connection timed out. Check the 6-digit code or ensure host is online.', '⚠️');
-        }
+        if (!hostConn || !hostConn.open) showToast('Connection timed out. Host might be offline.', '⚠️');
       }, 15000);
 
       hostConn.on('open', () => {
         clearTimeout(connectTimeout);
-        if (isMicActive && localStream) {
-          callPeer(hostPeerId, localStream);
-        }
+        if (isMicActive && localStream) callPeer(hostPeerId, localStream);
       });
-
       setupConnectionHandlers(hostConn);
     }
 
@@ -855,40 +840,31 @@
           }
           setupUIForRoom();
           showToast(`Connected to Party!`, '🍿');
-          conn.send({ type: 'HANDSHAKE', payload: { name: currentUser.name, id: currentUser.id } });
+          conn.send({ type: 'HANDSHAKE', payload: { name: currentUser.name, status: currentUser.status, id: currentUser.id } });
           return;
         }
         handleIncomingPeerData(data, conn);
       });
 
-      conn.on('error', () => {
-        showToast('Connection failed. Host might be offline.', '⚠️');
-      });
-
-      conn.on('close', () => {
-        showToast('Disconnected from party.', '⚠️');
-      });
+      conn.on('error', () => showToast('Connection failed.', '⚠️'));
+      conn.on('close', () => showToast('Disconnected from party.', '⚠️'));
     }
 
     function handleIncomingPeerData(data, conn) {
       switch (data.type) {
         case 'HANDSHAKE':
           if (isHost) {
-            participants.push({ id: data.payload.id, name: data.payload.name, isHost: false });
+            participants.push({ id: data.payload.id, name: data.payload.name, status: data.payload.status, isHost: false });
             broadcast({ type: 'PARTICIPANTS_UPDATE', payload: participants });
             updateViewersUI();
             showToast(`${data.payload.name} joined!`, '👋');
             
-            // Sync current queue state to newly joined user
             conn.send({ type: 'QUEUE_UPDATE', payload: videoQueue });
             if (activeMediaIndex !== -1) {
               const activeItem = videoQueue[activeMediaIndex];
               conn.send({ type: 'PLAY_QUEUE_INDEX', payload: { index: activeMediaIndex, url: activeItem.url, title: activeItem.title, playedBy: activeItem.addedBy } });
             }
-
-            if (isMicActive && localStream) {
-              callPeer(data.payload.id, localStream);
-            }
+            if (isMicActive && localStream) callPeer(data.payload.id, localStream);
           }
           break;
 
@@ -899,6 +875,7 @@
 
         case 'REACTION':
           triggerFloatingEmoji(data.payload.emoji);
+          playSoundEffect();
           broadcast(data, conn);
           break;
 
@@ -923,16 +900,18 @@
           renderCommentsUI();
           broadcast(data, conn);
           break;
+
+        case 'TYPING':
+          const ind = document.getElementById('typing-indicator');
+          if (data.payload.isTyping) ind.innerText = `${data.payload.name} is typing...`;
+          else ind.innerText = '';
+          break;
       }
     }
 
     function broadcast(data, excludeConn = null) {
-      connections.forEach(conn => {
-        if (conn !== excludeConn && conn.open) conn.send(data);
-      });
-      if (!isHost && hostConn && hostConn !== excludeConn && hostConn.open) {
-        hostConn.send(data);
-      }
+      connections.forEach(conn => { if (conn !== excludeConn && conn.open) conn.send(data); });
+      if (!isHost && hostConn && hostConn !== excludeConn && hostConn.open) hostConn.send(data);
     }
 
     function setupUIForRoom() {
@@ -950,7 +929,10 @@
       const container = document.getElementById('viewers-list-container');
       container.innerHTML = participants.map(p => `
         <li class="flex items-center justify-between p-2 rounded-xl bg-slate-800/60 border border-slate-700/50">
-          <span class="font-medium text-slate-200">${escapeHtml(p.name)}</span>
+          <div class="flex flex-col">
+            <span class="font-medium text-slate-200">${escapeHtml(p.name)}</span>
+            <span class="text-[10px] text-indigo-300">${escapeHtml(p.status || '🟢 Active')}</span>
+          </div>
           ${p.isHost ? '<span class="text-xs bg-indigo-600/30 text-indigo-300 px-2 py-0.5 rounded-full border border-indigo-500/30">👑 Host</span>' : ''}
         </li>
       `).join('');
@@ -970,16 +952,10 @@
           tag.src = "https://www.youtube.com/iframe_api";
           document.head.appendChild(tag);
         }
-        window.onYouTubeIframeAPIReady = () => {
-          createYtPlayer(ytMatch[1]);
-        };
-        if (window.YT && window.YT.Player) {
-          createYtPlayer(ytMatch[1]);
-        }
+        window.onYouTubeIframeAPIReady = () => createYtPlayer(ytMatch[1]);
+        if (window.YT && window.YT.Player) createYtPlayer(ytMatch[1]);
       } else if (url.includes('facebook.com')) {
-        // Embed Facebook video iframe handler
-        const encodedUrl = encodeURIComponent(url);
-        container.innerHTML = `<iframe src="https://www.facebook.com/plugins/video.php?href=${encodedUrl}&show_text=false&width=560" class="w-full h-full border-0" allowfullscreen="true" allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"></iframe>`;
+        container.innerHTML = `<iframe src="https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(url)}&show_text=false&width=560" class="w-full h-full border-0" allowfullscreen="true" allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"></iframe>`;
       } else {
         container.innerHTML = `<video id="active-video-element" class="w-full h-full object-contain" controls autoplay src="${url}"></video>`;
         attachHtml5VideoSyncListeners();
@@ -993,23 +969,16 @@
       ytPlayer = new YT.Player('youtube-player-element', {
         videoId: videoId,
         playerVars: { 'autoplay': 1, 'enablejsapi': 1 },
-        events: {
-          'onStateChange': onYtPlayerStateChange
-        }
+        events: { 'onStateChange': onYtPlayerStateChange }
       });
     }
 
     function onYtPlayerStateChange(event) {
       if (isSyncingFromPeer) return;
-
-      // Auto-play next video in queue when current video ends
       if (event.data === YT.PlayerState.ENDED) {
-        if (isHost && activeMediaIndex !== -1 && activeMediaIndex + 1 < videoQueue.length) {
-          playQueueItem(activeMediaIndex + 1);
-        }
+        if (isHost && activeMediaIndex !== -1 && activeMediaIndex + 1 < videoQueue.length) playQueueItem(activeMediaIndex + 1);
         return;
       }
-
       if (!ytPlayer || typeof ytPlayer.getCurrentTime !== 'function') return;
 
       const currentTime = ytPlayer.getCurrentTime();
@@ -1036,51 +1005,37 @@
       if (!video || video.tagName !== 'VIDEO') return;
 
       video.onended = () => {
-        if (isHost && activeMediaIndex !== -1 && activeMediaIndex + 1 < videoQueue.length) {
-          playQueueItem(activeMediaIndex + 1);
-        }
+        if (isHost && activeMediaIndex !== -1 && activeMediaIndex + 1 < videoQueue.length) playQueueItem(activeMediaIndex + 1);
       };
 
       ['play', 'pause', 'seeked'].forEach(eventType => {
         video.addEventListener(eventType, () => {
           if (isSyncingFromPeer) return;
-          const payload = { event: eventType, currentTime: video.currentTime };
-          broadcast({ type: 'SYNC_STATE', payload });
+          broadcast({ type: 'SYNC_STATE', payload: { event: eventType, currentTime: video.currentTime } });
         });
       });
 
       syncInterval = setInterval(() => {
-        if (!video.paused) {
-          broadcast({ type: 'SYNC_STATE', payload: { event: 'progress', currentTime: video.currentTime } });
-        }
+        if (!video.paused) broadcast({ type: 'SYNC_STATE', payload: { event: 'progress', currentTime: video.currentTime } });
       }, 3000);
     }
 
     function applyVideoSync(data, senderConn = null) {
       isSyncingFromPeer = true;
-
       const video = document.getElementById('active-video-element');
       if (video && video.tagName === 'VIDEO') {
-        if (Math.abs(video.currentTime - data.currentTime) > 0.8) {
-          video.currentTime = data.currentTime;
-        }
+        if (Math.abs(video.currentTime - data.currentTime) > 0.8) video.currentTime = data.currentTime;
         if (data.event === 'play' && video.paused) video.play().catch(() => {});
         if (data.event === 'pause' && !video.paused) video.pause();
       }
 
       if (ytPlayer && typeof ytPlayer.seekTo === 'function') {
-        const currentYtTime = ytPlayer.getCurrentTime();
-        if (Math.abs(currentYtTime - data.currentTime) > 1.0) {
-          ytPlayer.seekTo(data.currentTime, true);
-        }
+        if (Math.abs(ytPlayer.getCurrentTime() - data.currentTime) > 1.0) ytPlayer.seekTo(data.currentTime, true);
         if (data.event === 'play') ytPlayer.playVideo();
         if (data.event === 'pause') ytPlayer.pauseVideo();
       }
 
-      if (isHost) {
-        broadcast({ type: 'SYNC_STATE', payload: data }, senderConn);
-      }
-
+      if (isHost) broadcast({ type: 'SYNC_STATE', payload: data }, senderConn);
       setTimeout(() => { isSyncingFromPeer = false; }, 300);
     }
 
@@ -1102,8 +1057,8 @@
 
     function sendReaction(emoji) {
       triggerFloatingEmoji(emoji);
-      const packet = { type: 'REACTION', payload: { emoji } };
-      broadcast(packet);
+      playSoundEffect();
+      broadcast({ type: 'REACTION', payload: { emoji } });
     }
 
     function triggerFloatingEmoji(emoji) {
@@ -1114,7 +1069,6 @@
       element.style.left = `${Math.random() * 75 + 10}%`;
       element.style.bottom = '15px';
       container.appendChild(element);
-
       setTimeout(() => element.remove(), 2200);
     }
 
