@@ -87,7 +87,7 @@
       </div>
       <div>
         <h1 class="text-base font-bold tracking-tight text-white leading-none">WatchParty</h1>
-        <p class="text-[10px] font-medium text-indigo-300/80 tracking-wide leading-tight mt-0.5">by Ashiqur Rahman Alif[cite: 1]</p>
+        <p class="text-[10px] font-medium text-indigo-300/80 tracking-wide leading-tight mt-0.5">Watch Together, Anywhere</p>
       </div>
     </div>
 
@@ -170,39 +170,27 @@
     </div>
 
     <!-- ROOM MAIN VIEW -->
-    <div id="room-view" class="hidden w-full h-full flex flex-col justify-start items-center overflow-y-auto relative pb-6 gap-3">
-      <!-- Video Frame Container -->
+    <div id="room-view" class="hidden w-full h-full flex flex-col justify-start items-center overflow-y-auto relative pb-6 gap-3 shrink-0">
+      
+      <!-- Video Frame Container (Stays Fixed on Top) -->
       <div id="video-frame-container" class="relative w-full max-w-3xl aspect-video bg-black rounded-2xl overflow-hidden shadow-2xl border border-slate-800/80 shrink-0 mt-1">
         <div id="reaction-stream-container"></div>
         <div id="player-container" class="w-full h-full flex items-center justify-center">
           <div class="text-center p-6">
             <div class="text-4xl mb-2">🎬</div>
             <p class="text-sm font-medium text-slate-300">No media loaded yet</p>
-            <p class="text-xs text-slate-500 mt-1">Tap Change Video below to load a link</p>
+            <p class="text-xs text-slate-500 mt-1">Tap Video below to load a link</p>
           </div>
         </div>
       </div>
 
-      <!-- Quick Action Buttons Under Video Player -->
-      <div class="w-full max-w-3xl flex items-center justify-between gap-2 px-1">
-        <div class="flex items-center gap-2">
-          <button onclick="toggleVoiceChat()" id="player-mic-btn" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold transition active:scale-95 flex items-center gap-1.5 border border-slate-700/60 shadow">
-            <span>🎙️</span>
-            <span id="player-mic-text">Mic Off</span>
-          </button>
-        </div>
-        <div class="text-[11px] text-slate-400">
-          Click timestamps to jump
-        </div>
-      </div>
-
-      <!-- Timestamp Comments Section -->
-      <div class="w-full max-w-3xl bg-slate-900/90 border border-slate-800/80 rounded-2xl p-4 shadow-xl flex flex-col gap-3">
+      <!-- Timestamp Comments Section (Sits Below Video) -->
+      <div class="w-full max-w-3xl bg-slate-900/90 border border-slate-800/80 rounded-2xl p-4 shadow-xl flex flex-col gap-3 shrink-0">
         <div class="flex items-center justify-between border-b border-slate-800/80 pb-2">
           <h3 class="font-bold text-xs text-white uppercase tracking-wider flex items-center gap-1.5">
             <span>💬</span> Comments
           </h3>
-          <span class="text-[10px] text-slate-400">Live</span>
+          <span class="text-[10px] text-slate-400">Click timestamps to jump</span>
         </div>
 
         <!-- Comments List -->
@@ -242,6 +230,10 @@
       <button onclick="toggleModal('history-modal')" class="px-3.5 py-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-white text-xs font-semibold transition active:scale-95 flex items-center gap-1.5">
         <span>📜</span>
         <span>History</span>
+      </button>
+      <button onclick="toggleVoiceChat()" id="mic-btn" class="px-3.5 py-1.5 rounded-xl bg-rose-600/90 hover:bg-rose-500 text-white text-xs font-semibold transition active:scale-95 flex items-center gap-1.5 shadow">
+        <span>🎙️</span>
+        <span id="mic-btn-text">Mic Off</span>
       </button>
       <button onclick="toggleMuteVideo()" id="mute-btn" class="px-3.5 py-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-white text-xs font-semibold transition active:scale-95 flex items-center gap-1.5">
         <span>🔊</span>
@@ -414,18 +406,18 @@
       }
     }
 
-    // Voice Chat Management
+    // Voice Chat Management (Green/Red Toggle)
     async function toggleVoiceChat() {
-      const micBtnText = document.getElementById('player-mic-text');
-      const micBtn = document.getElementById('player-mic-btn');
+      const micBtnText = document.getElementById('mic-btn-text');
+      const micBtn = document.getElementById('mic-btn');
 
       if (!isMicActive) {
         try {
           localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
           isMicActive = true;
           micBtnText.innerText = 'Mic On';
-          micBtn.classList.remove('bg-slate-800');
-          micBtn.classList.add('bg-emerald-600', 'text-white');
+          micBtn.classList.remove('bg-rose-600/90', 'hover:bg-rose-500');
+          micBtn.classList.add('bg-emerald-600', 'hover:bg-emerald-500', 'text-white');
           showToast('Microphone active!', '🎙️');
 
           connections.forEach(conn => callPeer(conn.peer, localStream));
@@ -447,8 +439,8 @@
         activeCalls = [];
         isMicActive = false;
         micBtnText.innerText = 'Mic Off';
-        micBtn.classList.remove('bg-emerald-600');
-        micBtn.classList.add('bg-slate-800');
+        micBtn.classList.remove('bg-emerald-600', 'hover:bg-emerald-500');
+        micBtn.classList.add('bg-rose-600/90', 'hover:bg-rose-500');
         showToast('Microphone muted.', '🔇');
       }
     }
