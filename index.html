@@ -87,7 +87,7 @@
       </div>
       <div>
         <h1 class="text-base font-bold tracking-tight text-white leading-none">WatchParty</h1>
-        <p class="text-[10px] font-medium text-indigo-300/80 tracking-wide leading-tight mt-0.5">by Ashiqur Rahman Alif[cite: 1]</p>
+        <p class="text-[10px] font-medium text-indigo-300/80 tracking-wide leading-tight mt-0.5">by Ashiqur Rahman Alif</p>
       </div>
     </div>
 
@@ -170,23 +170,21 @@
           <div class="text-center p-6">
             <div class="text-4xl mb-2">🎬</div>
             <p class="text-sm font-medium text-slate-300">No media loaded yet</p>
-            <p class="text-xs text-slate-500 mt-1">Tap Add below to load links</p>
+            <p class="text-xs text-slate-500 mt-1">Tap ➕ below to load links</p>
           </div>
         </div>
       </div>
 
-      <!-- Video Control Deck Underneath Player (Previous, Next, Add, Queue, History, Mute) -->
-      <div class="w-full max-w-3xl bg-slate-900/90 border border-slate-800/80 rounded-2xl px-4 py-2.5 shadow-lg flex items-center justify-between gap-2 shrink-0 flex-wrap">
-        <div class="flex items-center gap-1.5 flex-wrap">
-          <button onclick="triggerVideoControl('prev')" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold transition active:scale-95">⏮ Prev</button>
-          <button onclick="triggerVideoControl('next')" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold transition active:scale-95">Next ⏭</button>
-        </div>
-        <div class="flex items-center gap-1.5 flex-wrap">
-          <button onclick="toggleModal('video-modal')" class="px-3 py-1.5 rounded-xl bg-indigo-600/90 hover:bg-indigo-500 text-white text-xs font-semibold transition active:scale-95">➕ Add</button>
-          <button onclick="toggleModal('queue-modal')" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold transition active:scale-95">📃 Queue (<span id="queue-count-badge">0</span>)</button>
-          <button onclick="toggleModal('history-modal')" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold transition active:scale-95">📜 History</button>
-          <button onclick="toggleMuteVideo()" id="inline-mute-btn" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold transition active:scale-95">🔊 Mute</button>
-        </div>
+      <!-- Icon-Only Video Control Bar (Under Video Player) -->
+      <div class="w-full max-w-3xl bg-slate-900/90 border border-slate-800/80 rounded-2xl px-3 py-2 shadow-lg flex items-center justify-around gap-1 shrink-0">
+        <button onclick="triggerVideoControl('prev')" title="Previous Video" class="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-base transition active:scale-90">⏮</button>
+        <button onclick="triggerVideoControl('next')" title="Next Video" class="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-base transition active:scale-90">⏭</button>
+        <button onclick="toggleModal('video-modal')" title="Add Video" class="p-2.5 rounded-xl bg-indigo-600/90 hover:bg-indigo-500 text-white text-base transition active:scale-90 shadow">➕</button>
+        <button onclick="toggleModal('queue-modal')" title="Video Queue" class="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-base transition active:scale-90 relative">
+          📃 <span id="queue-count-badge" class="absolute -top-1 -right-1 bg-indigo-600 text-white text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center">0</span>
+        </button>
+        <button onclick="toggleModal('history-modal')" title="Watch History" class="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-base transition active:scale-90">📜</button>
+        <button onclick="toggleMuteVideo()" id="inline-mute-btn" title="Toggle Mute" class="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-base transition active:scale-90">🔊</button>
       </div>
 
       <!-- Comments Section -->
@@ -225,18 +223,25 @@
       <button onclick="sendReaction('👏')" class="p-2 text-2xl hover:scale-125 transition active:scale-90">👏</button>
     </div>
 
-    <!-- Bottom Bar: Game on Left, Icon-Only Voice & PTT on Right -->
-    <div class="w-full max-w-2xl mx-auto flex items-center justify-between gap-2 border-t border-slate-800/60 pt-2 pb-1 flex-wrap">
+    <!-- Bottom Bar: Left Game Button | Right Icon-Only Voice & PTT -->
+    <div class="w-full max-w-2xl mx-auto flex items-center justify-between gap-2 border-t border-slate-800/60 pt-2 pb-1">
       
       <!-- Left Side: Game Button -->
       <div>
-        <button onclick="toggleModal('games-modal')" class="px-3.5 py-2 rounded-xl bg-violet-600/90 hover:bg-violet-500 text-white text-xs font-semibold transition active:scale-95 shadow flex items-center gap-1.5">🎮 Games</button>
+        <button onclick="toggleModal('games-modal')" class="px-3.5 py-2 rounded-xl bg-violet-600/90 hover:bg-violet-500 text-white text-xs font-semibold transition active:scale-95 shadow flex items-center gap-1.5">
+          <span>🎮</span>
+          <span>Games</span>
+        </button>
       </div>
 
       <!-- Right Side: Icon-Only Voice Chat & Push-to-Talk -->
       <div class="flex items-center gap-2">
-        <button onclick="toggleVoiceChat()" id="mic-btn" title="Voice Chat" class="w-10 h-10 rounded-xl bg-rose-600/90 hover:bg-rose-500 text-white text-base font-semibold transition active:scale-95 shadow flex items-center justify-center">🎙️</button>
-        <button onmousedown="startPTT()" onmouseup="endPTT()" ontouchstart="startPTT()" ontouchend="endPTT()" id="ptt-btn" title="Push-to-Talk (Hold)" class="w-10 h-10 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-indigo-300 text-base font-semibold transition active:scale-95 select-none shadow flex items-center justify-center">⚡</button>
+        <button onclick="toggleVoiceChat()" id="mic-btn" title="Voice Chat On/Off" class="w-10 h-10 rounded-xl bg-rose-600/90 hover:bg-rose-500 text-white text-lg transition active:scale-95 shadow flex items-center justify-center select-none">
+          🎙️
+        </button>
+        <button onmousedown="startPTT()" onmouseup="endPTT()" ontouchstart="startPTT()" ontouchend="endPTT()" id="ptt-btn" title="Push-to-Talk (Hold)" class="w-10 h-10 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-indigo-300 text-lg transition active:scale-95 select-none shadow flex items-center justify-center">
+          ⚡
+        </button>
       </div>
 
     </div>
@@ -261,41 +266,43 @@
     </div>
   </div>
 
-  <!-- GAMES MODAL (Tic-Tac-Toe & Guess the Draw) -->
+  <!-- GAMES MODAL (Trivia & Truth/Dare) -->
   <div id="games-modal" onclick="handleOutsideClick(event, 'games-modal')" class="hidden fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
     <div class="w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-2xl animate-pop-in space-y-4">
       <div class="flex justify-between items-center border-b border-slate-800 pb-2">
-        <h3 class="font-bold text-sm text-white">🎮 WatchParty Mini-Games</h3>
+        <h3 class="font-bold text-sm text-white">🎮 Party Games</h3>
         <button onclick="toggleModal('games-modal')" class="text-slate-400 hover:text-white">✕</button>
       </div>
       
       <div class="grid grid-cols-2 gap-2">
-        <button onclick="switchGameTab('tictactoe')" id="tab-tictactoe" class="py-2 rounded-xl bg-indigo-600 text-white font-semibold text-xs transition">Tic-Tac-Toe</button>
-        <button onclick="switchGameTab('draw')" id="tab-draw" class="py-2 rounded-xl bg-slate-800 text-slate-300 font-semibold text-xs transition">Guess the Draw</button>
+        <button onclick="switchGameTab('trivia')" id="tab-trivia" class="py-2 rounded-xl bg-indigo-600 text-white font-semibold text-xs transition">Movie Trivia</button>
+        <button onclick="switchGameTab('truthdare')" id="tab-truthdare" class="py-2 rounded-xl bg-slate-800 text-slate-300 font-semibold text-xs transition">Truth or Dare</button>
       </div>
 
-      <div id="game-panel-tictactoe" class="space-y-3 pt-2">
-        <p class="text-center text-xs text-slate-400" id="ttt-status">Turn (X)</p>
-        <div class="grid grid-cols-3 gap-2 max-w-[220px] mx-auto">
-          <button onclick="makeTttMove(0)" id="cell-0" class="w-16 h-16 bg-slate-950 border border-slate-800 rounded-xl text-2xl font-bold text-indigo-400 flex items-center justify-center hover:border-indigo-500"></button>
-          <button onclick="makeTttMove(1)" id="cell-1" class="w-16 h-16 bg-slate-950 border border-slate-800 rounded-xl text-2xl font-bold text-indigo-400 flex items-center justify-center hover:border-indigo-500"></button>
-          <button onclick="makeTttMove(2)" id="cell-2" class="w-16 h-16 bg-slate-950 border border-slate-800 rounded-xl text-2xl font-bold text-indigo-400 flex items-center justify-center hover:border-indigo-500"></button>
-          <button onclick="makeTttMove(3)" id="cell-3" class="w-16 h-16 bg-slate-950 border border-slate-800 rounded-xl text-2xl font-bold text-indigo-400 flex items-center justify-center hover:border-indigo-500"></button>
-          <button onclick="makeTttMove(4)" id="cell-4" class="w-16 h-16 bg-slate-950 border border-slate-800 rounded-xl text-2xl font-bold text-indigo-400 flex items-center justify-center hover:border-indigo-500"></button>
-          <button onclick="makeTttMove(5)" id="cell-5" class="w-16 h-16 bg-slate-950 border border-slate-800 rounded-xl text-2xl font-bold text-indigo-400 flex items-center justify-center hover:border-indigo-500"></button>
-          <button onclick="makeTttMove(6)" id="cell-6" class="w-16 h-16 bg-slate-950 border border-slate-800 rounded-xl text-2xl font-bold text-indigo-400 flex items-center justify-center hover:border-indigo-500"></button>
-          <button onclick="makeTttMove(7)" id="cell-7" class="w-16 h-16 bg-slate-950 border border-slate-800 rounded-xl text-2xl font-bold text-indigo-400 flex items-center justify-center hover:border-indigo-500"></button>
-          <button onclick="makeTttMove(8)" id="cell-8" class="w-16 h-16 bg-slate-950 border border-slate-800 rounded-xl text-2xl font-bold text-indigo-400 flex items-center justify-center hover:border-indigo-500"></button>
+      <!-- Movie Trivia Panel -->
+      <div id="game-panel-trivia" class="space-y-3 pt-2">
+        <div class="p-3 bg-slate-950 border border-slate-800 rounded-xl space-y-1">
+          <p class="text-[10px] text-indigo-400 font-bold uppercase">Question</p>
+          <p id="trivia-q" class="text-xs font-medium text-slate-200">What is the highest-grossing film of all time?</p>
         </div>
-        <button onclick="resetTttGame()" class="w-full bg-slate-800 hover:bg-slate-700 text-white py-2 rounded-xl text-xs font-semibold transition">Reset Board</button>
+        <div id="trivia-options" class="grid grid-cols-1 gap-2 text-xs">
+          <button onclick="answerTrivia(0)" class="p-2.5 bg-slate-800 hover:bg-slate-700 rounded-xl text-left transition">A) Avatar</button>
+          <button onclick="answerTrivia(1)" class="p-2.5 bg-slate-800 hover:bg-slate-700 rounded-xl text-left transition">B) Avengers: Endgame</button>
+          <button onclick="answerTrivia(2)" class="p-2.5 bg-slate-800 hover:bg-slate-700 rounded-xl text-left transition">C) Titanic</button>
+        </div>
+        <button onclick="nextTriviaQuestion()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white py-2 rounded-xl text-xs font-semibold transition">Next Question ⏭</button>
       </div>
 
-      <div id="game-panel-draw" class="hidden space-y-3 pt-2">
-        <p class="text-center text-xs text-slate-400">Draw a clue for friends!</p>
-        <div class="relative w-full aspect-[4/3] bg-slate-950 border border-slate-800 rounded-xl overflow-hidden">
-          <canvas id="drawing-canvas" class="w-full h-full cursor-crosshair"></canvas>
+      <!-- Truth or Dare Panel -->
+      <div id="game-panel-truthdare" class="hidden space-y-3 pt-2">
+        <div class="p-4 bg-slate-950 border border-slate-800 rounded-xl text-center space-y-2">
+          <span class="text-3xl">🎭</span>
+          <p id="td-prompt" class="text-xs text-slate-200 font-medium">Click Truth or Dare to get a prompt!</p>
         </div>
-        <button onclick="clearCanvas()" class="w-full bg-slate-800 hover:bg-slate-700 text-white py-2 rounded-xl text-xs font-semibold transition">Clear Canvas</button>
+        <div class="grid grid-cols-2 gap-2">
+          <button onclick="getTruthPrompt()" class="bg-indigo-600 hover:bg-indigo-500 text-white py-2.5 rounded-xl text-xs font-semibold transition">Truth 🤫</button>
+          <button onclick="getDarePrompt()" class="bg-rose-600 hover:bg-rose-500 text-white py-2.5 rounded-xl text-xs font-semibold transition">Dare 😈</button>
+        </div>
       </div>
 
     </div>
@@ -397,8 +404,28 @@
     let isMicActive = false;
     let typingTimeout = null;
 
-    let tttBoard = ['', '', '', '', '', '', '', '', ''];
-    let tttIsX = true;
+    // Trivia Questions
+    const TRIVIA_BANK = [
+      { q: "What is the highest-grossing film of all time?", opts: ["Avatar", "Avengers: Endgame", "Titanic"], ans: 0 },
+      { q: "Which movie features the song 'My Heart Will Go On'?", opts: ["Titanic", "The Bodyguard", "La La Land"], ans: 0 },
+      { q: "Who played Iron Man in the Marvel Cinematic Universe?", opts: ["Chris Evans", "Robert Downey Jr.", "Chris Hemsworth"], ans: 1 },
+      { q: "What is the name of the kingdom in Frozen?", opts: ["Arendelle", "Genovia", "Aldovia"], ans: 0 }
+    ];
+    let triviaIndex = 0;
+
+    // Truth or Dare Banks
+    const TRUTHS = [
+      "What is the most embarrassing movie you secretly love?",
+      "Have you ever cried during an animated movie?",
+      "Who in this watch party has the worst movie taste?",
+      "What movie scene traumatized you as a kid?"
+    ];
+    const DARES = [
+      "Mute your mic and act out a famous movie scene for 10 seconds!",
+      "Do your best impression of Darth Vader!",
+      "Sing the chorus of your favorite movie soundtrack right now!",
+      "Let the room host pick the next video in queue!"
+    ];
 
     const RENDER_PEER_OPTIONS = {
       host: 'watchparty-hdbe.onrender.com',
@@ -446,8 +473,6 @@
         document.getElementById('join-code-input').value = inviteHost;
         if (invitePass) roomPassword = invitePass;
       }
-
-      setupDrawingCanvas();
     });
 
     function toggleModal(modalId) {
@@ -466,10 +491,10 @@
       const textSpan = document.getElementById('inline-mute-btn');
       if (video && video.tagName === 'VIDEO') {
         video.muted = !video.muted;
-        textSpan.innerText = video.muted ? '🔊 Unmute' : '🔊 Mute';
+        textSpan.innerText = video.muted ? '🔇' : '🔊';
       } else if (ytPlayer && typeof ytPlayer.isMuted === 'function') {
-        if (ytPlayer.isMuted()) { ytPlayer.unMute(); textSpan.innerText = '🔊 Mute'; }
-        else { ytPlayer.mute(); textSpan.innerText = '🔊 Unmute'; }
+        if (ytPlayer.isMuted()) { ytPlayer.unMute(); textSpan.innerText = '🔊'; }
+        else { ytPlayer.mute(); textSpan.innerText = '🔇'; }
       }
     }
 
@@ -490,92 +515,55 @@
     }
 
     function switchGameTab(tabName) {
-      const tttTab = document.getElementById('tab-tictactoe');
-      const drawTab = document.getElementById('tab-draw');
-      const tttPanel = document.getElementById('game-panel-tictactoe');
-      const drawPanel = document.getElementById('game-panel-draw');
+      const triviaTab = document.getElementById('tab-trivia');
+      const tdTab = document.getElementById('tab-truthdare');
+      const triviaPanel = document.getElementById('game-panel-trivia');
+      const tdPanel = document.getElementById('game-panel-truthdare');
 
-      if (tabName === 'tictactoe') {
-        tttTab.className = 'py-2 rounded-xl bg-indigo-600 text-white font-semibold text-xs transition';
-        drawTab.className = 'py-2 rounded-xl bg-slate-800 text-slate-300 font-semibold text-xs transition';
-        tttPanel.classList.remove('hidden');
-        drawPanel.classList.add('hidden');
+      if (tabName === 'trivia') {
+        triviaTab.className = 'py-2 rounded-xl bg-indigo-600 text-white font-semibold text-xs transition';
+        tdTab.className = 'py-2 rounded-xl bg-slate-800 text-slate-300 font-semibold text-xs transition';
+        triviaPanel.classList.remove('hidden');
+        tdPanel.classList.add('hidden');
       } else {
-        drawTab.className = 'py-2 rounded-xl bg-indigo-600 text-white font-semibold text-xs transition';
-        tttTab.className = 'py-2 rounded-xl bg-slate-800 text-slate-300 font-semibold text-xs transition';
-        drawPanel.classList.remove('hidden');
-        tttPanel.classList.add('hidden');
+        tdTab.className = 'py-2 rounded-xl bg-indigo-600 text-white font-semibold text-xs transition';
+        triviaTab.className = 'py-2 rounded-xl bg-slate-800 text-slate-300 font-semibold text-xs transition';
+        tdPanel.classList.remove('hidden');
+        triviaPanel.classList.add('hidden');
       }
     }
 
-    function makeTttMove(idx) {
-      if (tttBoard[idx] !== '') return;
-      tttBoard[idx] = tttIsX ? 'X' : 'O';
-      tttIsX = !tttIsX;
-      updateTttUI();
-      broadcast({ type: 'TTT_UPDATE', payload: { board: tttBoard, isX: tttIsX } });
-      checkTttWinner();
-    }
-
-    function updateTttUI() {
-      for (let i = 0; i < 9; i++) {
-        const cell = document.getElementById(`cell-${i}`);
-        cell.innerText = tttBoard[i];
-      }
-      document.getElementById('ttt-status').innerText = `Turn: ${tttIsX ? 'X' : 'O'}`;
-    }
-
-    function resetTttGame() {
-      tttBoard = ['', '', '', '', '', '', '', '', ''];
-      tttIsX = true;
-      updateTttUI();
-      broadcast({ type: 'TTT_UPDATE', payload: { board: tttBoard, isX: tttIsX } });
-    }
-
-    function checkTttWinner() {
-      const wins = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
-      for (let w of wins) {
-        const [a, b, c] = w;
-        if (tttBoard[a] && tttBoard[a] === tttBoard[b] && tttBoard[a] === tttBoard[c]) {
-          showToast(`Player ${tttBoard[a]} Wins! 🎉`, '🏆');
-          return;
-        }
+    // Party Games Functions
+    function answerTrivia(optIdx) {
+      const qData = TRIVIA_BANK[triviaIndex];
+      if (optIdx === qData.ans) {
+        showToast('Correct answer! 🎉', '✅');
+        playSoundEffect();
+      } else {
+        showToast('Wrong answer! Try again.', '❌');
       }
     }
 
-    let canvas, ctx, isDrawing = false;
-    function setupDrawingCanvas() {
-      canvas = document.getElementById('drawing-canvas');
-      if (!canvas) return;
-      ctx = canvas.getContext('2d');
-      canvas.width = canvas.parentElement.clientWidth;
-      canvas.height = canvas.parentElement.clientHeight;
-
-      ctx.strokeStyle = '#6366f1';
-      ctx.lineWidth = 3;
-      ctx.lineCap = 'round';
-
-      canvas.onmousedown = (e) => { isDrawing = true; ctx.beginPath(); ctx.moveTo(e.offsetX, e.offsetY); };
-      canvas.onmousemove = (e) => {
-        if (!isDrawing) return;
-        ctx.lineTo(e.offsetX, e.offsetY);
-        ctx.stroke();
-        broadcastCanvasData();
-      };
-      canvas.onmouseup = () => { isDrawing = false; };
-      canvas.onmouseleave = () => { isDrawing = false; };
+    function nextTriviaQuestion() {
+      triviaIndex = (triviaIndex + 1) % TRIVIA_BANK.length;
+      const qData = TRIVIA_BANK[triviaIndex];
+      document.getElementById('trivia-q').innerText = qData.q;
+      const container = document.getElementById('trivia-options');
+      container.innerHTML = qData.opts.map((opt, i) => `
+        <button onclick="answerTrivia(${i})" class="p-2.5 bg-slate-800 hover:bg-slate-700 rounded-xl text-left transition">${String.fromCharCode(65 + i)}) ${escapeHtml(opt)}</button>
+      `).join('');
     }
 
-    function broadcastCanvasData() {
-      if (!canvas) return;
-      const dataUrl = canvas.toDataURL();
-      broadcast({ type: 'DRAW_UPDATE', payload: dataUrl });
+    function getTruthPrompt() {
+      const rand = TRUTHS[Math.floor(Math.random() * TRUTHS.length)];
+      document.getElementById('td-prompt').innerText = `🤫 TRUTH: ${rand}`;
+      broadcast({ type: 'TD_UPDATE', payload: `🤫 TRUTH: ${rand}` });
     }
 
-    function clearCanvas() {
-      if (!ctx || !canvas) return;
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      broadcast({ type: 'DRAW_UPDATE', payload: canvas.toDataURL() });
+    function getDarePrompt() {
+      const rand = DARES[Math.floor(Math.random() * DARES.length)];
+      document.getElementById('td-prompt').innerText = `😈 DARE: ${rand}`;
+      broadcast({ type: 'TD_UPDATE', payload: `😈 DARE: ${rand}` });
     }
 
     function playSoundEffect() {
@@ -1099,21 +1087,8 @@
           broadcast(data, conn);
           break;
 
-        case 'TTT_UPDATE':
-          tttBoard = data.payload.board;
-          tttIsX = data.payload.isX;
-          updateTttUI();
-          break;
-
-        case 'DRAW_UPDATE':
-          if (ctx && canvas) {
-            const img = new Image();
-            img.onload = () => {
-              ctx.clearRect(0, 0, canvas.width, canvas.height);
-              ctx.drawImage(img, 0, 0);
-            };
-            img.src = data.payload;
-          }
+        case 'TD_UPDATE':
+          document.getElementById('td-prompt').innerText = data.payload;
           break;
 
         case 'TYPING':
@@ -1210,7 +1185,7 @@
       if (event.data === YT.PlayerState.PLAYING) {
         if (syncInterval) clearInterval(syncInterval);
         syncInterval = setInterval(() => {
-          if (ytPlayer && typeof ytPlayer.getCurrentTime === 'function') {
+          if (ytPlayer && typeof ytPlayer.getCurrentTime !== 'function') {
             broadcast({ type: 'SYNC_STATE', payload: { event: 'progress', currentTime: ytPlayer.getCurrentTime() } });
           }
         }, 3000);
