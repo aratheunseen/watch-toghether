@@ -80,26 +80,26 @@
   <div id="audio-container" class="hidden"></div>
 
   <!-- HEADER BAR -->
-  <header class="w-full bg-slate-900/80 backdrop-blur-md border-b border-slate-800/80 z-30 pt-safe px-4 py-2.5 flex items-center justify-between shadow-lg shrink-0">
-    <div class="flex items-center gap-2.5">
-      <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center text-xl shadow-md shadow-indigo-500/20">
-        🍿
+  <header class="w-full bg-slate-900/80 backdrop-blur-md border-b border-slate-800/80 z-30 pt-safe px-4 py-2 flex items-center justify-between shadow-lg shrink-0">
+    <div class="flex items-center gap-2">
+      <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center font-bold text-sm shadow-md shadow-indigo-500/20">
+        WP
       </div>
       <div>
-        <h1 class="text-base font-bold tracking-tight text-white leading-none">WatchParty</h1>
-        <p class="text-[10px] font-medium text-indigo-300/80 tracking-wide leading-tight mt-0.5">by Ashiqur Rahman Alif</p>
+        <h1 class="text-sm font-bold tracking-tight text-white leading-none">WatchParty</h1>
+        <p class="text-[9px] font-medium text-indigo-300/80 tracking-wide leading-tight mt-0.5">by Ashiqur Rahman Alif</p>
       </div>
     </div>
 
     <div id="header-room-info" class="hidden items-center gap-2">
-      <button onclick="toggleModal('viewers-modal')" class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700/60 text-xs font-semibold transition active:scale-95">
+      <button onclick="toggleModal('viewers-modal')" class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700/60 text-[11px] font-semibold transition active:scale-95">
         <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
         <span id="viewer-count-text">1</span>
       </button>
 
       <div class="flex items-center bg-indigo-950/60 border border-indigo-500/30 rounded-full pl-3 pr-1 py-0.5 gap-1.5">
-        <span id="header-room-code" class="font-mono text-xs font-bold text-indigo-300">Connected</span>
-        <button onclick="copyRoomLink()" title="Copy Invite Link" class="p-1 text-indigo-300 hover:text-white rounded-full hover:bg-indigo-600/30 transition active:scale-90">
+        <span id="header-room-code" class="font-mono text-[11px] font-bold text-indigo-300">Connected</span>
+        <button onclick="copyRoomLink()" title="Copy Invite Link" class="p-1 text-indigo-300 hover:text-white rounded-full hover:bg-indigo-600/30 transition active:scale-90 text-xs">
           📋
         </button>
       </div>
@@ -107,14 +107,14 @@
   </header>
 
   <!-- MAIN APP CONTAINER -->
-  <main class="flex-1 min-h-0 relative flex flex-col items-center justify-center w-full max-w-4xl mx-auto px-4 py-3 overflow-y-auto">
+  <main class="flex-1 min-h-0 relative flex flex-col items-center justify-center w-full max-w-4xl mx-auto px-4 py-2 overflow-y-auto">
 
     <!-- SIMPLIFIED HOMEPAGE LOBBY CARD -->
     <div id="lobby-card" class="w-full max-w-md bg-slate-900/95 border border-slate-800/80 p-6 sm:p-8 rounded-3xl shadow-2xl backdrop-blur-2xl animate-pop-in my-auto space-y-6">
       
       <div class="text-center space-y-1.5">
-        <div class="inline-flex w-16 h-16 bg-gradient-to-tr from-indigo-600/20 to-violet-500/20 border border-indigo-500/30 rounded-2xl items-center justify-center text-3xl shadow-inner mb-1">
-          🎬
+        <div class="inline-flex w-14 h-14 bg-gradient-to-tr from-indigo-600/20 to-violet-500/20 border border-indigo-500/30 rounded-2xl items-center justify-center text-xl font-bold text-indigo-400 shadow-inner mb-1">
+          ▶
         </div>
         <h2 class="text-2xl font-black text-white tracking-tight">Watch Together, Anywhere</h2>
         <p class="text-xs text-slate-400">Sync YouTube, Facebook & web videos instantly.</p>
@@ -137,7 +137,7 @@
         </details>
 
         <button onclick="startParty()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-3 rounded-2xl text-sm transition shadow-lg shadow-indigo-600/20 active:scale-95">
-          🚀 Host Party
+          Host Party
         </button>
 
         <div class="relative flex py-2 items-center">
@@ -153,7 +153,7 @@
           </div>
 
           <button onclick="submitJoinParty()" class="w-full bg-slate-800 hover:bg-slate-700 text-white font-semibold py-3 rounded-2xl text-sm transition border border-slate-700 active:scale-95">
-            ✨ Join Room
+            Join Room
           </button>
         </div>
 
@@ -161,55 +161,55 @@
     </div>
 
     <!-- ROOM MAIN VIEW -->
-    <div id="room-view" class="hidden w-full h-full flex flex-col justify-start items-center overflow-y-auto relative pb-6 gap-3 shrink-0">
+    <div id="room-view" class="hidden w-full h-full flex flex-col justify-start items-center overflow-y-auto relative pb-4 gap-2 shrink-0">
       
       <!-- Video Frame Container -->
-      <div id="video-frame-container" class="relative w-full max-w-3xl aspect-video bg-black rounded-2xl overflow-hidden shadow-2xl border border-slate-800/80 shrink-0 mt-1">
+      <div id="video-frame-container" class="relative w-full max-w-3xl aspect-video bg-black rounded-2xl overflow-hidden shadow-2xl border border-slate-800/80 shrink-0 mt-0.5">
         <div id="reaction-stream-container"></div>
         <div id="player-container" class="w-full h-full flex items-center justify-center">
           <div class="text-center p-6">
-            <div class="text-4xl mb-2">🎬</div>
-            <p class="text-sm font-medium text-slate-300">No media loaded yet</p>
-            <p class="text-xs text-slate-500 mt-1">Tap ➕ below to load links</p>
+            <div class="text-3xl mb-1 text-slate-600">▶</div>
+            <p class="text-xs font-medium text-slate-300">No media loaded yet</p>
+            <p class="text-[11px] text-slate-500 mt-0.5">Tap ┼ below to load links</p>
           </div>
         </div>
       </div>
 
       <!-- Icon-Only Video Control Bar (Prev/Next on Left | Add/Queue/History/Mute on Right) -->
-      <div class="w-full max-w-3xl bg-slate-900/90 border border-slate-800/80 rounded-xl px-3 py-1.5 shadow-lg flex items-center justify-between gap-1 shrink-0">
+      <div class="w-full max-w-3xl bg-slate-900/90 border border-slate-800/80 rounded-xl px-2.5 py-1 shadow-md flex items-center justify-between gap-1 shrink-0">
         <!-- Left: Previous & Next -->
         <div class="flex items-center gap-1">
-          <button onclick="triggerVideoControl('prev')" title="Previous Video" class="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs transition active:scale-90">⏮</button>
-          <button onclick="triggerVideoControl('next')" title="Next Video" class="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs transition active:scale-90">⏭</button>
+          <button onclick="triggerVideoControl('prev')" title="Previous Video" class="px-2 py-0.5 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-200 text-xs font-bold transition active:scale-90 border border-slate-700/60">◀◀</button>
+          <button onclick="triggerVideoControl('next')" title="Next Video" class="px-2 py-0.5 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-200 text-xs font-bold transition active:scale-90 border border-slate-700/60">▶▶</button>
         </div>
 
         <!-- Right: Add, Queue, History, Mute -->
         <div class="flex items-center gap-1">
-          <button onclick="toggleModal('video-modal')" title="Add Video" class="px-2 py-1 rounded-lg bg-indigo-600/80 hover:bg-indigo-500 text-white text-xs transition active:scale-90 shadow">➕</button>
-          <button onclick="toggleModal('queue-modal')" title="Video Queue" class="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs transition active:scale-90 relative">
-            📃 <span id="queue-count-badge" class="absolute -top-1 -right-1 bg-indigo-600 text-white text-[8px] font-bold w-3.5 h-3.5 rounded-full flex items-center justify-center">0</span>
+          <button onclick="toggleModal('video-modal')" title="Add Video" class="px-2.5 py-0.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-black transition active:scale-90 shadow-md shadow-indigo-600/30 border border-indigo-400/40">┼</button>
+          <button onclick="toggleModal('queue-modal')" title="Video Queue" class="px-2 py-0.5 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-200 text-xs font-bold transition active:scale-90 relative border border-slate-700/60">
+            ☰ <span id="queue-count-badge" class="absolute -top-1 -right-1 bg-indigo-600 text-white text-[8px] font-bold w-3.5 h-3.5 rounded-full flex items-center justify-center">0</span>
           </button>
-          <button onclick="toggleModal('history-modal')" title="Watch History" class="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs transition active:scale-90">📜</button>
-          <button onclick="toggleMuteVideo()" id="inline-mute-btn" title="Toggle Mute" class="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs transition active:scale-90">🔊</button>
+          <button onclick="toggleModal('history-modal')" title="Watch History" class="px-2 py-0.5 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-200 text-xs font-bold transition active:scale-90 border border-slate-700/60">🕒</button>
+          <button onclick="toggleMuteVideo()" id="inline-mute-btn" title="Toggle Mute" class="px-2 py-0.5 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-200 text-xs font-bold transition active:scale-90 border border-slate-700/60">🔊</button>
         </div>
       </div>
 
       <!-- Comments Section -->
-      <div class="w-full max-w-3xl bg-slate-900/90 border border-slate-800/80 rounded-2xl p-4 shadow-xl flex flex-col gap-3 shrink-0">
-        <div class="flex items-center justify-between border-b border-slate-800/80 pb-2">
-          <h3 class="font-bold text-xs text-white uppercase tracking-wider flex items-center gap-1.5">
-            <span>💬</span> Room Chat
+      <div class="w-full max-w-3xl bg-slate-900/90 border border-slate-800/80 rounded-2xl p-3 shadow-xl flex flex-col gap-2 shrink-0">
+        <div class="flex items-center justify-between border-b border-slate-800/80 pb-1.5">
+          <h3 class="font-bold text-[11px] text-white uppercase tracking-wider flex items-center gap-1.5">
+            <span class="text-indigo-400">💬</span> Room Chat
           </h3>
           <span id="typing-indicator" class="text-[10px] text-indigo-400 italic"></span>
         </div>
 
-        <div id="comments-list" class="space-y-2 max-h-36 overflow-y-auto pr-1 text-xs">
-          <p class="text-slate-500 italic text-center py-2">No messages yet.</p>
+        <div id="comments-list" class="space-y-1.5 max-h-32 overflow-y-auto pr-1 text-xs">
+          <p class="text-slate-500 italic text-center py-2 text-[11px]">No messages yet.</p>
         </div>
 
-        <div class="flex items-center gap-2 pt-1">
-          <input type="text" id="comment-input" placeholder="Type message or timestamp comment..." oninput="handleTypingInput()" onkeydown="if(event.key==='Enter') sendComment()" class="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-indigo-500 shadow-inner" />
-          <button onclick="sendComment()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-xl font-semibold text-xs transition active:scale-95 shadow">
+        <div class="flex items-center gap-1.5 pt-0.5">
+          <input type="text" id="comment-input" placeholder="Type message or timestamp comment..." oninput="handleTypingInput()" onkeydown="if(event.key==='Enter') sendComment()" class="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-indigo-500 shadow-inner" />
+          <button onclick="sendComment()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1.5 rounded-xl font-semibold text-xs transition active:scale-95 shadow">
             Send 🕒
           </button>
         </div>
@@ -219,34 +219,33 @@
   </main>
 
   <!-- BOTTOM CONTROL BAR & REACTION DECK -->
-  <footer id="bottom-emoji-deck" class="hidden w-full bg-slate-900/90 border-t border-slate-800/80 backdrop-blur-md pb-safe pt-2 px-3 z-30 shrink-0 flex-col gap-2">
+  <footer id="bottom-emoji-deck" class="hidden w-full bg-slate-900/90 border-t border-slate-800/80 backdrop-blur-md pb-safe pt-1.5 px-3 z-30 shrink-0 flex-col gap-1.5">
     <div class="max-w-xl mx-auto flex items-center justify-around gap-1 w-full">
-      <button onclick="sendReaction('🍿')" class="p-2 text-2xl hover:scale-125 transition active:scale-90">🍿</button>
-      <button onclick="sendReaction('❤️')" class="p-2 text-2xl hover:scale-125 transition active:scale-90">❤️</button>
-      <button onclick="sendReaction('😂')" class="p-2 text-2xl hover:scale-125 transition active:scale-90">😂</button>
-      <button onclick="sendReaction('🔥')" class="p-2 text-2xl hover:scale-125 transition active:scale-90">🔥</button>
-      <button onclick="sendReaction('😱')" class="p-2 text-2xl hover:scale-125 transition active:scale-90">😱</button>
-      <button onclick="sendReaction('😭')" class="p-2 text-2xl hover:scale-125 transition active:scale-90">😭</button>
-      <button onclick="sendReaction('👏')" class="p-2 text-2xl hover:scale-125 transition active:scale-90">👏</button>
+      <button onclick="sendReaction('🍿')" class="p-1 text-xl hover:scale-125 transition active:scale-90">🍿</button>
+      <button onclick="sendReaction('❤️')" class="p-1 text-xl hover:scale-125 transition active:scale-90">❤️</button>
+      <button onclick="sendReaction('😂')" class="p-1 text-xl hover:scale-125 transition active:scale-90">😂</button>
+      <button onclick="sendReaction('🔥')" class="p-1 text-xl hover:scale-125 transition active:scale-90">🔥</button>
+      <button onclick="sendReaction('😱')" class="p-1 text-xl hover:scale-125 transition active:scale-90">😱</button>
+      <button onclick="sendReaction('😭')" class="p-1 text-xl hover:scale-125 transition active:scale-90">😭</button>
+      <button onclick="sendReaction('👏')" class="p-1 text-xl hover:scale-125 transition active:scale-90">👏</button>
     </div>
 
     <!-- Bottom Bar: Left Game Button | Right Icon-Only Voice & PTT -->
-    <div class="w-full max-w-2xl mx-auto flex items-center justify-between gap-2 border-t border-slate-800/60 pt-2 pb-1">
+    <div class="w-full max-w-2xl mx-auto flex items-center justify-between gap-2 border-t border-slate-800/60 pt-1.5 pb-0.5">
       
       <!-- Left Side: Game Button -->
       <div>
-        <button onclick="toggleModal('games-modal')" class="px-3 py-1.5 rounded-xl bg-violet-600/90 hover:bg-violet-500 text-white text-xs font-semibold transition active:scale-95 shadow flex items-center gap-1">
-          <span>🎮</span>
+        <button onclick="toggleModal('games-modal')" class="px-2.5 py-1 rounded-xl bg-violet-600/90 hover:bg-violet-500 text-white text-[11px] font-semibold transition active:scale-95 shadow flex items-center gap-1">
           <span>Games</span>
         </button>
       </div>
 
       <!-- Right Side: Icon-Only Voice Chat & Push-to-Talk -->
       <div class="flex items-center gap-1.5">
-        <button onclick="toggleVoiceChat()" id="mic-btn" title="Voice Chat On/Off" class="w-8 h-8 rounded-lg bg-rose-600/90 hover:bg-rose-500 text-white text-sm transition active:scale-95 shadow flex items-center justify-center select-none">
-          🎙️
+        <button onclick="toggleVoiceChat()" id="mic-btn" title="Voice Chat On/Off" class="w-7 h-7 rounded-lg bg-rose-600/90 hover:bg-rose-500 text-white text-xs font-bold transition active:scale-95 shadow flex items-center justify-center select-none">
+          🎙
         </button>
-        <button onmousedown="startPTT()" onmouseup="endPTT()" ontouchstart="startPTT()" ontouchend="endPTT()" id="ptt-btn" title="Push-to-Talk (Hold)" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-indigo-300 text-sm transition active:scale-95 select-none shadow flex items-center justify-center">
+        <button onmousedown="startPTT()" onmouseup="endPTT()" ontouchstart="startPTT()" ontouchend="endPTT()" id="ptt-btn" title="Push-to-Talk (Hold)" class="w-7 h-7 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-indigo-300 text-xs font-bold transition active:scale-95 select-none shadow flex items-center justify-center">
           ⚡
         </button>
       </div>
@@ -258,7 +257,7 @@
   <div id="password-prompt-modal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
     <div class="w-full max-w-sm bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl animate-pop-in space-y-4">
       <div class="text-center space-y-1">
-        <div class="text-3xl mb-1">🔒</div>
+        <div class="text-2xl mb-1">🔒</div>
         <h3 class="font-bold text-base text-white">Password Required</h3>
         <p class="text-xs text-slate-400">This room is protected by a password.</p>
       </div>
@@ -280,8 +279,8 @@
         <button onclick="toggleModal('games-modal')" class="text-slate-400 hover:text-white">✕</button>
       </div>
       <div class="space-y-3 py-2">
-        <div class="text-4xl animate-bounce">🎮</div>
-        <h3 class="font-bold text-lg text-white">খুব শীঘ্রই আসছে...</h3>
+        <div class="text-3xl animate-bounce">🎮</div>
+        <h3 class="font-bold text-base text-white">খুব শীঘ্রই আসছে...</h3>
         <p class="text-xs text-slate-400 leading-relaxed">
           আকর্ষণীয় গেম ফিচার শীঘ্রই যুক্ত করা হবে! বন্ধুদের সাথে উপভোগ করার জন্য সাথেই থাকুন।
         </p>
@@ -292,31 +291,40 @@
     </div>
   </div>
 
-  <!-- VIEWERS & SETTINGS MODAL -->
+  <!-- VIEWERS & ROOM CONTROL MODAL (Attractive Same-Row Layout) -->
   <div id="viewers-modal" onclick="handleOutsideClick(event, 'viewers-modal')" class="hidden fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-    <div class="w-full max-w-sm bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-2xl animate-pop-in space-y-4">
-      <div class="flex justify-between items-center border-b border-slate-800 pb-2">
-        <h3 class="font-bold text-sm text-white">Connected Viewers & Settings</h3>
-        <button onclick="toggleModal('viewers-modal')" class="text-slate-400 hover:text-white">✕</button>
+    <div class="w-full max-w-sm bg-slate-900/95 border border-slate-800 rounded-2xl p-4 shadow-2xl animate-pop-in space-y-3">
+      <div class="flex justify-between items-center border-b border-slate-800/80 pb-2">
+        <span class="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Party Deck
+        </span>
+        <button onclick="toggleModal('viewers-modal')" class="text-slate-400 hover:text-white text-xs font-bold">✕</button>
       </div>
       
+      <!-- Same Row: Status Selection & Lock Control Toggle -->
+      <div class="flex items-center justify-between gap-2 bg-slate-950/80 border border-slate-800/80 rounded-xl p-2">
+        <div class="flex items-center gap-1.5 flex-1 min-w-0">
+          <span class="text-[10px] font-bold text-slate-400 uppercase shrink-0">Status:</span>
+          <select id="user-status-select" onchange="updateMyStatus(this.value)" class="bg-slate-900 border border-slate-800 rounded-lg px-2 py-1 text-[11px] text-white focus:outline-none focus:border-indigo-500 shrink-0">
+            <option value="🟢 Active">🟢 Active</option>
+            <option value="🍿 Break">🍿 Break</option>
+            <option value="💤 AFK">💤 AFK</option>
+          </select>
+        </div>
+
+        <div id="host-settings-panel" class="hidden shrink-0 border-l border-slate-800/80 pl-2">
+          <label class="flex items-center gap-1.5 cursor-pointer select-none">
+            <input type="checkbox" id="host-lock-toggle" onchange="toggleHostLock(this.checked)" class="rounded bg-slate-900 border-slate-700 text-indigo-600 focus:ring-0 w-3.5 h-3.5" />
+            <span class="text-[11px] font-semibold text-indigo-300">Lock Room</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Viewers List -->
       <div class="space-y-1">
-        <label class="block text-[11px] font-semibold text-slate-300">My Status</label>
-        <select id="user-status-select" onchange="updateMyStatus(this.value)" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500">
-          <option value="🟢 Active">🟢 Active</option>
-          <option value="🍿 Snack Break">🍿 Snack Break</option>
-          <option value="💤 AFK">💤 AFK</option>
-        </select>
+        <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider px-1">Viewers List</span>
+        <ul id="viewers-list-container" class="space-y-1.5 max-h-48 overflow-y-auto text-xs"></ul>
       </div>
-
-      <div id="host-settings-panel" class="hidden pt-2 border-t border-slate-800">
-        <label class="flex items-center gap-2 cursor-pointer">
-          <input type="checkbox" id="host-lock-toggle" onchange="toggleHostLock(this.checked)" class="rounded bg-slate-950 border-slate-700 text-indigo-600 focus:ring-0" />
-          <span class="text-xs font-semibold text-indigo-300">Lock playback & queue to Host only</span>
-        </label>
-      </div>
-
-      <ul id="viewers-list-container" class="space-y-2 max-h-48 overflow-y-auto text-xs pt-1"></ul>
     </div>
   </div>
 
@@ -503,7 +511,7 @@
           isMicActive = true;
           micBtn.classList.remove('bg-rose-600/90');
           micBtn.classList.add('bg-emerald-600', 'text-white', 'ring-2', 'ring-emerald-400/50');
-          showToast('Microphone active!', '🎙️');
+          showToast('Microphone active!', '🎙');
 
           connections.forEach(conn => callPeer(conn.peer, localStream));
           if (!isHost && hostConn && hostConn.open) callPeer(hostPeerId, localStream);
@@ -641,7 +649,7 @@
     function renderCommentsUI() {
       const container = document.getElementById('comments-list');
       if (commentsList.length === 0) {
-        container.innerHTML = `<p class="text-slate-500 italic text-center py-2">No messages yet.</p>`;
+        container.innerHTML = `<p class="text-slate-500 italic text-center py-2 text-[11px]">No messages yet.</p>`;
         return;
       }
       container.innerHTML = commentsList.map(c => `
@@ -1028,11 +1036,16 @@
       const container = document.getElementById('viewers-list-container');
       container.innerHTML = participants.map(p => `
         <li class="flex items-center justify-between p-2 rounded-xl bg-slate-950/60 border border-slate-800/60">
-          <div class="flex flex-col">
-            <span class="font-medium text-slate-200">${escapeHtml(p.name)}</span>
-            <span class="text-[10px] text-indigo-300">${escapeHtml(p.status || '🟢 Active')}</span>
+          <div class="flex items-center gap-2">
+            <div class="w-6 h-6 rounded-lg bg-indigo-600/30 border border-indigo-500/40 text-[10px] font-bold text-indigo-300 flex items-center justify-center">
+              ${escapeHtml(p.name.charAt(0).toUpperCase())}
+            </div>
+            <div class="flex flex-col">
+              <span class="font-semibold text-slate-200 text-xs">${escapeHtml(p.name)}</span>
+              <span class="text-[9px] text-indigo-300/80">${escapeHtml(p.status || '🟢 Active')}</span>
+            </div>
           </div>
-          ${p.isHost ? '<span class="text-xs bg-indigo-600/30 text-indigo-300 px-2 py-0.5 rounded-full border border-indigo-500/30">👑 Host</span>' : ''}
+          ${p.isHost ? '<span class="text-[10px] bg-indigo-600/30 text-indigo-300 px-2 py-0.5 rounded-full border border-indigo-500/30 font-semibold">Host</span>' : ''}
         </li>
       `).join('');
     }
@@ -1090,7 +1103,7 @@
       if (event.data === YT.PlayerState.PLAYING) {
         if (syncInterval) clearInterval(syncInterval);
         syncInterval = setInterval(() => {
-          if (ytPlayer && typeof ytPlayer.getCurrentTime === 'function') {
+          if (ytPlayer && typeof ytPlayer.getCurrentTime !== 'function') {
             broadcast({ type: 'SYNC_STATE', payload: { event: 'progress', currentTime: ytPlayer.getCurrentTime() } });
           }
         }, 3000);
@@ -1164,7 +1177,7 @@
       const container = document.getElementById('reaction-stream-container');
       const element = document.createElement('div');
       element.innerText = emoji;
-      element.className = 'absolute text-3xl animate-float-up select-none';
+      element.className = 'absolute text-2xl animate-float-up select-none';
       element.style.left = `${Math.random() * 75 + 10}%`;
       element.style.bottom = '15px';
       container.appendChild(element);
