@@ -84,7 +84,7 @@
       </div>
       <div>
         <h1 class="text-base font-bold tracking-tight text-white leading-none">WatchParty</h1>
-        <p class="text-[10px] font-medium text-indigo-300/80 tracking-wide leading-tight mt-0.5">by Ashiqur Rahman Alif</p>
+        <p class="text-[10px] font-medium text-indigo-300/80 tracking-wide leading-tight mt-0.5">by Ashiqur Rahman Alif[cite: 1]</p>
       </div>
     </div>
 
@@ -289,13 +289,15 @@
       port: 443,
       path: '/myapp',
       secure: true,
+      debug: 1,
       config: {
         iceServers: [
           { urls: 'stun:stun.l.google.com:19302' },
           { urls: 'stun:stun1.l.google.com:19302' },
           { urls: 'stun:stun2.l.google.com:19302' },
           { urls: 'stun:global.stun.twilio.com:3478' }
-        ]
+        ],
+        iceCandidatePoolSize: 10
       }
     };
 
@@ -318,7 +320,11 @@
       const sampleNames = ['Alex', 'Cinephile', 'Sam', 'Nova', 'Pixel'];
       document.getElementById('display-name-input').placeholder = `e.g. ${sampleNames[Math.floor(Math.random() * sampleNames.length)]}`;
 
-      fetch('https://watchparty-hdbe.onrender.com/myapp', { mode: 'no-cors' }).catch(() => {});
+      // Wake up Render signaling server from cold start
+      showToast('Waking up party server...', '⏳');
+      fetch('https://watchparty-hdbe.onrender.com/myapp', { method: 'GET', mode: 'no-cors' })
+        .then(() => showToast('Server ready!', '✨'))
+        .catch(() => {});
 
       const urlParams = new URLSearchParams(window.location.search);
       const inviteHost = urlParams.get('host');
@@ -387,6 +393,8 @@
       roomPassword = document.getElementById('host-password-input').value.trim();
       isHost = true;
 
+      showToast('Initializing room...', '🔄');
+
       if (peer) {
         try { peer.destroy(); } catch(e) {}
       }
@@ -403,7 +411,6 @@
       });
 
       peer.on('connection', (conn) => {
-        // Buffer incoming connections to prevent handshake collision on multi-device joins
         setTimeout(() => {
           connections.push(conn);
           setupPeerConnectionHandlers(conn);
@@ -411,7 +418,12 @@
       });
 
       peer.on('error', (err) => {
-        showToast(`Hosting error: ${err.type}`, '⚠️');
+        console.error('Peer error:', err);
+        if (err.type === 'unavailable-id' || err.type === 'network') {
+          showToast('Server is waking up. Please try again in 10 seconds.', '⚠️');
+        } else {
+          showToast(`Connection error: ${err.type}`, '⚠️');
+        }
       });
     }
 
@@ -442,22 +454,7 @@
       hostPeerId = targetInput;
       isHost = false;
 
-      showToast(`Connecting to host...`, '⏳');
-
-      if (peer) {
-        try { peer.destroy(); } catch(e) {}
-      }
-
-      peer = new Peer(RENDER_PEER_OPTIONS);
-
-      peer.on('open', (id) => {
-        currentUser.id = id;
-        connectToHostRoom();
-      });
-
-      peer.on('error', (err) => {
-        showToast(`Connection error: ${err.type}`, '⚠️');
-      });
+      connectToHostRoom();
     }
 
     function closePasswordPrompt() {
@@ -478,23 +475,29 @@
         peer = null;
       }
       
-      showToast(`Connecting with password...`, '⏳');
-      peer = new Peer(RENDER_PEER_OPTIONS);
-      peer.on('open', (id) => {
-        currentUser.id = id;
-        connectToHostRoom();
-      });
+      connectToHostRoom();
     }
 
     function connectToHostRoom() {
+      showToast(`Connecting to host...`, '⏳');
+
+      if (!peer || peer.disconnected || peer.destroyed) {
+        peer = new Peer(RENDER_PEER_OPTIONS);
+        peer.on('open', () => executeConnectionToHost());
+        peer.on('error', (err) => showToast(`Network error: ${err.type}`, '⚠️'));
+        return;
+      }
+      executeConnectionToHost();
+    }
+
+    function executeConnectionToHost() {
       hostConn = peer.connect(hostPeerId, { reliable: true });
 
-      // Extended timeout threshold to 12s for reliable multi-device NAT negotiation
       const connectTimeout = setTimeout(() => {
         if (!hostConn || !hostConn.open) {
-          showToast('Connection timed out. Host might be offline.', '⚠️');
+          showToast('Connection timed out. Check the Invite Link or Host ID.', '⚠️');
         }
-      }, 12000);
+      }, 15000);
 
       hostConn.on('open', () => {
         clearTimeout(connectTimeout);
