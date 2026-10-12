@@ -43,7 +43,7 @@
   <!-- PeerJS for WebRTC P2P Connections -->
   <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
 
-  <!-- Custom Styles for Scrollbars & Clean Details Markers -->
+  <!-- Custom Styles for Scrollbars & Animations -->
   <style>
     .pb-safe { padding-bottom: max(1rem, env(safe-area-inset-bottom)); }
     .pt-safe { padding-top: max(0.75rem, env(safe-area-inset-top)); }
@@ -81,22 +81,24 @@
         🍿
       </div>
       <div>
-        <h1 class="text-sm font-black tracking-tight text-white leading-none">WatchParty</h1>
-        <p class="text-[10px] font-medium text-indigo-400 tracking-wide leading-tight mt-0.5">Watch Together, Anywhere</p>
+        <div class="flex items-center gap-1.5">
+          <h1 class="text-sm font-black tracking-tight text-white leading-none">WatchParty</h1>
+        </div>
+        <p class="text-[10px] font-medium text-indigo-400 tracking-wide leading-tight mt-0.5">by Ashiqur Rahman Alif</p>
       </div>
     </div>
 
     <div id="header-room-info" class="hidden items-center gap-2">
-      <!-- Active Viewers Modal Trigger -->
-      <button onclick="toggleModal('viewers-modal')" class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-800/90 hover:bg-slate-700/90 border border-slate-700/70 text-[11px] font-semibold text-slate-200 transition active:scale-95 shadow-sm">
+      <!-- Active Viewers Badge (ONLY NUMBER NEXT TO DOT) -->
+      <button onclick="toggleModal('viewers-modal')" title="Active Party Members" class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-800/90 hover:bg-slate-700/90 border border-slate-700/70 text-xs font-bold text-slate-100 transition active:scale-95 shadow-sm">
         <span class="relative flex h-2 w-2">
           <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
           <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
         </span>
-        <span id="viewer-count-text">1 Viewer</span>
+        <span id="viewer-count-text">1</span>
       </button>
 
-      <!-- Room Code Badge -->
+      <!-- Room Code Badge (WITHOUT '#' HASHTAG) -->
       <div class="flex items-center bg-indigo-950/70 border border-indigo-500/30 rounded-full pl-3 pr-1 py-0.5 gap-1.5">
         <span id="header-room-code" class="font-mono text-[11px] font-bold text-indigo-300">Room</span>
         <button onclick="copyRoomLink()" title="Copy Invite Link" class="p-1 text-indigo-300 hover:text-white rounded-full hover:bg-indigo-600/30 transition active:scale-90 text-xs">
@@ -180,7 +182,7 @@
           <div class="text-center p-6 space-y-2">
             <div class="text-4xl text-slate-600 animate-pulse">🎬</div>
             <p class="text-xs font-semibold text-slate-300">No media currently loaded</p>
-            <p class="text-[11px] text-slate-500">Tap <span class="text-indigo-400 font-bold">🚀 Add Media</span> below to queue YouTube videos or local files.</p>
+            <p class="text-[11px] text-slate-500">Tap <span class="text-indigo-400 font-bold">🚀 Add</span> below to queue YouTube videos or local files.</p>
           </div>
         </div>
       </div>
@@ -193,12 +195,11 @@
           <button onclick="triggerVideoControl('next')" title="Next Video" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold transition active:scale-90 border border-slate-700/60">⏭</button>
         </div>
 
-        <!-- Right Controls: Glowing Add Media Button, Queue, History, Mute -->
+        <!-- Right Controls: Add Button (LABEL SHORTENED TO 'Add'), Queue, History, Mute -->
         <div class="flex items-center gap-1.5">
-          <!-- Updated Add Media Button -->
           <button onclick="toggleModal('video-modal')" title="Add Video" class="px-3 py-1.5 rounded-lg bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white text-xs font-bold transition active:scale-90 shadow-lg shadow-indigo-600/30 border border-indigo-400/40 flex items-center gap-1.5">
             <span>🚀</span>
-            <span>Add Media</span>
+            <span>Add</span>
           </button>
           <button onclick="toggleModal('queue-modal')" title="Video Queue" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold transition active:scale-90 relative border border-slate-700/60">
             📃 <span id="queue-count-badge" class="absolute -top-1 -right-1 bg-indigo-600 text-white text-[8px] font-bold w-3.5 h-3.5 rounded-full flex items-center justify-center">0</span>
@@ -208,7 +209,7 @@
         </div>
       </div>
 
-      <!-- REDESIGNED CHAT & COMMENT SECTION -->
+      <!-- REDESIGNED CHAT & COMMENT SECTION (MODERNIZED CHAT LAYOUT) -->
       <div class="w-full max-w-3xl bg-slate-900/95 border border-slate-800/90 rounded-2xl p-3.5 shadow-2xl backdrop-blur-md flex flex-col gap-2.5 shrink-0">
         <!-- Chat Section Header -->
         <div class="flex items-center justify-between border-b border-slate-800/80 pb-2">
@@ -216,23 +217,23 @@
             <div class="w-6 h-6 rounded-lg bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center text-xs">
               💬
             </div>
-            <h3 class="font-bold text-xs text-white uppercase tracking-wider">Party Discussion</h3>
+            <h3 class="font-bold text-xs text-white uppercase tracking-wider">Party Chat</h3>
           </div>
           <span id="typing-indicator" class="text-[10px] text-indigo-400 font-medium italic"></span>
         </div>
 
         <!-- Scrollable Messages Container -->
-        <div id="comments-list" class="space-y-2.5 max-h-44 overflow-y-auto pr-1 text-xs">
+        <div id="comments-list" class="space-y-2.5 max-h-48 overflow-y-auto pr-1 text-xs">
           <div class="text-center py-4 space-y-1">
             <span class="inline-block p-2 rounded-full bg-slate-800/60 text-slate-500 text-xs">💬</span>
             <p class="text-slate-500 italic text-[11px]">No chat messages yet. Say hi to the room!</p>
           </div>
         </div>
 
-        <!-- Chat Input Bar -->
+        <!-- Chat Input Bar (UPDATED PLACEHOLDER) -->
         <div class="flex items-center gap-2 pt-1 border-t border-slate-800/60">
           <div class="relative flex-1 flex items-center">
-            <input type="text" id="comment-input" placeholder="Share a comment or note..." oninput="handleTypingInput()" onkeydown="if(event.key==='Enter') sendComment()" class="w-full bg-slate-950/90 border border-slate-800 rounded-xl pl-3 pr-9 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 shadow-inner" />
+            <input type="text" id="comment-input" placeholder="Type a message..." oninput="handleTypingInput()" onkeydown="if(event.key==='Enter') sendComment()" class="w-full bg-slate-950/90 border border-slate-800 rounded-xl pl-3 pr-9 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 shadow-inner" />
             <button onclick="sendComment(true)" title="Attach video timestamp" class="absolute right-2 text-indigo-400 hover:text-indigo-300 text-xs font-bold p-1 transition active:scale-90">
               ⏱
             </button>
@@ -248,9 +249,9 @@
 
   </main>
 
-  <!-- BOTTOM CONTROL BAR & REACTION DECK -->
+  <!-- BOTTOM CONTROL BAR & REACTION DECK WITH EXPLICIT CREDIT -->
   <footer id="bottom-emoji-deck" class="hidden w-full bg-slate-900/90 border-t border-slate-800/80 backdrop-blur-md pb-safe pt-2 px-3 z-30 shrink-0 flex-col gap-2">
-    <!-- Reaction Emoji Stream (Without popcorn emoji) -->
+    <!-- Reaction Emoji Stream -->
     <div class="max-w-xl mx-auto flex items-center justify-around gap-1 w-full">
       <button onclick="sendReaction('❤️')" class="p-1 text-2xl hover:scale-125 transition active:scale-90">❤️</button>
       <button onclick="sendReaction('😂')" class="p-1 text-2xl hover:scale-125 transition active:scale-90">😂</button>
@@ -261,15 +262,20 @@
       <button onclick="sendReaction('🎉')" class="p-1 text-2xl hover:scale-125 transition active:scale-90">🎉</button>
     </div>
 
-    <!-- Bottom Action Bar: Minimal Game Button | Right Voice Controls -->
+    <!-- Bottom Action Bar: Games Button | Center Credit | Right Voice Controls -->
     <div class="w-full max-w-2xl mx-auto flex items-center justify-between gap-2 border-t border-slate-800/60 pt-2 pb-1">
       
-      <!-- UPDATED GAME BUTTON -->
+      <!-- GAME BUTTON -->
       <div>
         <button onclick="toggleModal('games-modal')" class="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-slate-900/90 to-purple-950/80 hover:from-purple-900/50 hover:to-slate-800/80 text-purple-200 hover:text-white text-xs font-bold transition active:scale-95 shadow-md border border-purple-500/30 flex items-center gap-1.5">
           <span class="text-sm">🕹️</span>
           <span>Party Games</span>
         </button>
+      </div>
+
+      <!-- FOOTER CREDIT (EXPLICIT AUTHOR ATTRIBUTION) -->
+      <div class="text-[11px] font-medium text-slate-400 tracking-tight text-center">
+        Created by <span class="text-indigo-300 font-bold">Ashiqur Rahman Alif</span>
       </div>
 
       <!-- Right Side: Voice Controls -->
@@ -285,8 +291,7 @@
     </div>
   </footer>
 
-
-  <!-- UPDATED VIEWERS LIST MODAL -->
+  <!-- VIEWERS LIST MODAL -->
   <div id="viewers-modal" onclick="handleOutsideClick(event, 'viewers-modal')" class="hidden fixed inset-0 bg-slate-950/75 backdrop-blur-sm z-50 flex items-center justify-center p-4">
     <div class="w-full max-w-sm bg-slate-900/95 border border-slate-800/90 rounded-3xl p-5 shadow-2xl animate-pop-in space-y-4">
       <!-- Modal Header -->
@@ -301,7 +306,7 @@
         <button onclick="toggleModal('viewers-modal')" class="text-slate-400 hover:text-white text-xs font-bold p-1">✕</button>
       </div>
       
-      <!-- Compact Same-Row My Status & Host Lock Control -->
+      <!-- Compact Status & Host Lock Control -->
       <div class="flex items-center justify-between gap-2 bg-slate-950/80 border border-slate-800/80 rounded-2xl p-2.5">
         <div class="flex items-center gap-2 flex-1 min-w-0">
           <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wide shrink-0">My Status:</span>
@@ -320,7 +325,7 @@
         </div>
       </div>
 
-      <!-- Upgraded Viewer List -->
+      <!-- Viewer List -->
       <div class="space-y-2">
         <div class="flex items-center justify-between px-1">
           <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Connected Viewers</span>
@@ -397,7 +402,7 @@
     </div>
   </div>
 
-  <!-- GAMES MODAL (Coming Soon Banner) -->
+  <!-- GAMES MODAL (Party Games Coming Soon) -->
   <div id="games-modal" onclick="handleOutsideClick(event, 'games-modal')" class="hidden fixed inset-0 bg-slate-950/75 backdrop-blur-sm z-50 flex items-center justify-center p-4">
     <div class="w-full max-w-sm bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-2xl animate-pop-in space-y-4 text-center">
       <div class="flex justify-end">
@@ -545,7 +550,8 @@
       document.getElementById('header-room-info').classList.add('flex');
       document.getElementById('bottom-emoji-deck').classList.remove('hidden');
       document.getElementById('bottom-emoji-deck').classList.add('flex');
-      document.getElementById('header-room-code').innerText = `#${roomCode}`;
+      // REMOVED '#' SYMBOL PREFIX
+      document.getElementById('header-room-code').innerText = roomCode;
       document.getElementById('host-settings-panel').classList.remove('hidden');
 
       membersList = [{ peerId: myPeerId, name: myName, isHost: true, status: myStatus }];
@@ -748,7 +754,8 @@
       document.getElementById('header-room-info').classList.add('flex');
       document.getElementById('bottom-emoji-deck').classList.remove('hidden');
       document.getElementById('bottom-emoji-deck').classList.add('flex');
-      document.getElementById('header-room-code').innerText = `#${roomCode}`;
+      // REMOVED '#' SYMBOL PREFIX
+      document.getElementById('header-room-code').innerText = roomCode;
     }
 
     function confirmPasswordAndJoin() {
@@ -778,6 +785,7 @@
       showToast(isRoomLocked ? 'Room locked to new guests.' : 'Room unlocked.', 'info');
     }
 
+    // UPDATED VIEWER COUNT RENDERING (ONLY NUMBER NEXT TO DOT)
     function renderViewersList() {
       const container = document.getElementById('viewers-list-container');
       const countText = document.getElementById('viewer-count-text');
@@ -787,14 +795,13 @@
       container.innerHTML = '';
 
       const count = membersList.length;
-      if (countText) countText.innerText = `${count} Viewer${count > 1 ? 's' : ''}`;
+      if (countText) countText.innerText = count.toString();
       if (modalCount) modalCount.innerText = count.toString();
 
       membersList.forEach((m) => {
         const li = document.createElement('li');
         li.className = 'flex items-center justify-between p-2.5 rounded-2xl bg-slate-950/70 border border-slate-800/80 shadow-sm';
 
-        // Avatar Initials + Gradient
         const initials = m.name ? m.name.substring(0, 2).toUpperCase() : 'U';
         const isMe = m.peerId === myPeerId;
 
@@ -1027,6 +1034,7 @@
       input.value = '';
     }
 
+    // MODERNIZED CHAT MESSAGES LAYOUT
     function appendChatMessage(msg) {
       const container = document.getElementById('comments-list');
       if (!container) return;
@@ -1037,7 +1045,7 @@
       }
 
       const div = document.createElement('div');
-      div.className = 'p-2.5 rounded-2xl bg-slate-950/80 border border-slate-800/80 shadow-sm space-y-1 animate-pop-in';
+      div.className = 'flex gap-2.5 items-start p-2 rounded-xl bg-slate-950/70 border border-slate-800/80 shadow-sm animate-pop-in transition';
 
       const formatTime = (sec) => {
         const m = Math.floor(sec / 60);
@@ -1045,20 +1053,26 @@
         return `${m < 10 ? '0' : ''}${m}:${s < 10 ? '0' : ''}${s}`;
       };
 
+      const senderInitials = msg.sender ? msg.sender.substring(0, 2).toUpperCase() : 'U';
+
       div.innerHTML = `
-        <div class="flex items-center justify-between text-[10px]">
-          <span class="font-bold text-indigo-300 flex items-center gap-1">
-            <span class="w-1.5 h-1.5 rounded-full bg-indigo-500 inline-block"></span>
-            ${escapeHtml(msg.sender)}
-          </span>
-          <span class="text-slate-500 font-mono">${msg.timeStr}</span>
+        <div class="w-7 h-7 rounded-full bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center font-bold text-white text-[10px] shrink-0 mt-0.5 shadow">
+          ${senderInitials}
         </div>
-        <p class="text-slate-200 leading-relaxed font-normal">${escapeHtml(msg.text)}</p>
-        ${msg.timestamp !== null ? `
-          <button onclick="seekMedia(${msg.timestamp})" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-indigo-600/20 border border-indigo-500/40 text-indigo-300 text-[10px] font-bold hover:bg-indigo-600/40 transition active:scale-95">
-            <span>⏱ Jump to ${formatTime(msg.timestamp)}</span>
-          </button>
-        ` : ''}
+        <div class="flex-1 min-w-0 space-y-0.5">
+          <div class="flex items-center justify-between gap-2">
+            <span class="font-bold text-indigo-300 text-xs truncate">${escapeHtml(msg.sender)}</span>
+            <span class="text-[9px] font-mono text-slate-500 shrink-0 bg-slate-900/90 px-1.5 py-0.5 rounded border border-slate-800">${msg.timeStr}</span>
+          </div>
+          <p class="text-slate-200 leading-relaxed text-xs font-normal break-words">${escapeHtml(msg.text)}</p>
+          ${msg.timestamp !== null ? `
+            <div class="pt-1">
+              <button onclick="seekMedia(${msg.timestamp})" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-indigo-600/20 border border-indigo-500/40 text-indigo-300 text-[10px] font-bold hover:bg-indigo-600/40 transition active:scale-95">
+                ⏱ Jump to ${formatTime(msg.timestamp)}
+              </button>
+            </div>
+          ` : ''}
+        </div>
       `;
 
       container.appendChild(div);
