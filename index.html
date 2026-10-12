@@ -154,8 +154,8 @@
         <!-- Join Room Section -->
         <div class="space-y-3">
           <div>
-            <label class="block text-xs font-semibold text-slate-300 mb-1">Paste Invite Link or Host Peer ID</label>
-            <input type="text" id="join-code-input" placeholder="Paste full invite link" class="w-full bg-slate-950/90 border border-slate-800 rounded-2xl px-4 py-3 text-sm text-white font-mono focus:outline-none focus:border-indigo-500 transition shadow-inner" />
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Enter 6-Digit Code or Invite Link</label>
+            <input type="text" id="join-code-input" placeholder="e.g. 483921" class="w-full bg-slate-950/90 border border-slate-800 rounded-2xl px-4 py-3 text-sm text-white font-mono focus:outline-none focus:border-indigo-500 transition shadow-inner" />
           </div>
 
           <button onclick="submitJoinParty()" class="w-full bg-slate-800 hover:bg-slate-700 text-white font-semibold py-3 rounded-2xl text-sm transition border border-slate-700 active:scale-95">
@@ -382,6 +382,10 @@
       }
     }
 
+    function generateSixDigitId() {
+      return Math.floor(100000 + Math.random() * 900000).toString();
+    }
+
     function startParty() {
       const nameInput = document.getElementById('display-name-input').value.trim();
       if (!nameInput) {
@@ -399,7 +403,8 @@
         try { peer.destroy(); } catch(e) {}
       }
 
-      peer = new Peer(RENDER_PEER_OPTIONS);
+      const sixDigitId = generateSixDigitId();
+      peer = new Peer(sixDigitId, RENDER_PEER_OPTIONS);
 
       peer.on('open', (id) => {
         currentUser.id = id;
@@ -407,7 +412,7 @@
         setupUIForRoom();
         participants = [{ id: currentUser.id, name: currentUser.name, isHost: true }];
         updateViewersUI();
-        showToast(`Hosting room successfully!`, '👑');
+        showToast(`Room created! Code: ${id}`, '👑');
       });
 
       peer.on('connection', (conn) => {
@@ -419,7 +424,10 @@
 
       peer.on('error', (err) => {
         console.error('Peer error:', err);
-        if (err.type === 'unavailable-id' || err.type === 'network') {
+        if (err.type === 'unavailable-id') {
+          // Retry automatically with a new 6-digit ID if collision occurs
+          startParty();
+        } else if (err.type === 'network') {
           showToast('Server is waking up. Please try again in 10 seconds.', '⚠️');
         } else {
           showToast(`Connection error: ${err.type}`, '⚠️');
@@ -438,7 +446,7 @@
 
       let targetInput = document.getElementById('join-code-input').value.trim();
       if (!targetInput) {
-        showToast('Please paste the invite link or Host ID!', '⚠️');
+        showToast('Please enter the 6-digit room code or invite link!', '⚠️');
         return;
       }
 
@@ -479,7 +487,7 @@
     }
 
     function connectToHostRoom() {
-      showToast(`Connecting to host...`, '⏳');
+      showToast(`Connecting to room ${hostPeerId}...`, '⏳');
 
       if (!peer || peer.disconnected || peer.destroyed) {
         peer = new Peer(RENDER_PEER_OPTIONS);
@@ -495,7 +503,7 @@
 
       const connectTimeout = setTimeout(() => {
         if (!hostConn || !hostConn.open) {
-          showToast('Connection timed out. Check the Invite Link or Host ID.', '⚠️');
+          showToast('Connection timed out. Check the 6-digit code or ensure host is online.', '⚠️');
         }
       }, 15000);
 
@@ -536,11 +544,9 @@
       conn.on('data', (data) => {
         if (data.type === 'AUTH_RESPONSE') {
           if (!data.payload.success) {
-            if (!roomPassword || roomPassword !== document.getElementById('modal-password-input')?.value) {
-              toggleModal('password-prompt-modal');
-              return;
-            }
-            showToast(data.payload.message, '⚠️');
+            // Show password modal if authorization failed
+            toggleModal('password-prompt-modal');
+            showToast(data.payload.message || 'Password required', '🔒');
             try { peer.destroy(); } catch(e) {}
             return;
           }
@@ -609,7 +615,7 @@
       document.getElementById('bottom-emoji-deck').classList.add('flex');
       document.getElementById('header-room-info').classList.remove('hidden');
       document.getElementById('header-room-info').classList.add('flex');
-      document.getElementById('header-room-code').innerText = hostPeerId.substring(0, 6) + '...';
+      document.getElementById('header-room-code').innerText = hostPeerId; // Shows full 6 digits clearly
     }
 
     function updateViewersUI() {
