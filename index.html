@@ -82,8 +82,8 @@
   <!-- HEADER BAR -->
   <header class="w-full bg-slate-900/80 backdrop-blur-md border-b border-slate-800/80 z-30 pt-safe px-4 py-2 flex items-center justify-between shadow-lg shrink-0">
     <div class="flex items-center gap-2">
-      <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center font-bold text-sm shadow-md shadow-indigo-500/20">
-        WP
+      <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center text-base shadow-md shadow-indigo-500/20">
+        🍿
       </div>
       <div>
         <h1 class="text-sm font-bold tracking-tight text-white leading-none">WatchParty</h1>
@@ -113,8 +113,8 @@
     <div id="lobby-card" class="w-full max-w-md bg-slate-900/95 border border-slate-800/80 p-6 sm:p-8 rounded-3xl shadow-2xl backdrop-blur-2xl animate-pop-in my-auto space-y-6">
       
       <div class="text-center space-y-1.5">
-        <div class="inline-flex w-14 h-14 bg-gradient-to-tr from-indigo-600/20 to-violet-500/20 border border-indigo-500/30 rounded-2xl items-center justify-center text-xl font-bold text-indigo-400 shadow-inner mb-1">
-          ▶
+        <div class="inline-flex w-16 h-16 bg-gradient-to-tr from-indigo-600/20 to-violet-500/20 border border-indigo-500/30 rounded-2xl items-center justify-center text-3xl shadow-inner mb-1">
+          🍿
         </div>
         <h2 class="text-2xl font-black text-white tracking-tight">Watch Together, Anywhere</h2>
         <p class="text-xs text-slate-400">Sync YouTube, Facebook & web videos instantly.</p>
@@ -137,7 +137,7 @@
         </details>
 
         <button onclick="startParty()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-3 rounded-2xl text-sm transition shadow-lg shadow-indigo-600/20 active:scale-95">
-          Host Party
+          🚀 Host Party
         </button>
 
         <div class="relative flex py-2 items-center">
@@ -153,7 +153,7 @@
           </div>
 
           <button onclick="submitJoinParty()" class="w-full bg-slate-800 hover:bg-slate-700 text-white font-semibold py-3 rounded-2xl text-sm transition border border-slate-700 active:scale-95">
-            Join Room
+            ✨ Join Room
           </button>
         </div>
 
@@ -168,30 +168,24 @@
         <div id="reaction-stream-container"></div>
         <div id="player-container" class="w-full h-full flex items-center justify-center">
           <div class="text-center p-6">
-            <div class="text-3xl mb-1 text-slate-600">▶</div>
+            <div class="text-3xl mb-1 text-slate-500">🍿</div>
             <p class="text-xs font-medium text-slate-300">No media loaded yet</p>
-            <p class="text-[11px] text-slate-500 mt-0.5">Tap ┼ below to load links</p>
+            <p class="text-[11px] text-slate-500 mt-0.5">Tap ➕ to add media links</p>
           </div>
         </div>
       </div>
 
-      <!-- Icon-Only Video Control Bar (Prev/Next on Left | Add/Queue/History/Mute on Right) -->
-      <div class="w-full max-w-3xl bg-slate-900/90 border border-slate-800/80 rounded-xl px-2.5 py-1 shadow-md flex items-center justify-between gap-1 shrink-0">
-        <!-- Left: Previous & Next -->
-        <div class="flex items-center gap-1">
-          <button onclick="triggerVideoControl('prev')" title="Previous Video" class="px-2 py-0.5 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-200 text-xs font-bold transition active:scale-90 border border-slate-700/60">◀◀</button>
-          <button onclick="triggerVideoControl('next')" title="Next Video" class="px-2 py-0.5 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-200 text-xs font-bold transition active:scale-90 border border-slate-700/60">▶▶</button>
-        </div>
-
-        <!-- Right: Add, Queue, History, Mute -->
-        <div class="flex items-center gap-1">
-          <button onclick="toggleModal('video-modal')" title="Add Video" class="px-2.5 py-0.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-black transition active:scale-90 shadow-md shadow-indigo-600/30 border border-indigo-400/40">┼</button>
-          <button onclick="toggleModal('queue-modal')" title="Video Queue" class="px-2 py-0.5 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-200 text-xs font-bold transition active:scale-90 relative border border-slate-700/60">
-            ☰ <span id="queue-count-badge" class="absolute -top-1 -right-1 bg-indigo-600 text-white text-[8px] font-bold w-3.5 h-3.5 rounded-full flex items-center justify-center">0</span>
-          </button>
-          <button onclick="toggleModal('history-modal')" title="Watch History" class="px-2 py-0.5 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-200 text-xs font-bold transition active:scale-90 border border-slate-700/60">🕒</button>
-          <button onclick="toggleMuteVideo()" id="inline-mute-btn" title="Toggle Mute" class="px-2 py-0.5 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-200 text-xs font-bold transition active:scale-90 border border-slate-700/60">🔊</button>
-        </div>
+      <!-- Video Control Deck Under Video (Add, Queue, History, Mute) -->
+      <div class="w-full max-w-3xl bg-slate-900/90 border border-slate-800/80 rounded-xl px-3 py-1.5 shadow-md flex items-center justify-end gap-2 shrink-0">
+        <button onclick="toggleModal('video-modal')" title="Add Video" class="px-3 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold transition active:scale-90 shadow-md shadow-indigo-600/30 border border-indigo-400/40 flex items-center gap-1">
+          <span>➕</span>
+          <span>Add</span>
+        </button>
+        <button onclick="toggleModal('queue-modal')" title="Video Queue" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold transition active:scale-90 relative border border-slate-700/60">
+          📃 <span id="queue-count-badge" class="absolute -top-1 -right-1 bg-indigo-600 text-white text-[8px] font-bold w-3.5 h-3.5 rounded-full flex items-center justify-center">0</span>
+        </button>
+        <button onclick="toggleModal('history-modal')" title="Watch History" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold transition active:scale-90 border border-slate-700/60">📜</button>
+        <button onclick="toggleMuteVideo()" id="inline-mute-btn" title="Toggle Mute" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold transition active:scale-90 border border-slate-700/60">🔊</button>
       </div>
 
       <!-- Comments Section -->
@@ -230,20 +224,21 @@
       <button onclick="sendReaction('👏')" class="p-1 text-xl hover:scale-125 transition active:scale-90">👏</button>
     </div>
 
-    <!-- Bottom Bar: Left Game Button | Right Icon-Only Voice & PTT -->
+    <!-- Bottom Bar: Left Games Button | Right Voice & PTT -->
     <div class="w-full max-w-2xl mx-auto flex items-center justify-between gap-2 border-t border-slate-800/60 pt-1.5 pb-0.5">
       
-      <!-- Left Side: Game Button -->
+      <!-- Left Side: Games -->
       <div>
-        <button onclick="toggleModal('games-modal')" class="px-2.5 py-1 rounded-xl bg-violet-600/90 hover:bg-violet-500 text-white text-[11px] font-semibold transition active:scale-95 shadow flex items-center gap-1">
+        <button onclick="toggleModal('games-modal')" class="px-3 py-1 rounded-xl bg-violet-600/90 hover:bg-violet-500 text-white text-[11px] font-semibold transition active:scale-95 shadow flex items-center gap-1">
+          <span>🎮</span>
           <span>Games</span>
         </button>
       </div>
 
-      <!-- Right Side: Icon-Only Voice Chat & Push-to-Talk -->
+      <!-- Right Side: Voice Chat & Push-to-Talk -->
       <div class="flex items-center gap-1.5">
         <button onclick="toggleVoiceChat()" id="mic-btn" title="Voice Chat On/Off" class="w-7 h-7 rounded-lg bg-rose-600/90 hover:bg-rose-500 text-white text-xs font-bold transition active:scale-95 shadow flex items-center justify-center select-none">
-          🎙
+          🎙️
         </button>
         <button onmousedown="startPTT()" onmouseup="endPTT()" ontouchstart="startPTT()" ontouchend="endPTT()" id="ptt-btn" title="Push-to-Talk (Hold)" class="w-7 h-7 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-indigo-300 text-xs font-bold transition active:scale-95 select-none shadow flex items-center justify-center">
           ⚡
@@ -467,22 +462,6 @@
       }
     }
 
-    function triggerVideoControl(action) {
-      if (action === 'prev') {
-        if (activeMediaIndex > 0) {
-          playQueueItem(activeMediaIndex - 1);
-        } else {
-          showToast('This is the first video', '⚠️');
-        }
-      } else if (action === 'next') {
-        if (activeMediaIndex !== -1 && activeMediaIndex + 1 < videoQueue.length) {
-          playQueueItem(activeMediaIndex + 1);
-        } else {
-          showToast('No more videos in queue', '⚠️');
-        }
-      }
-    }
-
     function playSoundEffect() {
       try {
         const ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -511,7 +490,7 @@
           isMicActive = true;
           micBtn.classList.remove('bg-rose-600/90');
           micBtn.classList.add('bg-emerald-600', 'text-white', 'ring-2', 'ring-emerald-400/50');
-          showToast('Microphone active!', '🎙');
+          showToast('Microphone active!', '🎙️');
 
           connections.forEach(conn => callPeer(conn.peer, localStream));
           if (!isHost && hostConn && hostConn.open) callPeer(hostPeerId, localStream);
