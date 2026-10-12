@@ -87,7 +87,7 @@
       </div>
       <div>
         <h1 class="text-base font-bold tracking-tight text-white leading-none">WatchParty</h1>
-        <p class="text-[10px] font-medium text-indigo-300/80 tracking-wide leading-tight mt-0.5">by Ashiqur Rahman Alif</p>
+        <p class="text-[10px] font-medium text-indigo-300/80 tracking-wide leading-tight mt-0.5">by Ashiqur Rahman Alif[cite: 1]</p>
       </div>
     </div>
 
@@ -188,11 +188,11 @@
         <div class="flex items-center gap-2">
           <button onclick="toggleVoiceChat()" id="player-mic-btn" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold transition active:scale-95 flex items-center gap-1.5 border border-slate-700/60 shadow">
             <span>🎙️</span>
-            <span id="player-mic-text">Voice Chat Off</span>
+            <span id="player-mic-text">Mic Off</span>
           </button>
         </div>
-        <div class="text-xs text-slate-400 font-medium">
-          💡 Click a timestamp in comments to jump to that moment
+        <div class="text-[11px] text-slate-400">
+          Click timestamps to jump
         </div>
       </div>
 
@@ -200,14 +200,14 @@
       <div class="w-full max-w-3xl bg-slate-900/90 border border-slate-800/80 rounded-2xl p-4 shadow-xl flex flex-col gap-3">
         <div class="flex items-center justify-between border-b border-slate-800/80 pb-2">
           <h3 class="font-bold text-xs text-white uppercase tracking-wider flex items-center gap-1.5">
-            <span>💬</span> Room Comments & Timestamps
+            <span>💬</span> Comments
           </h3>
-          <span class="text-[10px] text-slate-400">Syncs instantly with everyone</span>
+          <span class="text-[10px] text-slate-400">Live</span>
         </div>
 
         <!-- Comments List -->
         <div id="comments-list" class="space-y-2 max-h-36 overflow-y-auto pr-1 text-xs">
-          <p class="text-slate-500 italic text-center py-2">No comments yet. Be the first to share a thought!</p>
+          <p class="text-slate-500 italic text-center py-2">No comments yet.</p>
         </div>
 
         <!-- Add Comment Input Form -->
@@ -237,7 +237,7 @@
     <div class="w-full max-w-xl mx-auto flex items-center justify-center gap-2 border-t border-slate-800/60 pt-2 pb-1 flex-wrap">
       <button onclick="toggleModal('video-modal')" class="px-3.5 py-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-white text-xs font-semibold transition active:scale-95 flex items-center gap-1.5">
         <span>🎬</span>
-        <span>Change Video</span>
+        <span>Video</span>
       </button>
       <button onclick="toggleModal('history-modal')" class="px-3.5 py-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-white text-xs font-semibold transition active:scale-95 flex items-center gap-1.5">
         <span>📜</span>
@@ -423,7 +423,7 @@
         try {
           localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
           isMicActive = true;
-          micBtnText.innerText = 'Voice Chat On';
+          micBtnText.innerText = 'Mic On';
           micBtn.classList.remove('bg-slate-800');
           micBtn.classList.add('bg-emerald-600', 'text-white');
           showToast('Microphone active!', '🎙️');
@@ -446,7 +446,7 @@
         });
         activeCalls = [];
         isMicActive = false;
-        micBtnText.innerText = 'Voice Chat Off';
+        micBtnText.innerText = 'Mic Off';
         micBtn.classList.remove('bg-emerald-600');
         micBtn.classList.add('bg-slate-800');
         showToast('Microphone muted.', '🔇');
@@ -478,7 +478,6 @@
       audioEl.srcObject = stream;
     }
 
-    // Helper to format seconds into MM:SS
     function formatTime(seconds) {
       const mins = Math.floor(seconds / 60);
       const secs = Math.floor(seconds % 60);
@@ -530,7 +529,7 @@
     function renderCommentsUI() {
       const container = document.getElementById('comments-list');
       if (commentsList.length === 0) {
-        container.innerHTML = `<p class="text-slate-500 italic text-center py-2">No comments yet. Be the first to share a thought!</p>`;
+        container.innerHTML = `<p class="text-slate-500 italic text-center py-2">No comments yet.</p>`;
         return;
       }
 
